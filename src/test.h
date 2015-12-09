@@ -16,7 +16,7 @@
 #define DEFAULT_N 1000000L
 
 #define BUFFER_SIZE 4096
-#define DEFAULT_HASHBUCKETS_MAXLOAD 10000
+#define DEFAULT_HASHBUCKETS_MAXLOAD 140
 #define DEFAULT_HASHBUCKETS_LENGTH 10000
 #define DEFAULT_MURMURHASH_SEED 1234567890
 //-----------------------------------------------------------------------------
