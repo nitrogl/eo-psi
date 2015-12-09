@@ -6,6 +6,7 @@
 #include "hashbuckets.h"
 #include "murmurhash3.h"
 #include "strint.h"
+#include "simplebm.h"
 
 #include "test.h"
 //-----------------------------------------------------------------------------
