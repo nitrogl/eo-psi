@@ -1,26 +1,28 @@
 /*
- * A simple benchmark
+ * A simple benchmark.
+ * It requires C++11.
  * 
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
 #include "simplebm.h"
 
-SimpleBenchmark::SimpleBenchmark() {
-  this->times.reserve(INIT_TIMES_SIZE);
+SimpleBenchmark::SimpleBenchmark(size_t tSize) {
+  // Init vector of times and internal state of the benchmark
+  this->times.reserve(tSize);
   this->reset();
 }
 
 SimpleBenchmark::~SimpleBenchmark() {
 }
 
+void SimpleBenchmark::takeTime() {
+  this->times.push_back(std::chrono::high_resolution_clock::now());
+}
+
 void SimpleBenchmark::start() {
   this->reset();
   this->takeTime();
-}
-
-void SimpleBenchmark::takeTime() {
-  this->times.push_back(std::chrono::high_resolution_clock::now());
 }
 
 void SimpleBenchmark::step() {
@@ -41,8 +43,7 @@ void SimpleBenchmark::stop() {
 
 std::chrono::microseconds SimpleBenchmark::benchmark(size_t cursor) const {
   if (cursor >= this->times.size()) {
-    std::chrono::high_resolution_clock::time_point t = std::chrono::high_resolution_clock::now();
-    return std::chrono::duration_cast<std::chrono::microseconds>(t - t);
+    return SimpleBenchmark::ZEROMS;
   }
   
   if (cursor < 1) {
@@ -54,8 +55,7 @@ std::chrono::microseconds SimpleBenchmark::benchmark(size_t cursor) const {
 
 std::chrono::microseconds SimpleBenchmark::cumulativeBenchmark(size_t cursor) const {
   if (cursor >= this->times.size()) {
-    std::chrono::high_resolution_clock::time_point t = std::chrono::high_resolution_clock::now();
-    return std::chrono::duration_cast<std::chrono::microseconds>(t - t);
+    return SimpleBenchmark::ZEROMS;
   }
   if (cursor < 1) {
     return std::chrono::duration_cast<std::chrono::microseconds>(this->times[this->times.size() - 1] - this->times[0]);
