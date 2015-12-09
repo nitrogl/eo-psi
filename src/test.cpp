@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
   size_t n;
   NTL::ZZ_p *z;
   NTL::ZZ p;
+  SimpleBenchmark benchmark;
   
   // Initialize numbers modulo p
   p = str2zz(DEFAULT_P);
@@ -66,12 +67,16 @@ int main(int argc, char **argv) {
   }
   
   // Add to hash
+  benchmark.start();
   for (size_t i = 0; i < n; i++) {
     hashBuckets->add(z[i]);
   }
+  benchmark.stop();
   
   // Print stats
   hashBuckets->printStats();
+  std::cout << "Total time to add " << n << " elements to the hashtable: " << benchmark.benchmark().count() / 1000000. << " s" << std::endl; 
+  std::cout << "Average time to add an element to the hashtable: " << (double) benchmark.benchmark().count() / n << " µs" << std::endl;
   
   delete(mh3);
   delete(hashBuckets);
