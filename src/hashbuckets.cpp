@@ -13,6 +13,13 @@ template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad) {
   this->maxLoad = maxLoad;
   
   this->buckets = new Bucket<T>[length];
+  
+  // Reserving space should enhance efficiency
+  for (size_t i = 0; i < length; i++) {
+    // Reserving 3/4 of maxLoad
+    this->buckets[i].reserve(1 + 3 * maxLoad / 4);
+  }
+  
   if (this->buckets == nullptr) {
     std::cerr << "HashBuckets()" << ". Unable to initialise buckets." << std::endl;
   }
@@ -42,8 +49,9 @@ template <class T> void HashBuckets<T>::add(T element) {
 //-----------------------------------------------------------------------------
 
 template <class T> void HashBuckets<T>::addToBucket(T element, int i) {
-  if (i >= 0 && i < this->k) {
-    this->buckets[i].push_back(element);
+  size_t index = i;
+  if (index < this->k) {
+    this->buckets[index].push_back(element);
   } else {
     std::cerr << "HashBuckets<T>::addToBucket()" << ". Index out of bound." << std::endl;
   }
