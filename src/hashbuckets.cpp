@@ -14,7 +14,7 @@ template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad) {
   
   this->buckets = new Bucket<T>[length];
   
-  // Reserving space should enhance efficiency
+  // Reserving space enhances efficiency (it sped up! cool!! ~0.1 seconds of total)
   for (size_t i = 0; i < length; i++) {
     // Reserving 3/4 of maxLoad
     this->buckets[i].reserve(1 + 3 * maxLoad / 4);
@@ -31,7 +31,7 @@ template <class T> HashBuckets<T>::~HashBuckets() {
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::add(T element) {
+template <class T> void HashBuckets<T>::add(T element) throw (OutOfBoundException) {
   char *hash;
   strint128 h128;
   size_t i, index;
@@ -42,18 +42,23 @@ template <class T> void HashBuckets<T>::add(T element) {
   }
   this->hash128.set(h128);
   index = this->hash128.rem(this->k);
+  
+  if (this->buckets[index].size() == this->maxLoad) {
+    throw new OutOfBoundException("HashBuckets<T>::addToBucket(). Bucket full.", OutOfBoundException::FATAL);
+  }
+  
 //   if (index == 0)
 //   std::cerr << "HashBuckets<T>::addToBucket()" << ". Index of " << element << " is " << index << "." << std::endl; // Debug purposes
   this->buckets[index].push_back(element);
 };
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::addToBucket(T element, int i) {
+template <class T> void HashBuckets<T>::addToBucket(T element, int i) throw (OutOfBoundException) {
   size_t index = i;
   if (index < this->k) {
     this->buckets[index].push_back(element);
   } else {
-    std::cerr << "HashBuckets<T>::addToBucket()" << ". Index out of bound." << std::endl;
+    throw new OutOfBoundException("HashBuckets<T>::addToBucket(). Index out of bound.", OutOfBoundException::FATAL);
   }
 };
 //-----------------------------------------------------------------------------
@@ -96,7 +101,8 @@ template <class T> void HashBuckets<T>::printStats(bool full) const {
   }
   
   // Print stats
-  std::cout << "Total elements. N = " << total << std::endl;
+  std::cout << "HashBuchets - " << this->k << " buckets of size " << this->maxLoad << std::endl;
+  std::cout << "Total elements. N = " << total << " (" << total * 100. / this->k / this->maxLoad << "%)" << std::endl;
   std::cout << "Minimum size.   min = " << minSize << " (bucket " << minBucket << ")" << std::endl;
   std::cout << "Maximum size.   max = " << maxSize << " (bucket " << maxBucket << ")" << std::endl;
   std::cout << "Average.   m = " << avgSize << std::endl;

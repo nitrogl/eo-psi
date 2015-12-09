@@ -11,6 +11,7 @@
 #include "hashtable.tpp"
 #include "bucket.h"
 #include "strint.h"
+#include "outofboundex.h"
 //-----------------------------------------------------------------------------
 
 template <class T> class HashBuckets: public HashTable<T, Bucket<T>>
@@ -26,8 +27,8 @@ public:
   size_t getLength() const;
   size_t getMaxLoad() const;
   
-  void add(T element);
-  void addToBucket(T element, int i);
+  void add(T element) throw (OutOfBoundException);
+  void addToBucket(T element, int i) throw (OutOfBoundException);
   
   void printStats(bool full = false) const;
 };
