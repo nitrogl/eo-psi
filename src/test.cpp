@@ -21,7 +21,7 @@
  */
 int main(int argc, char **argv) {
   HashBuckets<NTL::ZZ_p>* hashBuckets;
-  HashAlgorithm<NTL::ZZ_p>* mh3;
+  HashAlgorithm<NTL::ZZ_p>* hashAlgorithm;
   std::string infilename = DEFAULT_FILENAME;
   std::ifstream infile;
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
@@ -36,13 +36,13 @@ int main(int argc, char **argv) {
   NTL::ZZ_p::init(p);
   
   // Use a specific seed to generate the same hashes
-  mh3 = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
+  hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
   hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
-  if (hashBuckets == nullptr) {
+  if (hashBuckets == nullptr) { // or is a try-catch more appropriate?
     std::cerr << argv[0] << ". Error allocating hash table." << std::endl;
     exit(1);
   }
-  hashBuckets->setHashAlgorithm(mh3);
+  hashBuckets->setHashAlgorithm(hashAlgorithm);
   
   // Open file with numbers
   if (argc >= 2) {
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
   std::cout << "Total time to add " << n << " elements to the hashtable: " << benchmark.benchmark().count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to add an element to the hashtable: " << (double) benchmark.benchmark().count() / n << " µs" << std::endl;
   
-  delete(mh3);
+  delete(hashAlgorithm);
   delete(hashBuckets);
   return 0;
 }
