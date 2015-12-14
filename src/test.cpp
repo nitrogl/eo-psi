@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <gmpxx.h>
+#include <getopt.h>
 #include <NTL/ZZ_p.h>
 
 #include "hashbuckets.h"
@@ -8,7 +9,18 @@
 #include "strint.h"
 #include "simplebm.h"
 
+#include "zzrndgen.h"
 #include "test.h"
+//-----------------------------------------------------------------------------
+
+static void printUsage(const char *prgnam) {
+  std::cout << "Syntax: " << prgnam << " -k <keys> -l <bucket-size> -i <infile>\n"
+            << " -k : number of keys of the hash table\n"
+            << " -l : size of buckets of the hash table\n"
+            << " -i : file name to read numbers from\n"
+            << " -h : show this message and exit\n"
+            << std::endl;
+}
 //-----------------------------------------------------------------------------
 
 /**
@@ -28,12 +40,37 @@ int main(int argc, char **argv) {
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n;
   NTL::ZZ_p *z;
-  NTL::ZZ p;
+  NTL::ZZ p (0L);
   SimpleBenchmark benchmark;
   
-  // Initialize numbers modulo p
-  p = str2zz(DEFAULT_P);
-  NTL::ZZ_p::init(p);
+  // Parse arguments
+  int op = 0; // Return value of getopt_long
+  while ((op = getopt(argc, argv, "hk:l:i:")) != -1) {
+    switch (op) {
+      case 'k':
+        length = atol(optarg); 
+        break;
+        
+      case 'l':
+        maxLoad = atol(optarg); 
+        break;
+        
+      case 'i': 
+        infilename = optarg; 
+        break;
+        
+      case 'p': 
+        p = str2zz(optarg);
+        break;
+        
+      case '?':
+        std::cerr << "Unrecognised option " << argv[op] << std::endl;
+      case 'h':
+      default:
+        printUsage(argv[0]);
+        return 1;
+    }
+  }
   
   // Use a specific seed to generate the same hashes
   hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
@@ -56,8 +93,18 @@ int main(int argc, char **argv) {
     exit(1);
   }
   
+  infile >> p;
+  // Initialize numbers modulo p
+  NTL::ZZ_p::init(p);
+  
   // Read all numbers at once (?)
   infile >> n;
+  
+  // Check arguments consistency
+  if (n/length > maxLoad) {
+    std::cerr << argv[0] << ". WARNING: too many numbers for the hashtable." << std::endl;
+  }
+    
   z = new NTL::ZZ_p[n];
   if (z == nullptr) {
     std::cerr << argv[0] << ". Error loading all " << n << " numbers to memory." << std::endl;
