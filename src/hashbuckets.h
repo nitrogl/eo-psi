@@ -12,6 +12,8 @@
 #include "bucket.h"
 #include "strint.h"
 #include "outofboundex.h"
+
+#define DEFAULT_NSHOW 30
 //-----------------------------------------------------------------------------
 
 template <class T> class HashBuckets: public HashTable<T, Bucket<T>>

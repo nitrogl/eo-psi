@@ -111,7 +111,7 @@ template <class T> void HashBuckets<T>::printStats(bool full) const {
   std::cout << std::endl;
   
   // Show each buckets
-  nshow = full ? this->k : 30;
+  nshow = full || (this->k < DEFAULT_NSHOW) ? this->k : DEFAULT_NSHOW;
   for (size_t i = 0; i < nshow; i++) {
     std::cout << "(" << i << ", " << this->buckets[i].size() << ") \t";
     if (i % 5 == 4) {
