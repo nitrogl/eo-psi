@@ -111,10 +111,10 @@ template <class T> void HashBuckets<T>::printStats(bool full) const {
   std::cout << std::endl;
   
   // Show each buckets
-  nshow = full ? this->k : 50;
+  nshow = full ? this->k : 30;
   for (size_t i = 0; i < nshow; i++) {
     std::cout << "(" << i << ", " << this->buckets[i].size() << ") \t";
-    if (i % 10 == 9) {
+    if (i % 5 == 4) {
       std::cout << std::endl;
     }
   }
