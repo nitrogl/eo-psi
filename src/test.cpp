@@ -15,6 +15,7 @@
 
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -k <keys> -l <bucket-size> -i <infile>\n"
+            << " -a : hash algorithm (MH3)\n"
             << " -k : number of keys of the hash table\n"
             << " -l : size of buckets of the hash table\n"
             << " -i : file name to read numbers from\n"
@@ -32,21 +33,30 @@ static void printUsage(const char *prgnam) {
  * 3 - output the size of buckets (uniformity is a must)
  */
 int main(int argc, char **argv) {
-  HashBuckets<NTL::ZZ_p>* hashBuckets;
-  HashAlgorithm<NTL::ZZ_p>* hashAlgorithm;
+  HashBuckets<NTL::ZZ_p>* hashBuckets = nullptr;
+  HashAlgorithm<NTL::ZZ_p>* hashAlgorithm = nullptr;
   std::string infilename = DEFAULT_FILENAME;
   std::ifstream infile;
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n;
-  NTL::ZZ_p *z;
+  NTL::ZZ_p *z = nullptr;
   NTL::ZZ p (0L);
   SimpleBenchmark benchmark;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
-  while ((op = getopt(argc, argv, "hk:l:i:")) != -1) {
+  while ((op = getopt(argc, argv, "a:hi:k:l:")) != -1) {
     switch (op) {
+      case 'a':
+        if (strcmp(optarg, "MH3") == 0) {
+          hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
+        } else if (strcmp(optarg, "SHA1") == 0) {
+          std::cerr << argv[0] << ". Hash algorithm SHA1 not (yet) implemented." << std::endl;
+          exit(2);
+        }
+        break;
+        
       case 'k':
         length = atol(optarg); 
         break;
@@ -73,7 +83,10 @@ int main(int argc, char **argv) {
   }
   
   // Use a specific seed to generate the same hashes
-  hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
+  if (hashAlgorithm == nullptr) {
+    std::cerr << argv[0] << ". WARNING: using default hash algorithm MurmurHash3." << std::endl;
+    hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
+  }
   hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
   if (hashBuckets == nullptr) { // or is a try-catch more appropriate?
     std::cerr << argv[0] << ". Error allocating hash table." << std::endl;
@@ -82,9 +95,7 @@ int main(int argc, char **argv) {
   hashBuckets->setHashAlgorithm(hashAlgorithm);
   
   // Open file with numbers
-  if (argc >= 2) {
-    infilename = argv[1];
-  } else {
+  if (infilename == DEFAULT_FILENAME) {
     std::cerr << argv[0] << ". WARNING: using default input file name \"" << infilename << "\"." << std::endl;
   }
   infile.open(infilename, std::ifstream::in);
@@ -93,8 +104,8 @@ int main(int argc, char **argv) {
     exit(1);
   }
   
-  infile >> p;
   // Initialize numbers modulo p
+  infile >> p;
   NTL::ZZ_p::init(p);
   
   // Read all numbers at once (?)
