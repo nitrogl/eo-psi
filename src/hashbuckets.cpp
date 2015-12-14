@@ -118,7 +118,7 @@ template <class T> void HashBuckets<T>::printStats(bool full) const {
       std::cout << std::endl;
     }
   }
-  std::cout << (full ? "" : "...") << std::endl;
+  std::cout << (full || (this->k < DEFAULT_NSHOW) ? "" : "...") << std::endl;
 };
 //-----------------------------------------------------------------------------
 
