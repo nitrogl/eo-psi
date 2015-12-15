@@ -63,9 +63,7 @@ int main(int argc, char **argv) {
   NTL::SetSeed(str2zz(seed));
   
   // Open file
-  if (argc >= 2) {
-    outfilename = argv[1];
-  } else {
+  if (outfilename == DEFAULT_FILENAME) {
     std::cerr << argv[0] << ". WARNING: using default output file name." << std::endl;
   }
   outfile.open(outfilename, std::ofstream::out | std::ofstream::trunc);

@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n;
   NTL::ZZ_p *z = nullptr;
-  NTL::ZZ p (0L);
+  NTL::ZZ p;
   SimpleBenchmark benchmark;
   
   // Parse arguments
