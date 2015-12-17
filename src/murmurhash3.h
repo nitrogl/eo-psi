@@ -6,8 +6,8 @@
  * my personal taste.
  */
 
-#ifndef MURMURHASH3_H
-#define MURMURHASH3_H
+#ifndef HASHALGORITHM_MURMURHASH3_H
+#define HASHALGORITHM_MURMURHASH3_H
 //-----------------------------------------------------------------------------
 
 #include <sstream>
@@ -23,9 +23,6 @@ typedef unsigned __int64 uint64_t;
 // Other compilers
 #include <cstdint>
 #endif
-//-----------------------------------------------------------------------------
-
-
 //-----------------------------------------------------------------------------
 
 class MurmurHash3: public HashAlgorithm<NTL::ZZ_p>
@@ -49,4 +46,4 @@ public:
 };
 //-----------------------------------------------------------------------------
 
-#endif
+#endif // HASHALGORITHM_MURMURHASH3_H
