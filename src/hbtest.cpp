@@ -10,7 +10,7 @@
 #include "simplebm.h"
 
 #include "zzrndgen.h"
-#include "test.h"
+#include "hbtest.h"
 //-----------------------------------------------------------------------------
 
 static void printUsage(const char *prgnam) {

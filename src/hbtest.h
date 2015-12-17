@@ -4,8 +4,8 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef TEST_H
-#define TEST_H
+#ifndef HASHBUCKET_TEST_H
+#define HASHBUCKET_TEST_H
 //-----------------------------------------------------------------------------
 
 #include <string>
@@ -17,4 +17,4 @@
 #define DEFAULT_MURMURHASH_SEED 1234567890
 //-----------------------------------------------------------------------------
 
-#endif // TEST_H
+#endif // HASHBUCKET_TEST_H
