@@ -347,6 +347,11 @@ MurmurHash3::~MurmurHash3() {
 }
 //-----------------------------------------------------------------------------
 
+std::string MurmurHash3::name() const {
+  return "Murmur Hash 3 for integers modulo p";
+}
+//-----------------------------------------------------------------------------
+
 char* MurmurHash3::hash(const NTL::ZZ_p n) {
   zzStreamString.str(std::string()); // Clear stream string
   zzStreamString << n;

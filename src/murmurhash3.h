@@ -43,6 +43,7 @@ public:
   virtual ~MurmurHash3();
   
   char* hash(const NTL::ZZ_p n);
+  std::string name() const;
 };
 //-----------------------------------------------------------------------------
 

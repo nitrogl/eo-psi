@@ -4,14 +4,17 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef HASHALGORITHM
-#define HASHALGORITHM
+#ifndef HASHALGORITHM_TEMPLATE
+#define HASHALGORITHM_TEMPLATE
+
+#include <string>
 
 template <class T> class HashAlgorithm
 {
 public:
   virtual ~HashAlgorithm() {}
   virtual char* hash(const T n) = 0;
+  virtual std::string name() const = 0;
 };
 
-#endif // HASHALGORITHM
+#endif // HASHALGORITHM_TEMPLATE
