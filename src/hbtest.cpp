@@ -6,6 +6,7 @@
 
 #include "hashbuckets.h"
 #include "murmurhash3.h"
+#include "shazzp.h"
 #include "strint.h"
 #include "simplebm.h"
 
@@ -52,6 +53,10 @@ int main(int argc, char **argv) {
         if (strcmp(optarg, "MH3") == 0) {
           hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
         } else if (strcmp(optarg, "SHA1") == 0) {
+          hashAlgorithm = new SHAZZp(SHA1_FLAVOUR);
+        } else if (strcmp(optarg, "SHA256") == 0) {
+          hashAlgorithm = new SHAZZp(SHA256_FLAVOUR);
+        } else if (strcmp(optarg, "MD5") == 0) {
           std::cerr << argv[0] << ". Hash algorithm SHA1 not (yet) implemented." << std::endl;
           exit(2);
         }
