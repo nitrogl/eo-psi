@@ -7,8 +7,8 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef HASHTABLE
-#define HASHTABLE
+#ifndef HASHTABLE_TEMPLATE
+#define HASHTABLE_TEMPLATE
 
 #include <cstdlib>
 #include "hashalgorithm.tpp"
@@ -47,4 +47,4 @@ public:
   }
 };
 
-#endif // HASHTABLE
+#endif // HASHTABLE_TEMPLATE
