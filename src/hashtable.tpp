@@ -42,7 +42,7 @@ public:
     return (i >= 0 && i < k) ? (buckets + i) : nullptr;
   }
   
-  void setHashAlgorithm(HashAlgorithm<T>* hashAlgorithm) {
+  void setHashAlgorithm(HashAlgorithm<T>& hashAlgorithm) {
     this->hashAlgorithm = hashAlgorithm;
   }
 };

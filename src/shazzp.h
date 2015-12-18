@@ -17,6 +17,10 @@
 #include "sha.tpp"
 //-----------------------------------------------------------------------------
 
+// Explicit template class
+template class SHA<NTL::ZZ_p>;
+//-----------------------------------------------------------------------------
+
 class SHAZZp: public SHA<NTL::ZZ_p>
 {
 private:

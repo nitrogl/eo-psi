@@ -9,34 +9,16 @@
 
 //-----------------------------------------------------------------------------
 
-SHAString::SHAString() {
+SHAString::SHAString() : SHA<std::string>() {
 }
 //-----------------------------------------------------------------------------
 
-SHAString::SHAString(HashFlavour flavour) {
-}
-//-----------------------------------------------------------------------------
-
-SHAString::~SHAString() {
+SHAString::SHAString(HashFlavour flavour) : SHA<std::string>(flavour) {
 }
 //-----------------------------------------------------------------------------
 
 char* SHAString::hash(const std::string str) {
-  CryptoPP::HashTransformation* sha;
   std::string hashStr = "";
-  
-  switch (this->flavour) {
-    case SHA256_FLAVOUR:
-      sha = new CryptoPP::SHA256();
-      this->hashSize = 40;
-      break;
-    
-    case SHA1_FLAVOUR:
-    default:
-      sha = new CryptoPP::SHA1();
-      this->hashSize = 64;
-      break;
-  }
   
   CryptoPP::StringSource(str, true, new CryptoPP::HashFilter(*sha, new CryptoPP::HexEncoder(new CryptoPP::StringSink(hashStr))));
   strncpy(this->lastHash, hashStr.c_str(), hashStr.length());
