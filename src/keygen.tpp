@@ -4,8 +4,8 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef KEYGEN_H
-#define KEYGEN_H
+#ifndef KEYGEN_TEMPLATE
+#define KEYGEN_TEMPLATE
 //-----------------------------------------------------------------------------
 
 #include <vector>
@@ -20,7 +20,7 @@ private:
   
 public:
   KeyGenerator() {
-    memory.reserve(1 + 3 * maxLoad / 4);
+    memory.reserve(10);
   }
   virtual ~KeyGenerator();
   
@@ -31,4 +31,4 @@ public:
 };
 //-----------------------------------------------------------------------------
 
-#endif // KEYGEN_H
+#endif // KEYGEN_TEMPLATE
