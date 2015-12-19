@@ -15,6 +15,19 @@
 #define AUX_MPZ 8
 //-----------------------------------------------------------------------------
 
+typedef union strint256 {
+  char     str[32];
+  int8_t   i8[32]; // char...
+  int16_t  i16[16];
+  int32_t  i32[8];
+  int64_t  i64[4];
+  uint8_t  u8[32]; // uchar...
+  uint16_t u16[16];
+  uint32_t u32[8];
+  uint64_t u64[4];
+} strint256;
+//-----------------------------------------------------------------------------
+
 typedef union strint128 {
   char     str[16];
   int8_t   i8[16]; // char...
@@ -58,6 +71,37 @@ public:
   StrInt128(const char *n);
   StrInt128(const uint64_t n);
   virtual ~StrInt128();
+  
+  void set(const strint128 n);
+  void set(const char *n);
+  void set(const uint64_t n);
+  unsigned long rem(const unsigned long divisor) const;
+  
+  std::string toString() const;
+};
+//-----------------------------------------------------------------------------
+
+class StrInt
+{
+private:
+  mpz_t b[16];
+  mpz_t z;
+  
+  mpz_t aux[AUX_MPZ];
+  mpz_t pow2[16];
+  
+  strint128 n;
+
+public:
+  const size_t STRINT_64_BIT = 64;
+  const size_t STRINT_128_BIT = 128;
+  const size_t STRINT_256_BIT = 256;
+  
+  StrInt();
+  StrInt(const strint128 n);
+  StrInt(const char *n);
+  StrInt(const uint64_t n);
+  virtual ~StrInt();
   
   void set(const strint128 n);
   void set(const char *n);
