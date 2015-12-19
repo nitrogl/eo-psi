@@ -20,7 +20,7 @@ template <class T> class SHA: public HashAlgorithm<T>
 protected:
   HashFlavour flavour;
   char *lastHash;
-  size_t hashSize;
+  size_t size;
   CryptoPP::HashTransformation* sha;
   
   void setFlavour(HashFlavour flavour) {
@@ -29,30 +29,29 @@ protected:
     switch (this->flavour) {
       case SHA256_FLAVOUR:
         this->sha = new CryptoPP::SHA256();
-        this->hashSize = 40;
+        this->size = 40;
         break;
       
       case SHA1_FLAVOUR:
       default:
         this->sha = new CryptoPP::SHA1();
-        this->hashSize = 64;
+        this->size = 64;
         break;
     }
     
-    lastHash = new char[this->hashSize];
+    lastHash = new char[this->size];
   }
   
 public:
-  SHA() {
+  SHA() : HashAlgorithm<T>() {
     this->setFlavour(DEFAULT_HASH_FLAVOUR);
   }
-  SHA(HashFlavour flavour) {
+  SHA(HashFlavour flavour) : HashAlgorithm<T>() {
     this->setFlavour(flavour);
   }
-  virtual ~SHA() {}
   
-  size_t getHashSize() const {
-    return this->hashSize;
+  size_t hashSize() const {
+    return this->size;
   }
 };
 //-----------------------------------------------------------------------------

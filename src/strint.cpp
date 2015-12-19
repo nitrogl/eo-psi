@@ -9,125 +9,96 @@
 #include "strint.h"
 //-----------------------------------------------------------------------------
 
-StrInt128::StrInt128() {
-  int i;
+StrInt::StrInt(const size_t dim, const char *n, const size_t len) {
+  size_t i;
+  
+  // Auto-adjust/interpret dim
+  if (dim == 0) {
+    this->length = 1;
+  } else {
+    this->length = dim;
+  }
+  
+  try {
+    b = new mpz_t[this->length];
+    pow2 = new mpz_t[this->length];
+  } catch (std::bad_alloc&) {
+    std::cerr << "StrInt(). Error allocating space." << std::endl;
+    exit(2);
+  }
   
   // Initialise conversion numbers
-  for (i = 0; i < 16; i++) {
+  for (i = 0; i < this->length; i++) {
     mpz_init(b[i]);
   }
   mpz_init(z);
   
-  // Initialise auxiliary numbers
-  for (i = 0; i < AUX_MPZ; i++) {
-    mpz_init(aux[i]);
-  }
-  
   // Initialise powers of two
-  for (i = 0; i < 16; i++) {
+  for (i = 0; i < this->length; i++) {
     mpz_init(pow2[i]);
     mpz_ui_pow_ui(pow2[i], 2, 8*i);
   }
-}
-//-----------------------------------------------------------------------------
-
-StrInt128::StrInt128(const strint128 n) : StrInt128() {
-  this->set(n);
-}
-//-----------------------------------------------------------------------------
-
-StrInt128::StrInt128(const char *n) : StrInt128() {
-  this->set(n);
-}
-//-----------------------------------------------------------------------------
-
-StrInt128::StrInt128(const uint64_t n) : StrInt128() {
-  this->set(n);
-}
-//-----------------------------------------------------------------------------
-
-StrInt128::~StrInt128() {
-  int i;
   
-  for (i = 0; i < 16; i++) {
+  // Set number
+  if (n != nullptr && len*dim > 0) {
+    this->set(n, len);
+  }
+}
+//-----------------------------------------------------------------------------
+
+StrInt::~StrInt() {
+  size_t i;
+  
+  for (i = 0; i < this->length; i++) {
     mpz_clear(b[i]);
     mpz_clear(pow2[i]);
   }
   mpz_clear(z);
-  
-  for (i = 0; i < AUX_MPZ; i++) {
-    mpz_clear(aux[i]);
-  }
 }
 //-----------------------------------------------------------------------------
 
-void StrInt128::set(const strint128 n) {
-  int i;
-  
-  this->n = n;
+void StrInt::set(const char *n, const size_t len) {
+  size_t i, j;
+  size_t dim = (len > this->length) ? this->length : len;
   
   // Initialise conversion numbers
-  for (i = 0; i < 16; i++) {
-    mpz_set_ui(b[i], n.u8[i]);
+  for (i = 0; i < dim; i++) {
+    mpz_set_ui(b[i], (unsigned long) n[i]);
     mpz_mul(b[i], b[i], pow2[i]);
 //     std::cout << "\nn" << i << " = " << b[i];
   }
   
-  for (i = 0; i < 8; i++) {
-    mpz_add(aux[i], b[i], b[8 + i]);
-  }
-  for (i = 0; i < 4; i++) {
-    mpz_add(aux[i], aux[i], aux[4 + i]);
-  }
-  for (i = 0; i < 2; i++) {
-    mpz_add(aux[i], aux[i], aux[2 + i]);
-  }
-  mpz_add(z, aux[0], aux[1]);
-}
-//-----------------------------------------------------------------------------
-
-void StrInt128::set(const uint64_t n) {
-  this->n.u64[0] = n;
-  this->n.u64[1] = 0L;
-  this->set(this->n);
-}
-//-----------------------------------------------------------------------------
-
-void StrInt128::set(const char *n) {
-  size_t i, dim;
-  
-  if (n == nullptr || strlen(n) == 0) {
-    std::cerr << "StrInt128::set()" << ". WARNING: empty string ignored." << std::endl;
-    return;
+  /*
+   * Perform a bottom-up parenthesised copy.
+   * j stands for the progressively decreasing length.
+   */
+  for (j = dim; j > 1; j = (j + 1)/2) {
+    for (i = 0; i < j/2; i++) {
+      mpz_add(b[i], b[i], b[j/2 + i]);
+    }
+    if (j % 2 == 1) {
+      mpz_set(b[j], b[j - 1]);
+    }
   }
   
-  // Set characters
-  dim = strlen(n);
-  dim = (dim > 16) ? 16 : dim;
-  for (i = 0; i < dim; i++) {
-    this->n.str[i] = n[i];
-  }
-  // Clear the remaining slots
-  for (; i < 16; i++) {
-    this->n.str[i] = '\0';
-  }
-  this->set(this->n);
+  // Save to z
+  mpz_set(z, b[0]);
 }
 //-----------------------------------------------------------------------------
 
-unsigned long StrInt128::rem(const unsigned long divisor) const {
+unsigned long StrInt::rem(const unsigned long divisor) const {
   return mpz_fdiv_ui(z, divisor);
 }
 //-----------------------------------------------------------------------------
 
-std::string StrInt128::toString() const {
+std::string StrInt::toString() const {
   std::stringstream sstr;
   sstr << z;
   return sstr.str();
 }
 //-----------------------------------------------------------------------------
 
-std::ostream& operator << (std::ostream& s, StrInt128& z)
+std::ostream& operator << (std::ostream& s, StrInt& z)
 {
     return s << z.toString();
 }

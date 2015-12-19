@@ -24,7 +24,6 @@ public:
   
   char* hash(const std::string str);
   std::string name() const;
-  size_t getHashSize() const;
 };
 //-----------------------------------------------------------------------------
 

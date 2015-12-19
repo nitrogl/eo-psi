@@ -4,24 +4,58 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
+#ifndef HASHBUCKETS_TEMPLATE
+#define HASHBUCKETS_TEMPLATE
+//-----------------------------------------------------------------------------
+
 #include <iostream>
-#include "hashbuckets.h"
+#include "hashtable.tpp"
+#include "bucket.h"
+#include "strint.h"
+#include "outofboundex.h"
+
+#define DEFAULT_NSHOW 30
+//-----------------------------------------------------------------------------
+
+template <class T> class HashBuckets: public HashTable<T, Bucket<T>>
+{
+protected:
+  StrInt *hashStrInt;
+  size_t maxLoad; // maximum (fixed) length for each bucket
+  
+public:
+  HashBuckets(size_t length, size_t maxLoad);
+  virtual ~HashBuckets();
+  
+  size_t getLength() const;
+  size_t getMaxLoad() const;
+  
+  void add(T element) throw (OutOfBoundException);
+  void addToBucket(T element, int i) throw (OutOfBoundException);
+  void setHashAlgorithm(HashAlgorithm<T>* hashAlgorithm);
+  
+  void printStats(bool full = false) const;
+};
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
 template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad) {
   this->k = length;
   this->maxLoad = maxLoad;
+  this->hashStrInt = nullptr;
+  this->hashAlgorithm = nullptr;
   
-  this->buckets = new Bucket<T>[length];
+  try {
+    this->buckets = new Bucket<T>[length];
+  } catch (std::bad_alloc&) {
+    std::cerr << "HashBuckets(). Fatal error allocating space." << std::endl;
+    exit(2);
+  }
   
   // Reserving space enhances efficiency (it sped up! cool!! ~0.1 seconds of total)
   for (size_t i = 0; i < length; i++) {
     // Reserving 3/4 of maxLoad
     this->buckets[i].reserve(1 + 3 * maxLoad / 4);
-  }
-  
-  if (this->buckets == nullptr) {
-    std::cerr << "HashBuckets()" << ". Unable to initialise buckets." << std::endl;
   }
 };
 //-----------------------------------------------------------------------------
@@ -31,25 +65,35 @@ template <class T> HashBuckets<T>::~HashBuckets() {
 }
 //-----------------------------------------------------------------------------
 
+template <class T> void HashBuckets<T>::setHashAlgorithm(HashAlgorithm<T>* hashAlgorithm) {
+  try {
+    hashStrInt = new StrInt(hashAlgorithm->hashSize());
+  } catch (std::bad_alloc&) {
+    std::cerr << "setHashAlgorithm(). Fatal error allocating space." << std::endl;
+    exit(2);
+  }
+  this->hashAlgorithm = hashAlgorithm;
+}
+//-----------------------------------------------------------------------------
+
 template <class T> void HashBuckets<T>::add(T element) throw (OutOfBoundException) {
-  char *hash;
-  strint128 h128;
-  size_t i, index;
+  size_t index;
   
-  hash = this->hashAlgorithm->hash(element);
-  for (i = 0; i < 16; i++) {
-    h128.str[i] = hash[i];
+  if (this->hashStrInt != nullptr) {
+    this->hashStrInt->set(this->hashAlgorithm->hash(element), this->hashAlgorithm->hashSize());
+    index = this->hashStrInt->rem(this->k);
+    
+    if (this->buckets[index].size() == this->maxLoad) {
+      throw new OutOfBoundException("HashBuckets<T>::addToBucket(). Bucket full.", OutOfBoundException::FATAL);
+    }
+  } else {
+    index = 0;
+    std::cerr << "HashBuckets<T>::add()" << ". Element index completely invented (you did not set a hash algorithm)." << std::endl;
   }
-  this->hash128.set(h128);
-  index = this->hash128.rem(this->k);
-  
-  if (this->buckets[index].size() == this->maxLoad) {
-    throw new OutOfBoundException("HashBuckets<T>::addToBucket(). Bucket full.", OutOfBoundException::FATAL);
-  }
-  
-//   if (index == 0)
-//   std::cerr << "HashBuckets<T>::addToBucket()" << ". Index of " << element << " is " << index << "." << std::endl; // Debug purposes
-  this->buckets[index].push_back(element);
+    
+  //   if (index == 0)
+  //   std::cerr << "HashBuckets<T>::add()" << ". Index of " << element << " is " << index << "." << std::endl; // Debug purposes
+    this->buckets[index].push_back(element);
 };
 //-----------------------------------------------------------------------------
 
@@ -122,6 +166,4 @@ template <class T> void HashBuckets<T>::printStats(bool full) const {
 };
 //-----------------------------------------------------------------------------
 
-// Explicit template instances
-#include <NTL/ZZ_p.h>
-template class HashBuckets<NTL::ZZ_p>;
+#endif // HASHBUCKETS_TEMPLATE

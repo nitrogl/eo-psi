@@ -4,10 +4,9 @@
 #include <getopt.h>
 #include <NTL/ZZ_p.h>
 
-#include "hashbuckets.h"
+#include "hashbuckets.tpp"
 #include "murmurhash3.h"
 #include "shazzp.h"
-#include "strint.h"
 #include "simplebm.h"
 
 #include "zzrndgen.h"
