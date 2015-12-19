@@ -353,11 +353,11 @@ std::string MurmurHash3::name() const {
 //-----------------------------------------------------------------------------
 
 size_t MurmurHash3::hashSize() const {
-  return 128;
+  return 128/8;
 }
 //-----------------------------------------------------------------------------
 
-char* MurmurHash3::hash(const NTL::ZZ_p n) {
+unsigned char* MurmurHash3::hash(const NTL::ZZ_p n) {
   zzStreamString.str(std::string()); // Clear stream string
   zzStreamString << n;
   zzString = zzStreamString.str();

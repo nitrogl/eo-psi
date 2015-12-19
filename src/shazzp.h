@@ -32,7 +32,7 @@ public:
   SHAZZp(HashFlavour flavour);
   virtual ~SHAZZp();
   
-  char* hash(const NTL::ZZ_p str);
+  unsigned char* hash(const NTL::ZZ_p str);
   std::string name() const;
 };
 //-----------------------------------------------------------------------------

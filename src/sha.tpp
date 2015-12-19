@@ -19,7 +19,7 @@ template <class T> class SHA: public HashAlgorithm<T>
 {
 protected:
   HashFlavour flavour;
-  char *lastHash;
+  unsigned char *lastHash;
   size_t size;
   CryptoPP::HashTransformation* sha;
   
@@ -29,17 +29,17 @@ protected:
     switch (this->flavour) {
       case SHA256_FLAVOUR:
         this->sha = new CryptoPP::SHA256();
-        this->size = 40;
+        this->size = CryptoPP::SHA256::DIGESTSIZE; // bytes
         break;
       
       case SHA1_FLAVOUR:
       default:
         this->sha = new CryptoPP::SHA1();
-        this->size = 64;
+        this->size = CryptoPP::SHA1::DIGESTSIZE; // bytes
         break;
     }
     
-    lastHash = new char[this->size];
+    lastHash = new unsigned char[this->size];
   }
   
 public:

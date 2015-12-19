@@ -8,28 +8,17 @@
 
 //-----------------------------------------------------------------------------
 
-SHAZZp::SHAZZp() : SHA<NTL::ZZ_p>() {
-}
+SHAZZp::SHAZZp() : SHA<NTL::ZZ_p>() {}
+SHAZZp::SHAZZp(HashFlavour flavour) : SHA<NTL::ZZ_p>(flavour) {}
+SHAZZp::~SHAZZp() {}
 //-----------------------------------------------------------------------------
 
-SHAZZp::SHAZZp(HashFlavour flavour) : SHA<NTL::ZZ_p>(flavour) {
-}
-//-----------------------------------------------------------------------------
-
-SHAZZp::~SHAZZp() {
-}
-//-----------------------------------------------------------------------------
-
-char* SHAZZp::hash(const NTL::ZZ_p n) {
-  std::string hashStr = "";
-  
+unsigned char* SHAZZp::hash(const NTL::ZZ_p n) {
   zzStreamString.str(std::string()); // Clear stream string
   zzStreamString << n;
   zzString = zzStreamString.str();
   
-  CryptoPP::StringSource(zzString, true, new CryptoPP::HashFilter(*(this->sha), new CryptoPP::HexEncoder(new CryptoPP::StringSink(hashStr))));
-  strncpy(this->lastHash, hashStr.c_str(), hashStr.length());
-  
+  this->sha->CalculateDigest(lastHash, (byte *) zzString.c_str(), zzString.length());
   return this->lastHash;
 }
 //-----------------------------------------------------------------------------
