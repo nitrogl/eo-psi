@@ -13,7 +13,7 @@ template <class T> class HashAlgorithm
 {
 public:
   virtual ~HashAlgorithm() {}
-  virtual char* hash(const T n) = 0;
+  virtual unsigned char* hash(const T n) = 0;
   virtual size_t hashSize() const = 0;
   virtual std::string name() const = 0;
 };
