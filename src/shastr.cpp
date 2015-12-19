@@ -17,12 +17,8 @@ SHAString::SHAString(HashFlavour flavour) : SHA<std::string>(flavour) {
 }
 //-----------------------------------------------------------------------------
 
-char* SHAString::hash(const std::string str) {
-  std::string hashStr = "";
-  
-  CryptoPP::StringSource(str, true, new CryptoPP::HashFilter(*sha, new CryptoPP::HexEncoder(new CryptoPP::StringSink(hashStr))));
-  strncpy(this->lastHash, hashStr.c_str(), hashStr.length());
-  
+unsigned char* SHAString::hash(const std::string str) {
+  this->sha->CalculateDigest(lastHash, (byte *) str.c_str(), str.length());
   return this->lastHash;
 }
 //-----------------------------------------------------------------------------
