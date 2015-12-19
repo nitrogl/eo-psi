@@ -9,14 +9,14 @@
 #include "strint.h"
 //-----------------------------------------------------------------------------
 
-StrInt::StrInt(const size_t dim, const char *n, const size_t len) {
+StrInt::StrInt(const size_t bytes, const unsigned char *n, const size_t len) {
   size_t i;
   
-  // Auto-adjust/interpret dim
-  if (dim == 0) {
+  // Auto-adjust/interpret bytes
+  if (bytes == 0) {
     this->length = 1;
   } else {
-    this->length = dim;
+    this->length = bytes;
   }
   
   try {
@@ -40,7 +40,7 @@ StrInt::StrInt(const size_t dim, const char *n, const size_t len) {
   }
   
   // Set number
-  if (n != nullptr && len*dim > 0) {
+  if (n != nullptr && len*bytes > 0) {
     this->set(n, len);
   }
 }
@@ -57,13 +57,13 @@ StrInt::~StrInt() {
 }
 //-----------------------------------------------------------------------------
 
-void StrInt::set(const char *n, const size_t len) {
+void StrInt::set(const unsigned char *n, const size_t len) {
   size_t i, j;
   size_t dim = (len > this->length) ? this->length : len;
   
   // Initialise conversion numbers
   for (i = 0; i < dim; i++) {
-    mpz_set_ui(b[i], (unsigned long) n[i]);
+    mpz_set_ui(b[i], n[i]);
     mpz_mul(b[i], b[i], pow2[i]);
 //     std::cout << "\nn" << i << " = " << b[i];
   }
@@ -77,7 +77,7 @@ void StrInt::set(const char *n, const size_t len) {
       mpz_add(b[i], b[i], b[j/2 + i]);
     }
     if (j % 2 == 1) {
-      mpz_set(b[j], b[j - 1]);
+      mpz_set(b[i], b[j - 1]);
     }
   }
   
