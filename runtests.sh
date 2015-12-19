@@ -52,9 +52,12 @@ build
 cd build
 # generate_rnd_zz
 
-run_tests "
-  $(operation $N/256)
-  $(operation $N/1024)
-  $(operation $N/16384)
-  $(operation $N/65536)
-  "
+# run_tests "
+#   $(operation $N/256)
+#   $(operation $N/1024)
+#   $(operation $N/16384)
+#   $(operation $N/65536)
+#   "
+$TESTBIN -a MH3    -k 16536 -l 128 -i $FILE
+$TESTBIN -a SHA1   -k 16536 -l 128 -i $FILE
+$TESTBIN -a SHA256 -k 16536 -l 128 -i $FILE
