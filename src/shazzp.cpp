@@ -13,7 +13,7 @@ SHAZZp::SHAZZp(HashFlavour flavour) : SHA<NTL::ZZ_p>(flavour) {}
 SHAZZp::~SHAZZp() {}
 //-----------------------------------------------------------------------------
 
-unsigned char* SHAZZp::hash(const NTL::ZZ_p n) {
+byte* SHAZZp::hash(const NTL::ZZ_p n) {
   zzStreamString.str(std::string()); // Clear stream string
   zzStreamString << n;
   zzString = zzStreamString.str();

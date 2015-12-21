@@ -22,7 +22,7 @@ public:
   SHAString(HashFlavour flavour);
   virtual ~SHAString();
   
-  unsigned char* hash(const std::string str);
+  byte* hash(const std::string str);
   std::string name() const;
 };
 //-----------------------------------------------------------------------------

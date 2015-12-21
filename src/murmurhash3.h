@@ -31,8 +31,8 @@ private:
   uint32_t seed;
   std::stringstream zzStreamString;
   std::string zzString;
-  unsigned char hash32[4];
-  unsigned char hash128[16];
+  byte hash32[4];
+  byte hash128[16];
   void murmurHash3_x86_32  (const void * key, int len, void * out);
   void murmurHash3_x86_128 (const void * key, int len, void * out);
   void murmurHash3_x64_128 (const void * key, int len, void * out);

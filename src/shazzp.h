@@ -17,10 +17,6 @@
 #include "sha.tpp"
 //-----------------------------------------------------------------------------
 
-// Explicit template class
-template class SHA<NTL::ZZ_p>;
-//-----------------------------------------------------------------------------
-
 class SHAZZp: public SHA<NTL::ZZ_p>
 {
 private:
@@ -32,7 +28,7 @@ public:
   SHAZZp(HashFlavour flavour);
   virtual ~SHAZZp();
   
-  unsigned char* hash(const NTL::ZZ_p str);
+  byte* hash(const NTL::ZZ_p str);
   std::string name() const;
 };
 //-----------------------------------------------------------------------------

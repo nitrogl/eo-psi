@@ -357,7 +357,7 @@ size_t MurmurHash3::hashSize() const {
 }
 //-----------------------------------------------------------------------------
 
-unsigned char* MurmurHash3::hash(const NTL::ZZ_p n) {
+byte* MurmurHash3::hash(const NTL::ZZ_p n) {
   zzStreamString.str(std::string()); // Clear stream string
   zzStreamString << n;
   zzString = zzStreamString.str();

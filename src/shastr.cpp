@@ -17,7 +17,7 @@ SHAString::SHAString(HashFlavour flavour) : SHA<std::string>(flavour) {
 }
 //-----------------------------------------------------------------------------
 
-unsigned char* SHAString::hash(const std::string str) {
+byte* SHAString::hash(const std::string str) {
   this->sha->CalculateDigest(lastHash, (byte *) str.c_str(), str.length());
   return this->lastHash;
 }

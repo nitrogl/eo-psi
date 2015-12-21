@@ -14,12 +14,11 @@
 #include "hashalgorithm.tpp"
 #include "hashflavour.h"
 //-----------------------------------------------------------------------------
-
 template <class T> class SHA: public HashAlgorithm<T>
 {
 protected:
   HashFlavour flavour;
-  unsigned char *lastHash;
+  byte *lastHash;
   size_t size;
   CryptoPP::HashTransformation* sha;
   
@@ -39,7 +38,7 @@ protected:
         break;
     }
     
-    lastHash = new unsigned char[this->size];
+    lastHash = new byte[this->size];
   }
   
 public:
