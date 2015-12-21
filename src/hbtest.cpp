@@ -15,7 +15,7 @@
 
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -k <keys> -l <bucket-size> -i <infile>\n"
-            << " -a : hash algorithm (MH3)\n"
+            << " -a : hash algorithm (MH3|SHA1|SHA256|SHA512)\n"
             << " -k : number of keys of the hash table\n"
             << " -l : size of buckets of the hash table\n"
             << " -i : file name to read numbers from\n"
@@ -55,8 +55,8 @@ int main(int argc, char **argv) {
           hashAlgorithm = new SHAZZp(SHA1_FLAVOUR);
         } else if (strcmp(optarg, "SHA256") == 0) {
           hashAlgorithm = new SHAZZp(SHA256_FLAVOUR);
-        } else if (strcmp(optarg, "MD5") == 0) {
-          std::cerr << argv[0] << ". Hash algorithm SHA1 not (yet) implemented." << std::endl;
+        } else if (strcmp(optarg, "SHA512") == 0) {
+          std::cerr << argv[0] << ". Hash algorithm SHA512 not (yet) implemented." << std::endl;
           exit(2);
         }
         break;
