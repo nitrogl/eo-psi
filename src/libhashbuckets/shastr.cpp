@@ -9,12 +9,9 @@
 
 //-----------------------------------------------------------------------------
 
-SHAString::SHAString() : SHA<std::string>() {
-}
-//-----------------------------------------------------------------------------
-
-SHAString::SHAString(HashFlavour flavour) : SHA<std::string>(flavour) {
-}
+SHAString::SHAString() : SHA<std::string>() {}
+SHAString::SHAString(HashFlavour flavour) : SHA<std::string>(flavour) {}
+SHAString::~SHAString() {}
 //-----------------------------------------------------------------------------
 
 byte* SHAString::hash(const std::string str) {

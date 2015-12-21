@@ -16,7 +16,7 @@ protected:
 public:
   virtual ~RandomGenerator() {}
   
-  virtual void setSeed(T seed) = 0;
+  virtual void setSeed(T &seed) = 0;
   virtual T next() const = 0;
 };
 //-----------------------------------------------------------------------------

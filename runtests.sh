@@ -2,8 +2,8 @@
 #
 # Build and run tests
 
-GENBIN="src/zzrndgen"
-TESTBIN="src/hbtest"
+GENBIN="test/zzrndgen"
+TESTBIN="test/hbtest"
 
 N="1000000"
 P="924319124044731127256386643194362517987965988436268856863172801"
@@ -16,7 +16,7 @@ set -e
 build() {
   mkdir -p build
   cd build
-  cmake ../
+  cmake ../src/
   make
   cd ..
 }

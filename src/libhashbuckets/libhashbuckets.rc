@@ -1,0 +1,23 @@
+1 VERSIONINFO
+FILEVERSION     0,1,0,666
+PRODUCTVERSION  1,0,0,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "CompanyName", "Roberto Metere"
+      VALUE "FileDescription", "Hash table for big integers modulo p, blind polynomial evaluation roots"
+      VALUE "FileVersion", "0.1"
+      VALUE "InternalName", "hashbuckets"
+      VALUE "LegalCopyright", "Roberto Metere"
+      VALUE "OriginalFilename", "hashbuckets"
+      VALUE "ProductName", "hashbuckets C++ library"
+      VALUE "ProductVersion", "1.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1252
+  END
+END

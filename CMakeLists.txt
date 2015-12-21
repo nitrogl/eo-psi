@@ -1,20 +1,35 @@
-# Main cmake file.
-set (LIBRARY_NAME "hasbuckets")
+#    Date : Dec 21, 2015
+# Authors : Roberto Metere
 
-# Set the makefile verbose
-set (CMAKE_VERBOSE_MAKEFILE 1)
+add_subdirectory (src)
 
-project(${LIBRARY_NAME})
+# if (UNIX)
+# install (
+#         TARGETS ${LIBRARY_NAME}
+#         DESTINATION "${CMAKE_LIBRARY_PATH}"
+#         )
+# 
+# # Installing headers for developers
+# install ( # main header (it should be enough to include)
+#         FILES "../src/lib${LIBRARY_NAME}.h"
+#         DESTINATION "${CMAKE_INCLUDE_PATH}"
+#         )
+# install ( # the needed included files
+#         DIRECTORY "../src/"
+#         DESTINATION "${CMAKE_INCLUDE_PATH}/lib${LIBRARY_NAME}"
+#         FILES_MATCHING PATTERN "*.h"
+#         )
+# endif (UNIX)
 
-cmake_minimum_required(VERSION 2.8)
+# Uninstall target
+set (CMAKE_UNINSTALL "cmake_uninstall.cmake")
+configure_file(
+  "${CMAKE_SOURCE_DIR}/${CMAKE_UNINSTALL}.in"
+  "${CMAKE_BINARY_DIR}/${CMAKE_UNINSTALL}"
+  IMMEDIATE @ONLY
+  )
 
-# Compiler flags
-set (OPTIMIZATION "2")
-# set (DEBUG_INFO_FLAG "-g")
-set (PLATFORM_INDEPENDENT_CODE_FLAG "-fPIC")
-set (CXX_STD "-std=c++11")
-
-set (CMAKE_CXX_FLAGS "-Wall -Wextra -O${OPTIMIZATION} ${PLATFORM_INDEPENDENT_CODE_FLAG} ${DEBUG_FLAG} ${DEBUG_INFO_FLAG} ${CXX_STD}")
-
-
-add_subdirectory(src/)
+add_custom_target (
+  uninstall
+  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/cmake_uninstall.cmake
+  )

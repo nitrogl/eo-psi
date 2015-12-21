@@ -9,14 +9,15 @@
 //-----------------------------------------------------------------------------
 
 #include <vector>
-#include "hashalgorithm.h"
+#include "hashalgorithm.tpp"
 //-----------------------------------------------------------------------------
 
 template <class T, class U> class KeyGenerator
 {
-private:
+protected:
   HashAlgorithm<T> hashAlgorithm;
   T seed;
+  vector<U> memory;
   
 public:
   KeyGenerator() {
@@ -24,7 +25,7 @@ public:
   }
   virtual ~KeyGenerator();
   
-  void setHashAlgorithm(const HashAlgorithm hashAlgorithm) const;
+  void setHashAlgorithm(const HashAlgorithm<T> hashAlgorithm) const;
   T next() const {
     
   }

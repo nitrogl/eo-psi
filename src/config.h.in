@@ -1,0 +1,11 @@
+/*
+ * Some includes may depend on the architecture
+ * 
+ * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
+ */
+#cmakedefine HAVE_PTHREAD_H 1
+
+// Enable pthread?
+// #ifdef HAVE_PTHREAD_H
+// #include <pthread.h>
+// #endif
