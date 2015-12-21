@@ -10,7 +10,8 @@
 
 #include <iostream>
 #include "hashtable.tpp"
-#include "bucket.h"
+#include "bucket.tpp"
+#include "randgen.h"
 #include "strint.h"
 #include "outofboundex.h"
 
@@ -33,6 +34,8 @@ public:
   void add(T element) throw (OutOfBoundException);
   void addToBucket(T element, int i) throw (OutOfBoundException);
   void setHashAlgorithm(HashAlgorithm<T>* hashAlgorithm);
+  
+  void conceal(const RandomGenerator<T>& rndgen);
   
   void printStats(bool full = false) const;
 };
@@ -103,6 +106,23 @@ template <class T> void HashBuckets<T>::addToBucket(T element, int i) throw (Out
     this->buckets[index].push_back(element);
   } else {
     throw new OutOfBoundException("HashBuckets<T>::addToBucket(). Index out of bound.", OutOfBoundException::FATAL);
+  }
+};
+//-----------------------------------------------------------------------------
+
+template <class T> void HashBuckets<T>::conceal(const RandomGenerator<T> &rndgen) {
+  size_t i, j;
+  
+  // Mark buckets (this tracks empty buckets)
+  for (i = 0; i < this->k; i++) {
+    if (this->buckets[i].empty()) {
+      this->buckets[i].mark();
+    }
+    
+    // Fill empty cells
+    for (j = this->buckets[i].size(); j < maxLoad; j++) {
+      this->buckets[i].push_back(rndgen.next());
+    }
   }
 };
 //-----------------------------------------------------------------------------
