@@ -7,26 +7,40 @@
 #include "zzrandgen.h"
 //-----------------------------------------------------------------------------
 
-ZZRandomGenerator::ZZRandomGenerator(NTL::ZZ &p) {
-  this->p = p;
+RandomZZGenerator::RandomZZGenerator() {
 }
 //-----------------------------------------------------------------------------
 
-ZZRandomGenerator::ZZRandomGenerator(NTL::ZZ &p, NTL::ZZ &seed) : ZZRandomGenerator(p) {
+RandomZZGenerator::RandomZZGenerator(const NTL::ZZ &p) : RandomZZGenerator() {
+  this->setSupremum(p);
+}
+//-----------------------------------------------------------------------------
+
+RandomZZGenerator::RandomZZGenerator(const NTL::ZZ &p, const NTL::ZZ &seed) : RandomZZGenerator(p) {
   this->setSeed(seed);
 }
 //-----------------------------------------------------------------------------
 
-ZZRandomGenerator::~ZZRandomGenerator() {
+RandomZZGenerator::~RandomZZGenerator() {
 }
 //-----------------------------------------------------------------------------
 
-void ZZRandomGenerator::setSeed(NTL::ZZ &seed) {
+NTL::ZZ RandomZZGenerator::getSupremum() const {
+  return this->p;
+}
+//-----------------------------------------------------------------------------
+
+void RandomZZGenerator::setSupremum(const NTL::ZZ &p) {
+  this->p = p;
+}
+//-----------------------------------------------------------------------------
+
+void RandomZZGenerator::setSeed(const NTL::ZZ &seed) {
   NTL::SetSeed(seed);
 }
 //-----------------------------------------------------------------------------
 
-NTL::ZZ ZZRandomGenerator::next() const {
+NTL::ZZ RandomZZGenerator::next() const {
   return NTL::RandomBnd(p);
 }
 //-----------------------------------------------------------------------------

@@ -4,8 +4,8 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef ZZ_P_RANDOM_GENERATOR_H
-#define ZZ_P_RANDOM_GENERATOR_H
+#ifndef ZZ_RANDOM_GENERATOR_H
+#define ZZ_RANDOM_GENERATOR_H
 //-----------------------------------------------------------------------------
 
 #include <string>
@@ -13,19 +13,23 @@
 #include "randgen.h"
 //-----------------------------------------------------------------------------
 
-class ZZRandomGenerator : RandomGenerator<NTL::ZZ>
+class RandomZZGenerator : public RandomGenerator<NTL::ZZ>
 {
 protected:
   NTL::ZZ p; // Integers modulo p
   
 public:
-  ZZRandomGenerator(NTL::ZZ &p);
-  ZZRandomGenerator(NTL::ZZ &p, NTL::ZZ &seed);
-  virtual ~ZZRandomGenerator();
+  RandomZZGenerator();
+  RandomZZGenerator(const NTL::ZZ &p);
+  RandomZZGenerator(const NTL::ZZ &p, const NTL::ZZ &seed);
+  virtual ~RandomZZGenerator();
   
-  void setSeed(NTL::ZZ &seed);
+  void setSeed(const NTL::ZZ &seed);
   NTL::ZZ next() const;
+  
+  NTL::ZZ getSupremum() const;
+  void setSupremum(const NTL::ZZ &p);
 };
 //-----------------------------------------------------------------------------
 
-#endif // ZZ_P_RANDOM_GENERATOR_H
+#endif // ZZ_RANDOM_GENERATOR_H
