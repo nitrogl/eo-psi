@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include "hashtable.hpp"
-#include "bucket.hpp"
+#include "markedvector.hpp"
 #include "randgen.h"
 #include "strint.h"
 #include "outofboundex.h"
@@ -18,25 +18,57 @@
 #define DEFAULT_NSHOW 30
 //-----------------------------------------------------------------------------
 
-template <class T> class HashBuckets: public HashTable<T, Bucket<T>>
+/**
+ * This is an implementation of a hash table with specified maximum load for
+ * each bucket and a fixed number of buckets.
+ * Introspectively, it can do some statistics on its state.
+ * Also a conceal method is given to fill all the not-full buckets, <i>concealing</i>
+ * the original added elements.
+ */
+template <class T> class HashBuckets: public HashTable<T, MarkedVector<T>>
 {
 protected:
-  StrInt *hashStrInt;
-  size_t maxLoad; // maximum (fixed) length for each bucket
+  StrInt *hashStrInt; ///< This is basically used to get the remainder of a string.
+  size_t maxLoad;     ///< The maximum (fixed) length for each bucket
   
 public:
+  /**
+   * Initialise the hash table with a specified number of buckets and 
+   * a specified number of cells for each bucket.
+   * 
+   * @param length The number of buckets.
+   * @param maxLoad The maximum number of elements for each bucket.
+   */
   HashBuckets(size_t length, size_t maxLoad);
   virtual ~HashBuckets();
   
+  /**
+   * Get the number of buckets.
+   */
   size_t getLength() const;
+  
+  /**
+   * Get the maximum elements to store in each bucket.
+   */
   size_t getMaxLoad() const;
   
   void add(T element) throw (OutOfBoundException);
   void addToBucket(T element, int i) throw (OutOfBoundException);
   void setHashAlgorithm(HashAlgorithm<T>* hashAlgorithm);
   
+  /**
+   * Fill all the not-full buckets with random elements,
+   * <i>concealing</i> the originally added elements.
+   * 
+   * @param rndgen The generator of random elements.
+   */
   void conceal(const RandomGenerator<T>& rndgen);
   
+  /**
+   * Do some introspective statistics on its state.
+   * 
+   * @param full Print stats of all the buckets (even if they are a lot).
+   */
   void printStats(bool full = false) const;
 };
 //-----------------------------------------------------------------------------
@@ -49,7 +81,7 @@ template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad) {
   this->hashAlgorithm = nullptr;
   
   try {
-    this->buckets = new Bucket<T>[length];
+    this->buckets = new MarkedVector<T>[length];
   } catch (std::bad_alloc&) {
     std::cerr << "HashBuckets(). Fatal error allocating space." << std::endl;
     exit(2);
@@ -87,7 +119,7 @@ template <class T> void HashBuckets<T>::add(T element) throw (OutOfBoundExceptio
     index = this->hashStrInt->rem(this->k);
     
     if (this->buckets[index].size() == this->maxLoad) {
-      throw new OutOfBoundException("HashBuckets<T>::addToBucket(). Bucket full.", OutOfBoundException::FATAL);
+      throw new OutOfBoundException("HashBuckets<T>::addToBucket(). MarkedVector full.", OutOfBoundException::FATAL);
     }
   } else {
     index = 0;

@@ -25,7 +25,7 @@ private:
   
 public:
   SHAZZp();
-  SHAZZp(HashFlavour flavour);
+  SHAZZp(HashFlavour flavour = SHA1_FLAVOUR);
   virtual ~SHAZZp();
   
   byte* hash(const NTL::ZZ_p str);

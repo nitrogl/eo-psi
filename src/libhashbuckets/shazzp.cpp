@@ -7,7 +7,6 @@
 #include "shazzp.h"
 //-----------------------------------------------------------------------------
 
-SHAZZp::SHAZZp() : SHA<NTL::ZZ_p>() {}
 SHAZZp::SHAZZp(HashFlavour flavour) : SHA<NTL::ZZ_p>(flavour) {}
 SHAZZp::~SHAZZp() {}
 //-----------------------------------------------------------------------------

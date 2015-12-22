@@ -13,12 +13,13 @@
 #include "randgen.h"
 //-----------------------------------------------------------------------------
 
+/**
+ * @example examples/RandomZZGenerator.cpp
+ */
 
 /**
  * Random generator for big integers.
  * This class is useful to generate random big integers with the NTL library.
- *
- * @example examples/RandomZZGenerator.cpp
  */
 class RandomZZGenerator : public RandomGenerator<NTL::ZZ>
 {
@@ -44,15 +45,7 @@ public:
   RandomZZGenerator(const NTL::ZZ &sup, const NTL::ZZ &seed);
   virtual ~RandomZZGenerator();
   
-  /**
-   * Set the generation seed.
-   * @param seed The seed used for the random generation.
-   */
   void setSeed(const NTL::ZZ &seed);
-  
-  /**
-   * Get the next random number.
-   */
   NTL::ZZ next() const;
   
   /**

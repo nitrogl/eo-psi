@@ -18,8 +18,7 @@
 class SHAString: public SHA<std::string>
 {
 public:
-  SHAString();
-  SHAString(HashFlavour flavour);
+  SHAString(HashFlavour flavour = SHA1_FLAVOUR);
   virtual ~SHAString();
   
   byte* hash(const std::string str);
