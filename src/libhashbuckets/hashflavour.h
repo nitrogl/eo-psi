@@ -11,10 +11,13 @@
 #define DEFAULT_HASH_FLAVOUR SHA1_FLAVOUR
 //-----------------------------------------------------------------------------
 
+/**
+ * Flavour of hash code.
+ */
 typedef enum HashFlavour {
-  SHA1_FLAVOUR = 0,
-  SHA256_FLAVOUR = 256,
-  MURMURHASH3_128_FLAVOUR = 128,
+  SHA1_FLAVOUR = 0,              ///< SHA1
+  SHA256_FLAVOUR = 256,          ///< SHA-256
+  MURMURHASH3_128_FLAVOUR = 128, ///< Murmur hash v3 (128 bits)
 } HashFlavour;
 //-----------------------------------------------------------------------------
 
