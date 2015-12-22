@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n;
+  RandomZZpGenerator rndZZpgen;
   NTL::ZZ_p *z = nullptr;
   NTL::ZZ p;
   SimpleBenchmark benchmark;
@@ -132,6 +133,9 @@ int main(int argc, char **argv) {
     hashBuckets->add(z[i]);
   }
   benchmark.stop();
+  
+  rndZZpgen.setModulo(p);
+  hashBuckets->conceal(rndZZpgen);
   
   // Print stats
   hashBuckets->printStats();

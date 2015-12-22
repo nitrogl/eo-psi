@@ -17,7 +17,9 @@ link_directories (
 
 # Add executable "zzrndgen"
 add_executable(zzrndgen zzrndgen.cpp)
-target_link_libraries (zzrndgen ntl)
+target_link_libraries (zzrndgen "${LIBRARY_NAME}")
+target_link_libraries (zzrndgen ntl gmpxx gmp cryptopp)
+target_link_libraries (zzrndgen "${CMAKE_THREAD_LIBS_INIT}")
 set_target_properties (zzrndgen PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Add executable "hbtest"

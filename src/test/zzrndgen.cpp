@@ -3,6 +3,8 @@
 #include <fstream>
 #include <NTL/ZZ.h>
 #include <getopt.h>
+
+#include "../libhashbuckets.h"
 #include "zzrndgen.h"
 //-----------------------------------------------------------------------------
 
@@ -18,11 +20,12 @@ static void printUsage(const char *prgnam) {
 
 int main(int argc, char **argv) {
   NTL::ZZ p;
-  std::string seed;
   std::ofstream outfile;
   size_t n = DEFAULT_N;
   std::string pstr = DEFAULT_P;
   std::string outfilename = DEFAULT_FILENAME;
+  RandomStringGenerator rndStrgen;
+  RandomZZGenerator rndZZgen;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
@@ -48,19 +51,13 @@ int main(int argc, char **argv) {
         return 1;
     }
   }
-  
-  p = str2zz(pstr);
-  
   // Initialize random seed
   srand(time(NULL));
   
-  // Generate a random seed
-  for (int i = 0; i <= rand() % SEED_MAX_LENGTH; i++) {
-    seed.append(1, rand() % 10 + '0');
-  }
-  
-  // Initialise random NTL generator
-  NTL::SetSeed(str2zz(seed));
+  // Initialise random ZZ generator
+  p = str2zz(pstr);
+  rndZZgen.setSupremum(p);
+  rndZZgen.setSeed(str2zz(rndStrgen.next(rand() % SEED_MAX_LENGTH + 1)));
   
   // Open file
   if (outfilename == DEFAULT_FILENAME) {
@@ -78,7 +75,7 @@ int main(int argc, char **argv) {
   std::cout << "Generating numbers. This may take a while ...";
   std::cout.flush();
   for (size_t i = 0; i < n; i++) {
-    outfile << NTL::RandomBnd(p) << "\n";
+    outfile << rndZZgen.next() << "\n";
     if (i % (n / 10) == 0) {
       std::cout << ".";
       std::cout.flush();
