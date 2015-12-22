@@ -10,6 +10,7 @@ add_library (${LIBRARY_NAME} SHARED
         simplebm.cpp
         strint.cpp
         zzrandgen.cpp
+        zzprandgen.cpp
         strrandgen.cpp
         libhashbuckets.rc
         )
@@ -50,4 +51,4 @@ install ( # the needed included files
         )
 endif (UNIX)
 
-# Copyright (C) 2010 Roberto Metere
+# Copyright (C) 2015 Roberto Metere
