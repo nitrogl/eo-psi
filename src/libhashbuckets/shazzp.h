@@ -13,8 +13,8 @@
 #include <cryptopp/sha.h>
 #include <cryptopp/filters.h>
 #include <cryptopp/hex.h>
-#include "hashalgorithm.tpp"
-#include "sha.tpp"
+#include "hashalgorithm.hpp"
+#include "sha.hpp"
 //-----------------------------------------------------------------------------
 
 class SHAZZp: public SHA<NTL::ZZ_p>

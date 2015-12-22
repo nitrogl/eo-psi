@@ -1,5 +1,5 @@
 /*
- * Integers modulo p random generator
+ * Big integers random generator.
  * 
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
@@ -11,12 +11,12 @@ RandomZZGenerator::RandomZZGenerator() {
 }
 //-----------------------------------------------------------------------------
 
-RandomZZGenerator::RandomZZGenerator(const NTL::ZZ &p) : RandomZZGenerator() {
-  this->setSupremum(p);
+RandomZZGenerator::RandomZZGenerator(const NTL::ZZ &sup) : RandomZZGenerator() {
+  this->setSupremum(sup);
 }
 //-----------------------------------------------------------------------------
 
-RandomZZGenerator::RandomZZGenerator(const NTL::ZZ &p, const NTL::ZZ &seed) : RandomZZGenerator(p) {
+RandomZZGenerator::RandomZZGenerator(const NTL::ZZ &sup, const NTL::ZZ &seed) : RandomZZGenerator(sup) {
   this->setSeed(seed);
 }
 //-----------------------------------------------------------------------------
@@ -26,12 +26,12 @@ RandomZZGenerator::~RandomZZGenerator() {
 //-----------------------------------------------------------------------------
 
 NTL::ZZ RandomZZGenerator::getSupremum() const {
-  return this->p;
+  return this->sup;
 }
 //-----------------------------------------------------------------------------
 
-void RandomZZGenerator::setSupremum(const NTL::ZZ &p) {
-  this->p = p;
+void RandomZZGenerator::setSupremum(const NTL::ZZ &sup) {
+  this->sup = sup;
 }
 //-----------------------------------------------------------------------------
 
@@ -41,6 +41,6 @@ void RandomZZGenerator::setSeed(const NTL::ZZ &seed) {
 //-----------------------------------------------------------------------------
 
 NTL::ZZ RandomZZGenerator::next() const {
-  return NTL::RandomBnd(p);
+  return NTL::RandomBnd(sup);
 }
 //-----------------------------------------------------------------------------

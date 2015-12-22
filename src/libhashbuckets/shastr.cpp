@@ -4,9 +4,7 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#include "sha.tpp"
 #include "shastr.h"
-
 //-----------------------------------------------------------------------------
 
 SHAString::SHAString() : SHA<std::string>() {}

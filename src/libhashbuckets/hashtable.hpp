@@ -11,7 +11,7 @@
 #define HASHTABLE_TEMPLATE
 
 #include <cstdlib>
-#include "hashalgorithm.tpp"
+#include "hashalgorithm.hpp"
 
 template <class T, class U> class HashTable
 {

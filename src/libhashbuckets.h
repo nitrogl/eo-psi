@@ -8,12 +8,12 @@
 
 #include "config.h"
 
-#include "libhashbuckets/bucket.tpp"
-#include "libhashbuckets/hashalgorithm.tpp"
-#include "libhashbuckets/hashtable.tpp"
-#include "libhashbuckets/hashbuckets.tpp"
-// #include "libhashbuckets/keygen.tpp"
-#include "libhashbuckets/sha.tpp"
+#include "libhashbuckets/bucket.hpp"
+#include "libhashbuckets/hashalgorithm.hpp"
+#include "libhashbuckets/hashtable.hpp"
+#include "libhashbuckets/hashbuckets.hpp"
+// #include "libhashbuckets/keygen.hpp"
+#include "libhashbuckets/sha.hpp"
 
 #include "libhashbuckets/hashflavour.h"
 #include "libhashbuckets/murmurhash3.h"

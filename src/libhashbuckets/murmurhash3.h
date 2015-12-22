@@ -12,7 +12,7 @@
 
 #include <sstream>
 #include <NTL/ZZ_p.h>
-#include "hashalgorithm.tpp"
+#include "hashalgorithm.hpp"
 
 #if defined(_MSC_VER) && (_MSC_VER < 1600)
 // Microsoft Visual Studio

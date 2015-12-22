@@ -1,5 +1,5 @@
 /*
- * Integers modulo p random generator
+ * Big integers random generator.
  * 
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
@@ -13,22 +13,59 @@
 #include "randgen.h"
 //-----------------------------------------------------------------------------
 
+
+/**
+ * Random generator for big integers.
+ * This class is useful to generate random big integers with the NTL library.
+ *
+ * @example examples/RandomZZGenerator.cpp
+ */
 class RandomZZGenerator : public RandomGenerator<NTL::ZZ>
 {
 protected:
-  NTL::ZZ p; // Integers modulo p
+  NTL::ZZ sup; ///< This is the supremum, the least number which is greater than all generated numbers
   
 public:
   RandomZZGenerator();
-  RandomZZGenerator(const NTL::ZZ &p);
-  RandomZZGenerator(const NTL::ZZ &p, const NTL::ZZ &seed);
+  
+  /**
+   * Set the supremum at construction time.
+   * 
+   * @param sup The supremum (least number which is greater than all generated numbers)
+   */
+  RandomZZGenerator(const NTL::ZZ &sup);
+  
+  /**
+   * Both set the supremum and specify the random seed at construction time.
+   * 
+   * @param sup The supremum (least number which is greater than all generated numbers)
+   * @param seed The seed used for the random generation.
+   */
+  RandomZZGenerator(const NTL::ZZ &sup, const NTL::ZZ &seed);
   virtual ~RandomZZGenerator();
   
+  /**
+   * Set the generation seed.
+   * @param seed The seed used for the random generation.
+   */
   void setSeed(const NTL::ZZ &seed);
+  
+  /**
+   * Get the next random number.
+   */
   NTL::ZZ next() const;
   
+  /**
+   * Get the supremum.
+   */
   NTL::ZZ getSupremum() const;
-  void setSupremum(const NTL::ZZ &p);
+  
+  /**
+   * Set the supremum.
+   * 
+   * @param sup The supremum (least number which is greater than all generated numbers)
+   */
+  void setSupremum(const NTL::ZZ &sup);
 };
 //-----------------------------------------------------------------------------
 

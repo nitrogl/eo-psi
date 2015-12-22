@@ -9,8 +9,8 @@
 //-----------------------------------------------------------------------------
 
 #include <iostream>
-#include "hashtable.tpp"
-#include "bucket.tpp"
+#include "hashtable.hpp"
+#include "bucket.hpp"
 #include "randgen.h"
 #include "strint.h"
 #include "outofboundex.h"

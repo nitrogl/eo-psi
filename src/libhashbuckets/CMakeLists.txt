@@ -47,7 +47,7 @@ install ( # main header (it should be enough to include)
 install ( # the needed included files
         DIRECTORY "../lib${LIBRARY_NAME}/"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/include/lib${LIBRARY_NAME}"
-        FILES_MATCHING REGEX "[a-z]+\\.(h|hpp|tpp)"
+        FILES_MATCHING REGEX "[a-z]+\\.(h|hpp)"
         )
 endif (UNIX)
 
