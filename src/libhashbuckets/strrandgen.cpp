@@ -4,16 +4,26 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
+#include <iostream>
 #include "strrandgen.h"
 //-----------------------------------------------------------------------------
 
-RandomStringGenerator::RandomStringGenerator() {
-  srand(time(NULL));
-  
-  for (i = 0; i < 256; i++) {
-    this->alphabet[i] = false;
-  }
-  this->n = 0;
+RandomStringGenerator::RandomStringGenerator(const size_t len, const AsciiSubset subset) {
+  this->setEnabledOnly(subset);
+  this->length = len;
+}
+//-----------------------------------------------------------------------------
+
+RandomStringGenerator::RandomStringGenerator(const size_t len, const int subset) : RandomStringGenerator::RandomStringGenerator(len, (const AsciiSubset) subset) {
+}
+//-----------------------------------------------------------------------------
+
+RandomStringGenerator::RandomStringGenerator(const std::string &seed, const size_t len, const AsciiSubset subset) : RandomStringGenerator::RandomStringGenerator(len, subset) {
+  this->setSeed(seed);
+}
+//-----------------------------------------------------------------------------
+
+RandomStringGenerator::RandomStringGenerator(const std::string &seed, const size_t len, const int subset) : RandomStringGenerator::RandomStringGenerator(seed, len, (const AsciiSubset) subset) {
 }
 //-----------------------------------------------------------------------------
 
@@ -21,9 +31,10 @@ RandomStringGenerator::~RandomStringGenerator() {
 }
 //-----------------------------------------------------------------------------
 
-void RandomStringGenerator::setSeed(std::string &seed) {
+void RandomStringGenerator::setSeed(const std::string &seed) {
   unsigned long n = 0;
   const char *c = seed.c_str();
+  size_t i;
   
   for (i = 0; i < seed.length(); i++) {
     n += c[i];
@@ -33,36 +44,47 @@ void RandomStringGenerator::setSeed(std::string &seed) {
 }
 //-----------------------------------------------------------------------------
 
-std::string RandomStringGenerator::next() const {
-  char rnd[this->max - this->min + 1];
-  size_t i;
+std::string RandomStringGenerator::next(const size_t len) const {
+  std::string rnd;
+  unsigned char c, k, index0;
+  size_t i, j;
   
   // epsilon string
   if (this->n == 0) {
     return "";
   }
   
-  for (i = 0; i < n; i++) {
+  // Get the first allowed position in the alphabet
+  for (index0 = 0; !alphabet[++index0];);
+  
+  for (i = 0; i < len; i++) {
+    // Index of the subset of the alphabet
+    c = rand() % this->n;
     
+    // Find the right element of the alphabet
+    k = 0;
+    j = index0;
+    while (j < 256 && k < c) {
+      if (alphabet[++j]) {
+        k++;
+      }
+    }
+    
+    // Append to result
+    rnd.append(1, (char) j);
   }
   
-  
+  return rnd;
+}
+//-----------------------------------------------------------------------------
+
+std::string RandomStringGenerator::next() const {
+  return this->next(this->length);
 }
 //-----------------------------------------------------------------------------
 
 void RandomStringGenerator::setLength(const size_t len) {
-  this->setLength(len, len);
-}
-//-----------------------------------------------------------------------------
-
-void RandomStringGenerator::setLength(const size_t min, const size_t max) {
-  if (min > max) {
-    this->min = max;
-    this->max = min;
-  } else {
-    this->min = min;
-    this->max = max;
-  }
+  this->length = len;
 }
 //-----------------------------------------------------------------------------
 
@@ -72,7 +94,7 @@ size_t RandomStringGenerator::countAlphabetSet() const {
 //-----------------------------------------------------------------------------
 
 void RandomStringGenerator::setEnabledChar(const char c, const bool enabled) {
-  unsigned char index = c;
+  size_t index = (unsigned char) c;
   
   if (alphabet[index] == enabled) {
     return;
@@ -92,29 +114,29 @@ void RandomStringGenerator::setEnabledChar(const char c, const bool enabled) {
 void RandomStringGenerator::setEnabled(const AsciiSubset subset, const bool enabled) {
   unsigned char i;
   
-  if (subset | AsciiSubset::DIGITS) {
+  if (subset & AsciiSubset::DIGITS) {
     for (i = '0'; i <= '9'; i++) {
       this->setEnabledChar(i, enabled);
     }
   }
   
-  if (subset | AsciiSubset::LETTERS_LOWERCASE) {
+  if (subset & AsciiSubset::LETTERS_LOWERCASE) {
     for (i = 'a'; i <= 'z'; i++) {
       this->setEnabledChar(i, enabled);
     }
   }
   
-  if (subset | AsciiSubset::LETTERS_UPPERCASE) {
+  if (subset & AsciiSubset::LETTERS_UPPERCASE) {
     for (i = 'A'; i <= 'Z'; i++) {
       this->setEnabledChar(i, enabled);
     }
   }
   
-  if (subset | AsciiSubset::SPACE) {
+  if (subset & AsciiSubset::SPACE) {
     this->setEnabledChar(' ', enabled);
   }
   
-  if (subset | AsciiSubset::PUNCTUATION) {
+  if (subset & AsciiSubset::PUNCTUATION) {
     this->setEnabledChar(',', enabled);
     this->setEnabledChar('.', enabled);
     this->setEnabledChar(':', enabled);
@@ -123,9 +145,35 @@ void RandomStringGenerator::setEnabled(const AsciiSubset subset, const bool enab
     this->setEnabledChar('?', enabled);
     this->setEnabledChar('(', enabled);
     this->setEnabledChar(')', enabled);
-    this->setEnabledChar('\'', enabled);
     this->setEnabledChar('"', enabled);
     this->setEnabledChar('-', enabled);
+    this->setEnabledChar('\'', enabled);
   }
+}
+//-----------------------------------------------------------------------------
+
+void RandomStringGenerator::setEnabled(const int subset, const bool enabled) {
+  this->setEnabled((AsciiSubset) subset, enabled);
+}
+//-----------------------------------------------------------------------------
+
+void RandomStringGenerator::setEnabledOnly(const AsciiSubset subset, const bool enabled) {
+  this->disableAllChars();
+  this->setEnabled(subset, enabled);
+}
+//-----------------------------------------------------------------------------
+
+void RandomStringGenerator::setEnabledOnly(const int subset, const bool enabled) {
+  this->setEnabledOnly((AsciiSubset) subset, enabled);
+}
+//-----------------------------------------------------------------------------
+
+void RandomStringGenerator::disableAllChars() {
+  size_t i;
+  
+  for (i = 0; i < 256; i++) {
+    alphabet[i] = false;
+  }
+  this->n = 0;
 }
 //-----------------------------------------------------------------------------
