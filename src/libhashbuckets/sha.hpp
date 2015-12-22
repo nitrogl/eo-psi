@@ -11,7 +11,7 @@
 #include <cryptopp/sha.h>
 #include <cryptopp/filters.h>
 #include <cryptopp/hex.h>
-#include "hashalgorithm.tpp"
+#include "hashalgorithm.hpp"
 #include "hashflavour.h"
 //-----------------------------------------------------------------------------
 template <class T> class SHA: public HashAlgorithm<T>

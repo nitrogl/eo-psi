@@ -9,7 +9,7 @@
 //-----------------------------------------------------------------------------
 
 #include <vector>
-#include "hashalgorithm.tpp"
+#include "hashalgorithm.hpp"
 //-----------------------------------------------------------------------------
 
 template <class T, class U> class KeyGenerator
