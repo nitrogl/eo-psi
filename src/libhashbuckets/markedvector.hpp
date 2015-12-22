@@ -4,20 +4,23 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef BUCKET_TEMPLATE
-#define BUCKET_TEMPLATE
+#ifndef MARKED_VECTOR_TEMPLATE
+#define MARKED_VECTOR_TEMPLATE
 //-----------------------------------------------------------------------------
 
 #include <vector>
 //-----------------------------------------------------------------------------
 
-template <class T> class Bucket: public std::vector<T>
+/**
+ * A bucket is the standard vector container which can be marked.
+ */
+template <class T> class MarkedVector: public std::vector<T>
 {
 protected:
   bool marked;
   
 public:
-  Bucket();
+  MarkedVector();
   
   bool isMarked();
   void mark(bool value = true);
@@ -25,24 +28,24 @@ public:
 };
 //-----------------------------------------------------------------------------
 
-template <class T> Bucket<T>::Bucket() : std::vector<T>() {
+template <class T> MarkedVector<T>::MarkedVector() : std::vector<T>() {
   this->marked = false;
 }
 //-----------------------------------------------------------------------------
 
-template <class T> bool Bucket<T>::isMarked() {
+template <class T> bool MarkedVector<T>::isMarked() {
   return this->marked;
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void Bucket<T>::mark(bool value) {
+template <class T> void MarkedVector<T>::mark(bool value) {
   this->marked = value;
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void Bucket<T>::unmark() {
+template <class T> void MarkedVector<T>::unmark() {
   this->marked = false;
 }
 //-----------------------------------------------------------------------------
 
-#endif // BUCKET_TEMPLATE
+#endif // MARKED_VECTOR_TEMPLATE

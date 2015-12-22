@@ -8,7 +8,7 @@
 
 #include "config.h"
 
-#include "libhashbuckets/bucket.hpp"
+#include "libhashbuckets/markedvector.hpp"
 #include "libhashbuckets/hashalgorithm.hpp"
 #include "libhashbuckets/hashtable.hpp"
 #include "libhashbuckets/hashbuckets.hpp"
