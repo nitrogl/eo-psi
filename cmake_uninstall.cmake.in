@@ -32,4 +32,4 @@ foreach (file ${files})
 
 endforeach(file)
 
-# Copyright © 2015 Roberto Metere. All rights reserved.
+# Copyright (C) 2015 Roberto Metere. All rights reserved.
