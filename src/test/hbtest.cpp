@@ -47,15 +47,20 @@ int main(int argc, char **argv) {
   while ((op = getopt(argc, argv, "a:hi:k:l:")) != -1) {
     switch (op) {
       case 'a':
-        if (strcmp(optarg, "MH3") == 0) {
-          hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
-        } else if (strcmp(optarg, "SHA1") == 0) {
-          hashAlgorithm = new SHAZZp(SHA1_FLAVOUR);
-        } else if (strcmp(optarg, "SHA256") == 0) {
-          hashAlgorithm = new SHAZZp(SHA256_FLAVOUR);
-        } else if (strcmp(optarg, "SHA512") == 0) {
-          std::cerr << argv[0] << ". Hash algorithm SHA512 not (yet) implemented." << std::endl;
-          exit(2);
+        try {
+          if (strcmp(optarg, "MH3") == 0) {
+            hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
+          } else if (strcmp(optarg, "SHA1") == 0) {
+            hashAlgorithm = new SHAZZp(SHA1_FLAVOUR);
+          } else if (strcmp(optarg, "SHA256") == 0) {
+            hashAlgorithm = new SHAZZp(SHA256_FLAVOUR);
+          } else if (strcmp(optarg, "SHA512") == 0) {
+            std::cerr << argv[0] << ". Hash algorithm SHA512 not (yet) implemented." << std::endl;
+            exit(2);
+          }
+        } catch (std::bad_alloc &) {
+          std::cerr << argv[0] << ". Error allocating memory." << std::endl;
+          exit(1);
         }
         break;
         
@@ -84,15 +89,16 @@ int main(int argc, char **argv) {
     }
   }
   
-  // Use a specific seed to generate the same hashes
-  if (hashAlgorithm == nullptr) {
-    std::cerr << argv[0] << ". WARNING: using default hash algorithm MurmurHash3." << std::endl;
-    hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
-  }
-  hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
-  if (hashBuckets == nullptr) { // or is a try-catch more appropriate?
+  try {
+    // Use a specific seed to generate the same hashes
+    if (hashAlgorithm == nullptr) {
+      std::cerr << argv[0] << ". WARNING: using default hash algorithm MurmurHash3." << std::endl;
+      hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
+    }
+    hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
+  } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating hash table." << std::endl;
-    exit(1);
+    exit(2);
   }
   hashBuckets->setHashAlgorithm(hashAlgorithm);
   
@@ -134,13 +140,14 @@ int main(int argc, char **argv) {
   }
   benchmark.stop();
   
-  rndZZpgen.setModulo(p);
-  hashBuckets->conceal(rndZZpgen);
-  
   // Print stats
   hashBuckets->printStats();
   std::cout << "Total time to add " << n << " elements to the hashtable: " << benchmark.benchmark().count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to add an element to the hashtable: " << (double) benchmark.benchmark().count() / n << " µs" << std::endl;
+  
+  // Fill empty cells of the hash table
+  rndZZpgen.setModulo(p);
+  hashBuckets->conceal(rndZZpgen);
   
   delete(hashAlgorithm);
   delete(hashBuckets);
