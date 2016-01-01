@@ -15,6 +15,9 @@
 #include "sha.hpp"
 //-----------------------------------------------------------------------------
 
+/**
+ * SHA algorithm hashing strings
+ */
 class SHAString: public SHA<std::string>
 {
 public:

@@ -17,6 +17,9 @@
 #include "sha.hpp"
 //-----------------------------------------------------------------------------
 
+/**
+ * SHA algorithm to hash integers modulo p
+ */
 class SHAZZp: public SHA<NTL::ZZ_p>
 {
 private:

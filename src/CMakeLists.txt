@@ -11,9 +11,6 @@ set (CMAKE_VERBOSE_MAKEFILE 1)
 option (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
 include (CheckIncludeFiles)
 
-# Minimum version and project name
-cmake_minimum_required (VERSION 2.6)
-
 # After an update of cmake 2.8.x to 2.8.4
 # if (WIN32)
 # 	set(CMAKE_RC_COMPILER windres)
@@ -89,35 +86,26 @@ endif()
 add_subdirectory (lib${LIBRARY_NAME})
 add_subdirectory (test)
 
-# if (UNIX)
-# install (
-#         TARGETS ${LIBRARY_NAME}
-#         DESTINATION "${CMAKE_LIBRARY_PATH}"
-#         )
-# 
-# # Installing headers for developers
-# install ( # main header (it should be enough to include)
-#         FILES "../src/lib${LIBRARY_NAME}.h"
-#         DESTINATION "${CMAKE_INCLUDE_PATH}"
-#         )
-# install ( # the needed included files
-#         DIRECTORY "../src/"
-#         DESTINATION "${CMAKE_INCLUDE_PATH}/lib${LIBRARY_NAME}"
-#         FILES_MATCHING PATTERN "*.h"
-#         )
-# endif (UNIX)
+# Documentation
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  set (doxygenConfigFileIn "${PROJECT_SOURCE_DIR}/../Doxyfile.in")
+  set (doxygenConfigFile "${CMAKE_BINARY_DIR}/Doxyfile")
+  
+  set (DOXYGEN_OUTPUT_DIR "${CMAKE_BINARY_DIR}/doc" CACHE PATH "Doxygen output directory")
+  set (DOXYGEN_PROJECT_NUMBER "${LIBRARY_VERSION_RELEASE}.${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}" CACHE STRING "Doxygen project number")
+  
+  configure_file (${doxygenConfigFileIn} ${doxygenConfigFile} @ONLY)
 
-# Uninstall target
-set (CMAKE_UNINSTALL "cmake_uninstall.cmake")
-configure_file(
-	"${CMAKE_SOURCE_DIR}/../${CMAKE_UNINSTALL}.in"
-	"${CMAKE_BINARY_DIR}/${CMAKE_UNINSTALL}"
-	IMMEDIATE @ONLY
-	)
-
-add_custom_target (
-	uninstall
-	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/cmake_uninstall.cmake
-	)
+  add_custom_target(doc
+    ${DOXYGEN_EXECUTABLE} ${doxygenConfigFile}
+    DEPENDS ${doxygenConfigFile}
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../"
+    COMMENT "Generating API documentation with Doxygen"
+    VERBATIM
+  )
+else (DOXYGEN_FOUND)
+    message (STATUS "Documentation will not be built - Doxygen not found")
+endif(DOXYGEN_FOUND)
 
 # Copyright (C) 2015 Roberto Metere
