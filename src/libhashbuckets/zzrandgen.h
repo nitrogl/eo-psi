@@ -14,7 +14,7 @@
 //-----------------------------------------------------------------------------
 
 /**
- * @example examples/RandomZZGenerator.cpp
+ * @example RandomZZGenerator.cpp
  */
 
 /**

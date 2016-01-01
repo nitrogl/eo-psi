@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
-#include <NTL/ZZ.h>
 #include <getopt.h>
 
 #include "../libhashbuckets.h"

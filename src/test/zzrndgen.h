@@ -8,7 +8,9 @@
 #define ZZRNDGEN_H
 //-----------------------------------------------------------------------------
 
+#include <string>
 #include <sstream>
+#include <NTL/ZZ.h>
 
 #define SEED_MAX_LENGTH 100
 #define DEFAULT_P "924319124044731127256386643194362517987965988436268856863172801"

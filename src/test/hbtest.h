@@ -8,9 +8,6 @@
 #define HASHBUCKET_TEST_H
 //-----------------------------------------------------------------------------
 
-#include <string>
-#include <sstream>
-
 #define BUFFER_SIZE 4096
 #define DEFAULT_HASHBUCKETS_MAXLOAD 140
 #define DEFAULT_HASHBUCKETS_LENGTH 10000

@@ -1,6 +1,10 @@
 #    Date : Dec 21, 2015
 # Authors : Roberto Metere
 
+# Minimum version and project name
+cmake_minimum_required (VERSION 2.6)
+
+# Sources
 add_subdirectory (src)
 
 # if (UNIX)
