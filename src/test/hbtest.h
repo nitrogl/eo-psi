@@ -12,6 +12,7 @@
 #define DEFAULT_HASHBUCKETS_MAXLOAD 140
 #define DEFAULT_HASHBUCKETS_LENGTH 10000
 #define DEFAULT_MURMURHASH_SEED 1234567890
+#define DEFAULT_FILENAME "zz.dat"
 //-----------------------------------------------------------------------------
 
 #endif // HASHBUCKET_TEST_H

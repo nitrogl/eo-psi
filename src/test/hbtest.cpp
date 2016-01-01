@@ -4,9 +4,7 @@
 #include <getopt.h>
 #include <NTL/ZZ_p.h>
 
-#include "../libhashbuckets.h"
-
-#include "zzrndgen.h"
+#include <libhashbuckets.h>
 #include "hbtest.h"
 //-----------------------------------------------------------------------------
 
@@ -74,10 +72,6 @@ int main(int argc, char **argv) {
         
       case 'i': 
         infilename = optarg; 
-        break;
-        
-      case 'p': 
-        p = str2zz(optarg);
         break;
         
       case '?':

@@ -3,12 +3,12 @@
 #include <fstream>
 #include <getopt.h>
 
-#include "../libhashbuckets.h"
+#include <libhashbuckets.h>
 #include "zzrndgen.h"
 //-----------------------------------------------------------------------------
 
 static void printUsage(const char *prgnam) {
-  std::cout << "Syntax: " << prgnam << " -p <modulo> -n <number> -o <outfile>\n"
+  std::cout << "Syntax: " << prgnam << " -h -p <modulo> -n <number> -o <outfile>\n"
             << " -p : set p generating numbers modulo p (big integer)\n"
             << " -n : random numbers to generate\n"
             << " -o : file name to store generated numbers\n"
