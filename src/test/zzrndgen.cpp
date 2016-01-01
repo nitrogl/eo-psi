@@ -54,9 +54,9 @@ int main(int argc, char **argv) {
   srand(time(NULL));
   
   // Initialise random ZZ generator
-  p = str2zz(pstr);
+  p = NTL::str2zz(pstr);
   rndZZgen.setSupremum(p);
-  rndZZgen.setSeed(str2zz(rndStrgen.next(rand() % SEED_MAX_LENGTH + 1)));
+  rndZZgen.setSeed(NTL::str2zz(rndStrgen.next(rand() % SEED_MAX_LENGTH + 1)));
   
   // Open file
   if (outfilename == DEFAULT_FILENAME) {

@@ -35,7 +35,6 @@ int main(int argc, char **argv) {
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n;
-  RandomZZpGenerator rndZZpgen;
   NTL::ZZ_p *z = nullptr;
   NTL::ZZ p;
   SimpleBenchmark benchmark;
@@ -110,18 +109,19 @@ int main(int argc, char **argv) {
   infile >> p;
   NTL::ZZ_p::init(p);
   
-  // Read all numbers at once (?)
+  // Read the number of numbers
   infile >> n;
   
   // Check arguments consistency
   if (n/length > maxLoad) {
     std::cerr << argv[0] << ". WARNING: too many numbers for the hashtable." << std::endl;
   }
-    
-  z = new NTL::ZZ_p[n];
-  if (z == nullptr) {
+  
+  try {
+    z = new NTL::ZZ_p[n];
+  } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error loading all " << n << " numbers to memory." << std::endl;
-    exit(1);
+    exit(2);
   }
   for (size_t i = 0; i < n; i++) {
     infile >> z[i];
@@ -138,10 +138,6 @@ int main(int argc, char **argv) {
   hashBuckets->printStats();
   std::cout << "Total time to add " << n << " elements to the hashtable: " << benchmark.benchmark().count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to add an element to the hashtable: " << (double) benchmark.benchmark().count() / n << " µs" << std::endl;
-  
-  // Fill empty cells of the hash table
-  rndZZpgen.setModulo(p);
-  hashBuckets->conceal(rndZZpgen);
   
   delete(hashAlgorithm);
   delete(hashBuckets);

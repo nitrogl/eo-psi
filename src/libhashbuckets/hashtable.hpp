@@ -67,8 +67,8 @@ public:
    * 
    * @param i Index/key of the bucket.
    */
-  U* getBucket(int i) {
-    return (i >= 0 && i < k) ? (buckets + i) : nullptr;
+  U* getBucket(size_t i) {
+    return (i >= 0 && i < this->k) ? (buckets + i) : nullptr;
   }
   
   /**
