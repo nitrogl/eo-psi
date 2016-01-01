@@ -3,6 +3,7 @@
 #
 # The library
 add_library (${LIBRARY_NAME} SHARED
+        ntlmiss.cpp
         outofboundex.cpp
         murmurhash3.cpp
         shastr.cpp

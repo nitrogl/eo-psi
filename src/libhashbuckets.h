@@ -15,6 +15,7 @@
 // #include "libhashbuckets/keygen.hpp"
 #include "libhashbuckets/sha.hpp"
 
+#include "libhashbuckets/ntlmiss.h"
 #include "libhashbuckets/hashflavour.h"
 #include "libhashbuckets/murmurhash3.h"
 #include "libhashbuckets/outofboundex.h"
