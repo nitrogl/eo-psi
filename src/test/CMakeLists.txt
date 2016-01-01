@@ -29,4 +29,11 @@ target_link_libraries (hbtest ntl gmpxx gmp cryptopp)
 target_link_libraries (hbtest "${CMAKE_THREAD_LIBS_INIT}")
 set_target_properties (hbtest PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# Add executable "bptest"
+add_executable (bptest bptest.cpp)
+target_link_libraries (bptest "${LIBRARY_NAME}")
+target_link_libraries (bptest ntl gmpxx gmp cryptopp)
+target_link_libraries (bptest "${CMAKE_THREAD_LIBS_INIT}")
+set_target_properties (bptest PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # Copyright (C) 2015 Roberto Metere
