@@ -21,6 +21,8 @@ public:
   
   /**
    * Initialisation with a specific seed.
+   * 
+   * @param seed The seed of the generation.
    */
   RandomGenerator(const T &seed) : RandomGenerator() {
     this->setSeed(seed);
@@ -29,6 +31,7 @@ public:
   
   /**
    * Set the generation seed.
+   * 
    * @param seed The seed used for the random generation.
    */
   virtual void setSeed(const T &seed) = 0;
