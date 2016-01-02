@@ -33,16 +33,16 @@ int main(int argc, char **argv) {
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n;
-  double progress;
   unsigned int padsize = DEFAULT_PADSIZE;
   unsigned int bs, topad;
   RandomZZpGenerator rndZZpgen;
   NTL::ZZ_p *z = nullptr;
   NTL::ZZ p, tmpZ;
   NTL::ZZ_pX *polynomials = nullptr;
-  NTL::ZZ_p *incognita = nullptr;
-  NTL::ZZ **evaluations;
+  NTL::Vec<NTL::ZZ_p> unknowns;
+  NTL::Vec<NTL::ZZ_p> *evaluations;
   NTL::Vec<NTL::ZZ_p> vzzp;
+  SimpleBenchmark benchmark;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
@@ -99,11 +99,7 @@ int main(int argc, char **argv) {
     }
     hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
     polynomials = new NTL::ZZ_pX[length];
-    incognita = new NTL::ZZ_p[2*maxLoad + 1];
-    evaluations = new NTL::ZZ*[length];
-    for (size_t i = 0; i < length; i++) {
-      evaluations[i] = new NTL::ZZ[2*maxLoad + 1];
-    }
+    evaluations = new NTL::Vec<NTL::ZZ_p>[length];
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
     exit(2);
@@ -142,6 +138,7 @@ int main(int argc, char **argv) {
     std::cerr << argv[0] << ". Error loading all " << n << " numbers to memory." << std::endl;
     exit(2);
   }
+  benchmark.start();
   for (size_t i = 0; i < n; i++) {
     infile >> tmpZ;
     bs = NTL::bits(tmpZ);
@@ -155,30 +152,96 @@ int main(int argc, char **argv) {
     }
     conv(z[i], tmpZ);
   }
+  benchmark.step();
   std::cout << "done. " << std::endl;
   
   // Add to hash
   std::cout << "Populating hash table... ";
   std::cout.flush();
+  benchmark.step();
   for (size_t i = 0; i < n; i++) {
     hashBuckets->add(z[i]);
   }
+  benchmark.step();
   std::cout << "done. " << std::endl;
   
   // Fill empty cells of the hash table
   std::cout << "Concealing the hash table (filling empty cells)... ";
   std::cout.flush();
   rndZZpgen.setModulo(p);
+  benchmark.step();
   hashBuckets->conceal(rndZZpgen);
+  benchmark.step();
   std::cout << "done. " << std::endl;
   
   // Creating polynomials
   std::cout << "Generating polynomials... ";
   std::cout.flush();
+  benchmark.step();
   for (size_t i = 0; i < length; i++) {
     polynomials[i] = NTL::BuildFromRoots(NTL::vector2VecZZp(*(hashBuckets->getBucket(i))));
   }
+  benchmark.step();
   std::cout << "done. " << std::endl;
+  
+  // Generating random unknowns
+  std::cout << "Generating random unknowns... ";
+  std::cout.flush();
+  unknowns.SetLength(2*maxLoad + 1);
+  benchmark.step();
+  for (size_t j = 0; j < 2*maxLoad + 1; j++) {
+    unknowns.append(rndZZpgen.next());
+  }
+  benchmark.step();
+  std::cout << "done. " << std::endl;
+  
+  // Evaluating polynomials
+  std::cout << "Evaluating polynomials... ";
+  std::cout.flush();
+  benchmark.step();
+  for (size_t i = 0; i < length; i++) {
+    eval(evaluations[i], polynomials[i], unknowns);
+  }
+  benchmark.stop();
+  std::cout << "done. " << std::endl;
+  
+  // Stats
+  std::cout << std::endl;
+  std::cout << "Total time to read and pad " << n << " numbers: "
+            << benchmark.benchmark(1).count() / 1000000. << " s" << std::endl; 
+  std::cout << "Average time to read and pad a number: "
+            << (double) benchmark.benchmark(1).count() / n << " µs" << std::endl;
+  std::cout << std::endl;
+            
+  std::cout << "Total time to add " << n << " elements to the hashtable: " 
+            << benchmark.benchmark(3).count() / 1000000. << " s" << std::endl; 
+  std::cout << "Average time to add an element to the hashtable: " 
+            << (double) benchmark.benchmark(3).count() / n << " µs" << std::endl;
+  std::cout << std::endl;
+            
+  std::cout << "Total time to conceal the hashtable (fill empty buckets): " 
+            << benchmark.benchmark(5).count() / 1000000. << " s" << std::endl; 
+  std::cout << "Average time to fill each bucket: " 
+            << (double) benchmark.benchmark(5).count() / length << " µs" << std::endl;
+  std::cout << std::endl;
+            
+  std::cout << "Total time to generate " << length << " polynomials: " 
+            << benchmark.benchmark(7).count() / 1000000. << " s" << std::endl; 
+  std::cout << "Average time to generate each polynomial: " 
+            << (double) benchmark.benchmark(7).count() / length << " µs" << std::endl;
+  std::cout << std::endl;
+            
+  std::cout << "Total time to generate " << (2*maxLoad + 1) << " random unknowns: " 
+            << benchmark.benchmark(9).count() / 1000000. << " s" << std::endl; 
+  std::cout << "Average time to generate each unknown: " 
+            << (double) benchmark.benchmark(9).count() / (2*maxLoad + 1) << " µs" << std::endl;
+  std::cout << std::endl;
+            
+  std::cout << "Total time to evaluate " << length << " polynomials against " << (2*maxLoad + 1) << " unknowns: " 
+            << benchmark.benchmark(11).count() / 1000000. << " s" << std::endl; 
+  std::cout << "Average time to generate each evaluation: " 
+            << (double) benchmark.benchmark(11).count() / (length * (2*maxLoad + 1)) << " µs" << std::endl;
+  std::cout << std::endl;
   
   delete(hashAlgorithm);
   delete(hashBuckets);

@@ -2,8 +2,9 @@
 #
 # Build and run tests
 
-GENBIN="test/zzrndgen"
-TESTBIN="test/hbtest"
+GENBIN="src/test/zzrndgen"
+HBTESTBIN="src/test/hbtest"
+BPTESTBIN="src/test/bptest"
 
 N="1000000"
 P="924319124044731127256386643194362517987965988436268856863172801"
@@ -16,7 +17,7 @@ set -e
 build() {
   mkdir -p build
   cd build
-  cmake ../src/
+  cmake ../
   make
   cd ..
 }
@@ -33,7 +34,7 @@ guess_max_load() {
   operation "$1 * 4 / 3"
 }
 
-# Run tests
+# Run tests (some tests)
 run_tests() {
   set +e
   for l in $1
@@ -42,7 +43,7 @@ run_tests() {
     MAXLOAD=$(guess_max_load $(operation $N/$l))
     for halg in MH3
     do
-      $TESTBIN -a $halg -k $LENGTH -l $MAXLOAD -i $FILE
+      $HBTESTBIN -a $halg -k $LENGTH -l $MAXLOAD -i $FILE
     done
   done
   set -e
@@ -50,14 +51,13 @@ run_tests() {
 
 build
 cd build
-# generate_rnd_zz
 
-# run_tests "
-#   $(operation $N/256)
-#   $(operation $N/1024)
-#   $(operation $N/16384)
-#   $(operation $N/65536)
-#   "
-$TESTBIN -a MH3    -k 16536 -l 128 -i $FILE
-$TESTBIN -a SHA1   -k 16536 -l 128 -i $FILE
-$TESTBIN -a SHA256 -k 16536 -l 128 -i $FILE
+# HB test
+# generate_rnd_zz
+# $HBTESTBIN -a MH3    -k 16536 -l 128 -i $FILE
+# $HBTESTBIN -a SHA1   -k 16536 -l 128 -i $FILE
+# $HBTESTBIN -a SHA256 -k 16536 -l 128 -i $FILE
+
+# BP test
+# P="604462909807314587353111" generate_rnd_zz
+$BPTESTBIN -a MH3    -k 16536 -l 128 -p 210 -i $FILE
