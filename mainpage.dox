@@ -13,7 +13,7 @@ Hash table for big integers modulo p, blind polynomial evaluation roots.
     Obviously \f$n < kl\f$.
     Insert all the preprocessed numbers to the hash table.
     After having added all the numbers to the hash table, it may be useful to keep track of empty buckets, information which will be lost at the following step.</li>
-    <li><strong>Fill buckets</strong>. Each bucket the hash table, which has space left, will be filled in with randomly chosen up to 210-bits numbers.</li>
+    <li><strong>Fill buckets</strong>. Each bucket of the hash table, which still has space left, will be filled in with randomly chosen up to 210-bits numbers.</li>
     <li><strong>Generate polynomials</strong>. At this point each bucket of the hash table contains exactly \f$l\f$ elements.
     Each bucket \f$b_i\f$ can be interpreted as a list of roots of the polynomial \f$p_i\f$.</li>
     <li><strong>Evaluate polynomials</strong>. Generate a random vector \f$X\f$ of \f$2l + 1\f$ unknowns \f$x_j\f$.
