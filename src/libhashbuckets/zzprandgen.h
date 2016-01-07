@@ -21,7 +21,7 @@
  */
 class RandomZZpGenerator : public RandomGenerator<NTL::ZZ_p>
 {
-private:
+protected:
   RandomZZGenerator rndZZgen;
   
 public:
@@ -44,7 +44,7 @@ public:
   virtual ~RandomZZpGenerator();
   
   void setSeed(const NTL::ZZ_p &seed);
-  NTL::ZZ_p next() const;
+  NTL::ZZ_p next();
   
   /**
    * Get the modulo p used for the generation.

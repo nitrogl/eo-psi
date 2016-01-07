@@ -44,7 +44,7 @@ void RandomStringGenerator::setSeed(const std::string &seed) {
 }
 //-----------------------------------------------------------------------------
 
-std::string RandomStringGenerator::next(const size_t len) const {
+std::string RandomStringGenerator::next(const size_t len) {
   std::string rnd;
   unsigned char c, k, index0;
   size_t i, j;
@@ -78,7 +78,7 @@ std::string RandomStringGenerator::next(const size_t len) const {
 }
 //-----------------------------------------------------------------------------
 
-std::string RandomStringGenerator::next() const {
+std::string RandomStringGenerator::next() {
   return this->next(this->length);
 }
 //-----------------------------------------------------------------------------

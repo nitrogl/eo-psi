@@ -40,7 +40,7 @@ void RandomZZGenerator::setSeed(const NTL::ZZ &seed) {
 }
 //-----------------------------------------------------------------------------
 
-NTL::ZZ RandomZZGenerator::next() const {
+NTL::ZZ RandomZZGenerator::next() {
   return NTL::RandomBnd(sup);
 }
 //-----------------------------------------------------------------------------

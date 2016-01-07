@@ -42,7 +42,7 @@ void RandomZZpGenerator::setSeed(const NTL::ZZ_p &seed) {
 }
 //-----------------------------------------------------------------------------
 
-NTL::ZZ_p RandomZZpGenerator::next() const {
+NTL::ZZ_p RandomZZpGenerator::next() {
   NTL::ZZ_p z;
   NTL::ZZ_pContext zzpContext;
   
