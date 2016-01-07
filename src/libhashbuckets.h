@@ -12,14 +12,14 @@
 #include "libhashbuckets/hashalgorithm.hpp"
 #include "libhashbuckets/hashtable.hpp"
 #include "libhashbuckets/hashbuckets.hpp"
-// #include "libhashbuckets/keygen.hpp"
+#include "libhashbuckets/randgen.hpp"
+#include "libhashbuckets/keygen.hpp"
 #include "libhashbuckets/sha.hpp"
 
 #include "libhashbuckets/ntlmiss.h"
 #include "libhashbuckets/hashflavour.h"
 #include "libhashbuckets/murmurhash3.h"
 #include "libhashbuckets/outofboundex.h"
-#include "libhashbuckets/randgen.h"
 #include "libhashbuckets/shastr.h"
 #include "libhashbuckets/shazzp.h"
 #include "libhashbuckets/simplebm.h"
@@ -27,6 +27,7 @@
 #include "libhashbuckets/zzrandgen.h"
 #include "libhashbuckets/zzprandgen.h"
 #include "libhashbuckets/strrandgen.h"
+#include "libhashbuckets/strzzpkeygen.h"
 
 #define LIB_HASH_BUCKETS_LIBRARY "Hash table for big integers modulo p, blind polynomial evaluation roots. The library"
 
