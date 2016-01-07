@@ -42,6 +42,9 @@ int main(int argc, char **argv) {
   NTL::Vec<NTL::ZZ_p> unknowns;
   NTL::Vec<NTL::ZZ_p> *evaluations;
   NTL::Vec<NTL::ZZ_p> vzzp;
+  HashAlgorithm<std::string>* strHashAlgorithm = nullptr;
+  StringZZpKeyGenerator keygen;
+  RandomZZpGenerator prf;
   SimpleBenchmark benchmark;
   
   // Parse arguments
@@ -91,6 +94,7 @@ int main(int argc, char **argv) {
     }
   }
   
+  
   try {
     // Use a specific seed to generate the same hashes
     if (hashAlgorithm == nullptr) {
@@ -100,6 +104,7 @@ int main(int argc, char **argv) {
     hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
     polynomials = new NTL::ZZ_pX[length];
     evaluations = new NTL::Vec<NTL::ZZ_p>[length];
+    strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
     exit(2);
@@ -202,6 +207,25 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < length; i++) {
     eval(evaluations[i], polynomials[i], unknowns);
   }
+  benchmark.step();
+  std::cout << "done. " << std::endl;
+  
+  // Initialise key generator and pseudo-random function
+  keygen.setHashAlgorithm(strHashAlgorithm);
+  keygen.setSecretKey("Topse Cret");
+  keygen.setModulo(p);
+  prf.setModulo(p);
+  
+  // Blind evaluations
+  std::cout << "Blinding evaluations... ";
+  std::cout.flush();
+  benchmark.step();
+  for (size_t i = 0; i < length; i++) {
+    prf.setSeed(keygen.next());
+    for (size_t j = 0; j < 2*maxLoad + 1; j++) {
+      evaluations[i][j] = evaluations[i][j] + prf.next();
+    }
+  }
   benchmark.stop();
   std::cout << "done. " << std::endl;
   
@@ -241,6 +265,12 @@ int main(int argc, char **argv) {
             << benchmark.benchmark(11).count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to generate each evaluation: " 
             << (double) benchmark.benchmark(11).count() / (length * (2*maxLoad + 1)) << " µs" << std::endl;
+  std::cout << std::endl;
+            
+  std::cout << "Total time to blind " << length << "x" << (2*maxLoad + 1) << " evaluations: " 
+            << benchmark.benchmark(13).count() / 1000000. << " s" << std::endl; 
+  std::cout << "Average time to blind each evaluation: " 
+            << (double) benchmark.benchmark(13).count() / (length * (2*maxLoad + 1)) << " µs" << std::endl;
   std::cout << std::endl;
   
   delete(hashAlgorithm);
