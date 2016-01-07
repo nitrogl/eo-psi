@@ -12,7 +12,7 @@
 #include "hashtable.hpp"
 
 #include "markedvector.hpp"
-#include "randgen.h"
+#include "randgen.hpp"
 #include "strint.h"
 #include "outofboundex.h"
 
@@ -55,7 +55,7 @@ public:
   
   void add(const T& element) throw (OutOfBoundException);
   void addToBucket(const T& element, size_t i) throw (OutOfBoundException);
-  void setHashAlgorithm(HashAlgorithm<T>* hashAlgorithm);
+  void setHashAlgorithm(const HashAlgorithm<T>* hashAlgorithm);
   
   /**
    * Fill all the not-full buckets with random elements,
@@ -63,7 +63,7 @@ public:
    * 
    * @param rndgen The generator of random elements.
    */
-  void conceal(const RandomGenerator<T>& rndgen);
+  void conceal(RandomGenerator<T>& rndgen);
   
   /**
    * Do some introspective statistics on its state.
@@ -101,14 +101,19 @@ template <class T> HashBuckets<T>::~HashBuckets() {
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::setHashAlgorithm(HashAlgorithm<T>* hashAlgorithm) {
+template <class T> void HashBuckets<T>::setHashAlgorithm(const HashAlgorithm<T>* hashAlgorithm) {
+  if (hashAlgorithm == nullptr) {
+    std::cerr << "setHashAlgorithm(). WARNING: null pointer given as algorithm, nothing to do." << std::endl;
+    return;
+  }
+  
   try {
     hashStrInt = new StrInt(hashAlgorithm->hashSize());
   } catch (std::bad_alloc&) {
     std::cerr << "setHashAlgorithm(). Fatal error allocating space." << std::endl;
     exit(2);
   }
-  this->hashAlgorithm = hashAlgorithm;
+  this->hashAlgorithm = (HashAlgorithm<T>*) hashAlgorithm;
 }
 //-----------------------------------------------------------------------------
 
@@ -143,7 +148,7 @@ template <class T> void HashBuckets<T>::addToBucket(const T& element, const size
 };
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::conceal(const RandomGenerator<T> &rndgen) {
+template <class T> void HashBuckets<T>::conceal(RandomGenerator<T> &rndgen) {
   size_t i, j;
   
   // Mark buckets (this tracks empty buckets)

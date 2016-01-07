@@ -9,7 +9,7 @@
 //-----------------------------------------------------------------------------
 
 #include <string>
-#include "randgen.h"
+#include "randgen.hpp"
 #include "asciisubset.h"
 
 #define DEFAULT_STRGEN_LENGTH 8
@@ -63,14 +63,14 @@ public:
   virtual ~RandomStringGenerator();
   
   void setSeed(const std::string &seed);
-  std::string next() const;
+  std::string next();
   
   /**
    * Generate a string of specified length, regardless its internal parameter of length.
    * 
    * @param len the length of the string to generate.
    */
-  std::string next(const size_t len) const;
+  virtual std::string next(const size_t len);
   
   /**
    * Set the length of the strings to generate.

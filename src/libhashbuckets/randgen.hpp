@@ -4,8 +4,8 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef RANDOM_GENERATOR_H
-#define RANDOM_GENERATOR_H
+#ifndef RANDOM_GENERATOR_TEMPLATE
+#define RANDOM_GENERATOR_TEMPLATE
 //-----------------------------------------------------------------------------
 
 /**
@@ -39,8 +39,8 @@ public:
   /**
    * Get the next random number.
    */
-  virtual T next() const = 0;
+  virtual T next() = 0;
 };
 //-----------------------------------------------------------------------------
 
-#endif // RANDOM_GENERATOR_H
+#endif // RANDOM_GENERATOR_TEMPLATE

@@ -10,7 +10,7 @@
 
 #include <string>
 #include <NTL/ZZ.h>
-#include "randgen.h"
+#include "randgen.hpp"
 //-----------------------------------------------------------------------------
 
 /**
@@ -46,7 +46,7 @@ public:
   virtual ~RandomZZGenerator();
   
   void setSeed(const NTL::ZZ &seed);
-  NTL::ZZ next() const;
+  NTL::ZZ next();
   
   /**
    * Get the supremum.
