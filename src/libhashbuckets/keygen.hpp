@@ -8,27 +8,52 @@
 #define KEYGEN_TEMPLATE
 //-----------------------------------------------------------------------------
 
-#include <vector>
 #include "hashalgorithm.hpp"
+#include "randgen.hpp"
 //-----------------------------------------------------------------------------
 
-template <class T, class U> class KeyGenerator
+template <class S, class T> class KeyGenerator : public RandomGenerator<T>
 {
 protected:
-  HashAlgorithm<T> hashAlgorithm;
-  T seed;
-  vector<U> memory;
+  HashAlgorithm<S>* hashAlgorithm;
+  S secret;
+//   bool memoriseKeys;
+//   std::vector<T> memory;
   
 public:
   KeyGenerator() {
-    memory.reserve(10);
+//   KeyGenerator(const bool memoriseKeys = false) {
+//     this->memoriseKeys = memoriseKeys;
+//     this->memory.reserve(10);
+    this->hashAlgorithm = nullptr;
   }
-  virtual ~KeyGenerator();
   
-  void setHashAlgorithm(const HashAlgorithm<T> hashAlgorithm) const;
-  T next() const {
-    
+  KeyGenerator(const S& secret) : KeyGenerator() {
+//   KeyGenerator(const S& secret, const bool memoriseKeys = false) : KeyGenerator(memoriseKeys) {
+//     this->memoriseKeys = memoriseKeys;
+//     this->memory.reserve(10);
   }
+  KeyGenerator(const S& secret, const HashAlgorithm<S>* hashAlgorithm) : KeyGenerator(secret) {
+//   KeyGenerator(const S& secret, const HashAlgorithm<S>* hashAlgorithm, const bool memoriseKeys = false) : KeyGenerator(secret, memoriseKeys) {
+    this->setHashAlgorithm(hashAlgorithm);
+  }
+  virtual ~KeyGenerator() {}
+  
+  /**
+   * Set the hash algorithm to use to generate new keys.
+   * 
+   * @param hashAlgorithm the hash algorithm to use
+   */
+  virtual void setHashAlgorithm(const HashAlgorithm<S>* hashAlgorithm) {
+    this->hashAlgorithm = (HashAlgorithm<S>*) hashAlgorithm;
+  }
+  
+  /**
+   * The secret should be considered as a seed for the generation.
+   * 
+   * @param secret the secret key of the generator
+   */
+  virtual void setSecretKey(const S& secret) = 0;
 };
 //-----------------------------------------------------------------------------
 
