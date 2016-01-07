@@ -19,12 +19,12 @@ namespace NTL {
   /**
    * Convert a string to a big integer ZZ
    * 
-   * @param s the string to convert
+   * @param s is a big number made of digits, i.e. "1491249129421"
    */
   ZZ str2zz(const std::string s);
   
   /**
-   * Compute the logarithm in base 2 of a big integer number
+   * Compute the base-2 logarithm of a big integer number
    * 
    * @param z the big integer to compute the logarithm of
    * @return the integer logarithm of z
@@ -32,7 +32,7 @@ namespace NTL {
   unsigned long log2(const ZZ &z);
   
   /**
-   * Compute the number of base-2 cyphers (bits) needed to express the base-10
+   * Compute the number of base-2 cyphers (bits) needed to express the
    * number given as argument.
    * 
    * @param z the number in base-10
@@ -40,7 +40,7 @@ namespace NTL {
   unsigned long bits(const ZZ &z);
   
   /**
-   * Compute the number of base-2 cyphers (bits) needed to express the base-10
+   * Compute the number of base-2 cyphers (bits) needed to express the
    * number modulo p given as argument.
    * 
    * @param z the number modulo p in base-10
