@@ -8,6 +8,7 @@
 #define STRINT_H
 //-----------------------------------------------------------------------------
 
+#include <string>
 #include <gmpxx.h>
 //-----------------------------------------------------------------------------
 
@@ -25,14 +26,13 @@ class StrInt
 private:
   mpz_t *b;      ///< used to build 
   mpz_t z;       ///< the number to store
-  
   mpz_t *pow2;   ///< caching of powers of two
-  
   size_t length; ///< the maximum length in bytes of the number
 
 public:
   /**
    * Initialise the class with a maximum number of bytes.
+   * @warning You can not modify this later.
    * 
    * @param bytes The maximum length in bytes of the number.
    * @param n The number in string format to set (not a c-string, '\0' is not the string terminator).
@@ -58,9 +58,26 @@ public:
   unsigned long rem(const unsigned long divisor) const;
   
   /**
-   * Convert the class to string.
+   * Increment the internal number by 1
+   */
+  void inc();
+  
+  /**
+   * Increment the internal number by a number given as argument
+   * 
+   * @param n the number to add
+   */
+  void add(const unsigned long n);
+  
+  /**
+   * Give the string of the number.
    */
   std::string toString() const;
+  
+  /**
+   * Output
+   */
+  friend std::ostream& operator<<(std::ostream& os, const StrInt& strint);
 };
 //-----------------------------------------------------------------------------
 

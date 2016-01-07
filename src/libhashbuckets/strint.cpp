@@ -91,6 +91,17 @@ unsigned long StrInt::rem(const unsigned long divisor) const {
 }
 //-----------------------------------------------------------------------------
 
+void StrInt::inc() {
+  mpz_add(z, z, pow2[0]);
+}
+//-----------------------------------------------------------------------------
+
+void StrInt::add(const unsigned long n) {
+  mpz_set_ui(b[0], n);
+  mpz_add(z, z, b[0]);
+}
+//-----------------------------------------------------------------------------
+
 std::string StrInt::toString() const {
   std::stringstream sstr;
   sstr << z;
@@ -98,8 +109,7 @@ std::string StrInt::toString() const {
 }
 //-----------------------------------------------------------------------------
 
-std::ostream& operator << (std::ostream& s, StrInt& z)
-{
-    return s << z.toString();
+std::ostream& operator<<(std::ostream& os, const StrInt& strint) {
+    return os << strint.toString();
 }
 //-----------------------------------------------------------------------------
