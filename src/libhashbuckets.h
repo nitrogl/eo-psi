@@ -16,6 +16,7 @@
 #include "libhashbuckets/keygen.hpp"
 #include "libhashbuckets/sha.hpp"
 
+#include "libhashbuckets/byte.h"
 #include "libhashbuckets/ntlmiss.h"
 #include "libhashbuckets/hashflavour.h"
 #include "libhashbuckets/murmurhash3.h"
@@ -24,6 +25,7 @@
 #include "libhashbuckets/shazzp.h"
 #include "libhashbuckets/simplebm.h"
 #include "libhashbuckets/strint.h"
+#include "libhashbuckets/indzzrndstream.h"
 #include "libhashbuckets/zzrandgen.h"
 #include "libhashbuckets/zzprandgen.h"
 #include "libhashbuckets/strrandgen.h"
