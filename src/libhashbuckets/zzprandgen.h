@@ -25,6 +25,9 @@ protected:
   RandomZZGenerator rndZZgen;
   
 public:
+  /**
+   * New instance of the generator.
+   */
   RandomZZpGenerator();
   
   /**
