@@ -212,7 +212,7 @@ int main(int argc, char **argv) {
   
   // Initialise key generator and pseudo-random function
   keygen.setHashAlgorithm(strHashAlgorithm);
-  keygen.setSecretKey("Topse Cret");
+  keygen.setSecretKey("Topsy Kretts");
   keygen.setModulo(p);
   prf.setModulo(p);
   
