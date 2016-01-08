@@ -12,11 +12,16 @@
 #include "randgen.hpp"
 //-----------------------------------------------------------------------------
 
+/**
+ * This class acts as a key generator/pseudo-random generator.
+ * The secret key of type S of this generator changes the seed of the
+ * pseudo-random generator, which generates random items of type T.
+ */
 template <class S, class T> class KeyGenerator : public RandomGenerator<T>
 {
 protected:
-  HashAlgorithm<S>* hashAlgorithm;
-  S secret;
+  HashAlgorithm<S>* hashAlgorithm; ///< The hash algorithm to use for the generated keys.
+  S secret;                        ///< The secret key
 //   bool memoriseKeys;
 //   std::vector<T> memory;
   
