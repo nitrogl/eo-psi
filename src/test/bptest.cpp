@@ -103,32 +103,7 @@ int main(int argc, char **argv) {
   if (infile.fail()) {
     std::cerr << argv[0] << ". Error opening file \"" << infilename << "\"" << std::endl;
     exit(1);
-<<<<<<< HEAD
-=======
   }
-  
-  // Initialize numbers modulo p
-  infile >> p;
-  bs = NTL::bits(p);
-  p = p << (padsize > bs ? padsize - bs : 0L);
-  NTL::ZZ_p::init(p);
-  
-  try {
-    // Use a specific seed to generate the same hashes
-    if (hashAlgorithm == nullptr) {
-      std::cerr << argv[0] << ". WARNING: using default hash algorithm MurmurHash3." << std::endl;
-      hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
-    }
-    hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
-    polynomials = new NTL::ZZ_pX[length];
-    evaluations = new NTL::vec_ZZ_p[length];
-    strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
-    prf = rndZZpgen = new RandomZZpGenerator();
-  } catch (std::bad_alloc &) {
-    std::cerr << argv[0] << ". Error allocating memory." << std::endl;
-    exit(2);
-  }
-  hashBuckets->setHashAlgorithm(hashAlgorithm);
   
   try {
     // Use a specific seed to generate the same hashes
