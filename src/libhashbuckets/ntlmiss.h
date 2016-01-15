@@ -17,13 +17,6 @@
 
 namespace NTL {
   /**
-   * Convert a string to a big integer ZZ
-   * 
-   * @param s is a big number made of digits, i.e. "1491249129421"
-   */
-  ZZ str2zz(const std::string s);
-  
-  /**
    * Compute the base-2 logarithm of a big integer number
    * 
    * @param z the big integer to compute the logarithm of

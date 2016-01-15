@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
   std::string outfilename = DEFAULT_FILENAME;
   RandomStringGenerator rndStrgen;
   RandomZZGenerator rndZZgen;
+  size_t len;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
@@ -54,9 +55,11 @@ int main(int argc, char **argv) {
   srand(time(NULL));
   
   // Initialise random ZZ generator
-  p = NTL::str2zz(pstr);
+  p = NTL::to_ZZ(pstr.c_str());
+  NTL::ZZ_p::init(p);
+  len = rand() % SEED_MAX_LENGTH + 1;
   rndZZgen.setSupremum(p);
-  rndZZgen.setSeed(NTL::str2zz(rndStrgen.next(rand() % SEED_MAX_LENGTH + 1)));
+  rndZZgen.setSeed(NTL::ZZFromBytes((const byte*) rndStrgen.next(len).c_str(), len));
   
   // Open file
   if (outfilename == DEFAULT_FILENAME) {

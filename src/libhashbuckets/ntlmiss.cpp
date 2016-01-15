@@ -5,24 +5,16 @@
  */
 
 #include <sstream>
+#include "byte.h"
 #include "ntlmiss.h"
 //-----------------------------------------------------------------------------
 
 namespace NTL {
-  ZZ str2zz(const std::string s) {
-    ZZ z;
-    std::stringstream sstr;
-    sstr << s;
-    sstr >> z;
-    return z;
-  }
-  //---------------------------------------------------------------------------
-
   unsigned long log2(const ZZ &z) {
     ZZ one, zl;
     unsigned long l2;
     
-    one = str2zz("1");
+    one = to_ZZ("1");
     zl = z;
     l2 = 0L;
     while (zl > one) {
