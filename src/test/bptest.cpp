@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   size_t n;
   unsigned int padsize = DEFAULT_PADSIZE;
   unsigned int bs, topad;
-  RandomZZpGenerator rndZZpgen;
+  RandomZZpGenerator *rndZZpgen;
   NTL::ZZ_p *z = nullptr;
   NTL::ZZ p, tmpZ;
   NTL::ZZ_pX *polynomials = nullptr;
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   NTL::vec_ZZ_p vzzp;
   HashAlgorithm<std::string>* strHashAlgorithm = nullptr;
   StringZZpKeyGenerator keygen;
-  RandomZZpGenerator prf;
+  RandomZZpGenerator *prf;
   SimpleBenchmark benchmark;
   
   // Parse arguments
@@ -95,22 +95,6 @@ int main(int argc, char **argv) {
   }
   
   
-  try {
-    // Use a specific seed to generate the same hashes
-    if (hashAlgorithm == nullptr) {
-      std::cerr << argv[0] << ". WARNING: using default hash algorithm MurmurHash3." << std::endl;
-      hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
-    }
-    hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
-    polynomials = new NTL::ZZ_pX[length];
-    evaluations = new NTL::vec_ZZ_p[length];
-    strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
-  } catch (std::bad_alloc &) {
-    std::cerr << argv[0] << ". Error allocating memory." << std::endl;
-    exit(2);
-  }
-  hashBuckets->setHashAlgorithm(hashAlgorithm);
-  
   // Open file with numbers
   if (infilename == DEFAULT_FILENAME) {
     std::cerr << argv[0] << ". WARNING: using default input file name \"" << infilename << "\"." << std::endl;
@@ -126,6 +110,32 @@ int main(int argc, char **argv) {
   bs = NTL::bits(p);
   p = p << (padsize > bs ? padsize - bs : 0L);
   NTL::ZZ_p::init(p);
+  
+  try {
+    // Use a specific seed to generate the same hashes
+    if (hashAlgorithm == nullptr) {
+      std::cerr << argv[0] << ". WARNING: using default hash algorithm MurmurHash3." << std::endl;
+      hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
+    }
+    hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
+    polynomials = new NTL::ZZ_pX[length];
+    evaluations = new NTL::vec_ZZ_p[length];
+    strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
+    prf = rndZZpgen = new RandomZZpGenerator();
+  } catch (std::bad_alloc &) {
+    std::cerr << argv[0] << ". Error allocating memory." << std::endl;
+    exit(2);
+  }
+  hashBuckets->setHashAlgorithm(hashAlgorithm);
+  
+//   && DELME
+  keygen.setHashAlgorithm(strHashAlgorithm);
+  keygen.setSecretKey("Topsy Kretts");
+  keygen.setModulo(p);
+  for (int i = 0; i < 40; i++) {
+    std::cout << keygen[i] << std::endl;
+  }
+  exit(3);
   
   // Read the number of numbers
   infile >> n;
@@ -173,9 +183,9 @@ int main(int argc, char **argv) {
   // Fill empty cells of the hash table
   std::cout << "Concealing the hash table (filling empty cells)... ";
   std::cout.flush();
-  rndZZpgen.setModulo(p);
+  rndZZpgen->setModulo(p);
   benchmark.step();
-  hashBuckets->conceal(rndZZpgen);
+  hashBuckets->conceal(*rndZZpgen);
   benchmark.step();
   std::cout << "done. " << std::endl;
   
@@ -195,7 +205,7 @@ int main(int argc, char **argv) {
   unknowns.SetLength(2*maxLoad + 1);
   benchmark.step();
   for (size_t j = 0; j < 2*maxLoad + 1; j++) {
-    append(unknowns, rndZZpgen.next());
+    append(unknowns, rndZZpgen->next());
   }
   benchmark.step();
   std::cout << "done. " << std::endl;
@@ -214,16 +224,16 @@ int main(int argc, char **argv) {
   keygen.setHashAlgorithm(strHashAlgorithm);
   keygen.setSecretKey("Topsy Kretts");
   keygen.setModulo(p);
-  prf.setModulo(p);
+  prf->setModulo(p);
   
   // Blind evaluations
   std::cout << "Blinding evaluations... ";
   std::cout.flush();
   benchmark.step();
   for (size_t i = 0; i < length; i++) {
-    prf.setSeed(keygen.next());
+    prf->setSeed(keygen.next());
     for (size_t j = 0; j < 2*maxLoad + 1; j++) {
-      evaluations[i][j] = evaluations[i][j] + prf.next();
+      evaluations[i][j] = evaluations[i][j] + prf->next();
     }
   }
   benchmark.stop();
