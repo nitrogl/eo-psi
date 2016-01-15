@@ -18,11 +18,10 @@
 /**
  * Key generator for big integers modulo p with secret of type string.
  */
-class StringZZpKeyGenerator : public KeyGenerator<std::string, NTL::ZZ_p>, public RandomZZpGenerator
+class StringZZpKeyGenerator : public KeyGenerator<std::string, NTL::ZZ_p>
 {
 protected:
-  StrInt *secretint;
-  StrInt *strint;
+  NTL::ZZ p;
   
 public:
   StringZZpKeyGenerator();
@@ -31,8 +30,19 @@ public:
   virtual void setHashAlgorithm(const HashAlgorithm<std::string>* hashAlgorithm);
   virtual void setSecretKey(const std::string& secret);
   
-  virtual void setSeed(const NTL::ZZ_p & seed);
-  NTL::ZZ_p next();
+  /**
+   * Get the modulo p used for the generation.
+   */
+  NTL::ZZ getModulo() const;
+  
+  /**
+   * Set the modulo p for the generation.
+   * 
+   * @param p The modulo p.
+   */
+  void setModulo(const NTL::ZZ &p);
+  
+  virtual NTL::ZZ_p generate(size_t index);
 };
 //-----------------------------------------------------------------------------
 

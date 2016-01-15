@@ -13,15 +13,17 @@
 //-----------------------------------------------------------------------------
 
 /**
- * This class acts as a key generator/pseudo-random generator.
- * The secret key of type S of this generator changes the seed of the
- * pseudo-random generator, which generates random items of type T.
+ * This class acts as a key generator.
+ * The secret key of type S of this generator changes the seed is supposed to
+ * work together with some index to generate the key corresponding to the
+ * index.
  */
-template <class S, class T> class KeyGenerator : public RandomGenerator<T>
+template <class S, class T> class KeyGenerator
 {
 protected:
   HashAlgorithm<S>* hashAlgorithm; ///< The hash algorithm to use for the generated keys.
   S secret;                        ///< The secret key
+  size_t index;                    ///< Internal index
 //   bool memoriseKeys;
 //   std::vector<T> memory;
   
@@ -31,6 +33,7 @@ public:
 //     this->memoriseKeys = memoriseKeys;
 //     this->memory.reserve(10);
     this->hashAlgorithm = nullptr;
+    this->index = 0;
   }
   
   KeyGenerator(const S& secret) : KeyGenerator() {
@@ -54,11 +57,38 @@ public:
   }
   
   /**
-   * The secret should be considered as a seed for the generation.
+   * The secret for the generation.
    * 
    * @param secret the secret key of the generator
    */
-  virtual void setSecretKey(const S& secret) = 0;
+  virtual void setSecretKey(const S& secret) {
+    this->secret = secret;
+  }
+  
+  /**
+   * Get the next key generated according to an internal index
+   * 
+   * @return the next key
+   */
+  virtual T next() {
+    return generate(this->index++);
+  }
+  
+  /**
+   * Generate a key with a specific index
+   * 
+   * @param index the index-th key
+   */
+  virtual T generate(const size_t index) = 0;
+  
+  /**
+   * This operator gives back a key with the index embraced by the
+   * square brackets.
+   * @see generate
+   */
+  const T operator[](size_t index) {
+    return this->generate(index);
+  }
 };
 //-----------------------------------------------------------------------------
 
