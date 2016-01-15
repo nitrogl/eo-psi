@@ -32,7 +32,7 @@ set (LIBRARY_VERSION_MINOR "alpha")
 
 # Check headers
 CHECK_INCLUDE_FILES (pthread.h HAVE_PTHREAD_H)
-CONFIGURE_FILE("config.h.in" "${CMAKE_SOURCE_DIR}/config.h")
+CONFIGURE_FILE("config.h.in" "${CMAKE_SOURCE_DIR}/src/config.h")
 find_package (Threads)
 
 # Compiler flags

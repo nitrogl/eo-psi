@@ -4,11 +4,17 @@
  * Copyright (C) 2016  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
+#include <NTL/vector.h>
+
 #include "indzzrndstream.h"
 //-----------------------------------------------------------------------------
 
 static inline unsigned long WordFromBytes(const unsigned char *buf, long n);
 //-----------------------------------------------------------------------------
+
+namespace NTL {
+  NTL_vector_decl(unsigned char,vec_unsigned_char)
+}
 
 /*
  * The following code is an adaptation of the original SetSeed functions
@@ -21,14 +27,14 @@ static inline unsigned long WordFromBytes(const unsigned char *buf, long n);
 byte* IndependentZZRandomStream::zzSeed2byte(const NTL::ZZ& seed) const {
   long nb = NumBytes(seed);
 
-  NTL::Vec<unsigned char> buf;
+  NTL::vec_unsigned_char buf;
   buf.SetLength(nb);
 
   NTL::BytesFromZZ(buf.elts(), seed, nb);
   
 //     if (nb < 0) LogicError("SetSeed: bad args"); // Is that possible?
 
-  NTL::Vec<unsigned char> key;
+  NTL::vec_unsigned_char key;
   key.SetLength(NTL_PRG_KEYLEN);
   NTL::DeriveKey(key.elts(), NTL_PRG_KEYLEN, buf.elts(), nb);
 
@@ -89,8 +95,8 @@ NTL::ZZ IndependentZZRandomStream::randomBnd(const NTL::ZZ& bnd) {
 
   unsigned long mask = (1UL << (16 - nb*8 + l)) - 1UL;
 
-  NTL_THREAD_LOCAL static Vec<unsigned char> buf_mem;
-  Vec<unsigned char>::Watcher watch_buf_mem(buf_mem);
+  NTL_THREAD_LOCAL static vec_unsigned_char buf_mem;
+  vec_unsigned_char::Watcher watch_buf_mem(buf_mem);
   buf_mem.SetLength(nb);
   unsigned char *buf = buf_mem.elts();
 

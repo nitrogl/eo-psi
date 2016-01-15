@@ -36,9 +36,7 @@ void RandomZZpGenerator::setModulo(const NTL::ZZ &p) {
 //-----------------------------------------------------------------------------
 
 void RandomZZpGenerator::setSeed(const NTL::ZZ_p &seed) {
-  NTL::ZZ z;
-  NTL::conv(z, seed);
-  this->rndZZgen.setSeed(z);
+  this->rndZZgen.setSeed(rep(seed));
 }
 //-----------------------------------------------------------------------------
 

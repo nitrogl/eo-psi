@@ -39,27 +39,26 @@ namespace NTL {
   //---------------------------------------------------------------------------
 
   unsigned long bits(const ZZ_p &zp) {
-    ZZ z;
-    conv(z, zp);
+    ZZ z = rep(zp);
     return log2(z) + 1L;
   }
   //---------------------------------------------------------------------------
   
-  void vector2VecZZp(Vec<ZZ_p> &zp, const std::vector<ZZ_p> &v) {
+  void vector2VecZZp(vec_ZZ_p &zp, const std::vector<ZZ_p> &v) {
     zp.kill();
     zp.SetLength(v.size());
     for (size_t i = 0; i < v.size(); i++) {
-      zp.append(v[i]);
+      append(zp, v[i]);
     }
   }
   //---------------------------------------------------------------------------
   
-  Vec<ZZ_p> vector2VecZZp(const std::vector<ZZ_p> &v) {
-    Vec<ZZ_p> res;
+  vec_ZZ_p vector2VecZZp(const std::vector<ZZ_p> &v) {
+    vec_ZZ_p res;
     
     res.SetLength(v.size());
     for (size_t i = 0; i < v.size(); i++) {
-      res.append(v[i]);
+      append(res, v[i]);
     }
     
     return res;

@@ -54,14 +54,14 @@ namespace NTL {
    * @param nv The NTL vector to fill in.
    * @param v The STL vector to read from.
    */
-  void vector2VecZZp(Vec<ZZ_p> &nv, const std::vector<ZZ_p> &v);
+  void vector2VecZZp(vec_ZZ_p &nv, const std::vector<ZZ_p> &v);
   
   /**
    * Convert STL vector of integers modulo p to its corresponding NTL vector.
    * 
    * @param v The STL vector to read from.
    */
-  Vec<ZZ_p> vector2VecZZp(const std::vector<ZZ_p> &v);
+  vec_ZZ_p vector2VecZZp(const std::vector<ZZ_p> &v);
 };
 //-----------------------------------------------------------------------------
 

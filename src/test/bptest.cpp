@@ -39,9 +39,9 @@ int main(int argc, char **argv) {
   NTL::ZZ_p *z = nullptr;
   NTL::ZZ p, tmpZ;
   NTL::ZZ_pX *polynomials = nullptr;
-  NTL::Vec<NTL::ZZ_p> unknowns;
-  NTL::Vec<NTL::ZZ_p> *evaluations;
-  NTL::Vec<NTL::ZZ_p> vzzp;
+  NTL::vec_ZZ_p unknowns;
+  NTL::vec_ZZ_p *evaluations;
+  NTL::vec_ZZ_p vzzp;
   HashAlgorithm<std::string>* strHashAlgorithm = nullptr;
   StringZZpKeyGenerator keygen;
   RandomZZpGenerator prf;
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
     }
     hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
     polynomials = new NTL::ZZ_pX[length];
-    evaluations = new NTL::Vec<NTL::ZZ_p>[length];
+    evaluations = new NTL::vec_ZZ_p[length];
     strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
   unknowns.SetLength(2*maxLoad + 1);
   benchmark.step();
   for (size_t j = 0; j < 2*maxLoad + 1; j++) {
-    unknowns.append(rndZZpgen.next());
+    append(unknowns, rndZZpgen.next());
   }
   benchmark.step();
   std::cout << "done. " << std::endl;
