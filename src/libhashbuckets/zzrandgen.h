@@ -11,7 +11,6 @@
 #include <string>
 #include <NTL/ZZ.h>
 #include "randgen.hpp"
-// #include "indzzrndstream.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -26,7 +25,6 @@ class RandomZZGenerator : public RandomGenerator<NTL::ZZ>
 {
 protected:
   NTL::ZZ sup;                          ///< This is the supremum, the least number which is greater than all generated numbers.
-//   IndependentZZRandomStream *rndstream; ///< Independent NTL random stream for big integers
   
 public:
   /**

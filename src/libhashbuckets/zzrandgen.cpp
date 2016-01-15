@@ -8,7 +8,6 @@
 //-----------------------------------------------------------------------------
 
 RandomZZGenerator::RandomZZGenerator() {
-//   this->rndstream = nullptr;
 }
 //-----------------------------------------------------------------------------
 
@@ -23,9 +22,6 @@ RandomZZGenerator::RandomZZGenerator(const NTL::ZZ &sup, const NTL::ZZ &seed) : 
 //-----------------------------------------------------------------------------
 
 RandomZZGenerator::~RandomZZGenerator() {
-//   if (this->rndstream != nullptr) {
-//     delete(this->rndstream);
-//   }
 }
 //-----------------------------------------------------------------------------
 
@@ -40,27 +36,11 @@ void RandomZZGenerator::setSupremum(const NTL::ZZ &sup) {
 //-----------------------------------------------------------------------------
 
 void RandomZZGenerator::setSeed(const NTL::ZZ &seed) {
-//   if (this->rndstream != nullptr) {
-//     delete(this->rndstream);
-//   }
-  
-//   try {
-//     this->rndstream = new IndependentZZRandomStream(seed);
-//   } catch (std::bad_alloc&) {
-//     std::cerr << "RandomZZGenerator(). Unable to allocate memory." << std::endl;
-//     exit(2);
-//   }
   NTL::SetSeed(seed);
 }
 //-----------------------------------------------------------------------------
 
 NTL::ZZ RandomZZGenerator::next() {
-//   if (this->rndstream == nullptr) {
-//     NTL::ZZ zero;
-//     zero = 0;
-//     this->setSeed(zero);
-//   }
-//   return this->rndstream->randomBnd(sup);
   return NTL::RandomBnd(sup);
 }
 //-----------------------------------------------------------------------------
