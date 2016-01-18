@@ -55,7 +55,7 @@ namespace NTL {
    * @param v The STL vector to read from.
    */
   vec_ZZ_p vector2VecZZp(const std::vector<ZZ_p> &v);
-};
+}
 //-----------------------------------------------------------------------------
 
 #endif // NTL_MISS_H

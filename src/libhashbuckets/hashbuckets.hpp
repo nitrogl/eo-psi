@@ -93,7 +93,7 @@ template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad) {
     // Reserving 3/4 of maxLoad
     this->buckets[i].reserve(1 + 3 * maxLoad / 4);
   }
-};
+}
 //-----------------------------------------------------------------------------
 
 template <class T> HashBuckets<T>::~HashBuckets() {
@@ -135,7 +135,7 @@ template <class T> void HashBuckets<T>::add(const T& element) throw (OutOfBoundE
   //   if (index == 0)
   //   std::cerr << "HashBuckets<T>::add()" << ". Index of " << element << " is " << index << "." << std::endl; // Debug purposes
     this->buckets[index].push_back(element);
-};
+}
 //-----------------------------------------------------------------------------
 
 template <class T> void HashBuckets<T>::addToBucket(const T& element, const size_t i) throw (OutOfBoundException) {
@@ -145,7 +145,7 @@ template <class T> void HashBuckets<T>::addToBucket(const T& element, const size
   } else {
     throw new OutOfBoundException("HashBuckets<T>::addToBucket(). Index out of bound.", OutOfBoundException::FATAL);
   }
-};
+}
 //-----------------------------------------------------------------------------
 
 template <class T> void HashBuckets<T>::conceal(RandomGenerator<T> &rndgen) {
@@ -162,17 +162,17 @@ template <class T> void HashBuckets<T>::conceal(RandomGenerator<T> &rndgen) {
       this->buckets[i].push_back(rndgen.next());
     }
   }
-};
+}
 //-----------------------------------------------------------------------------
 
 template <class T> size_t HashBuckets<T>::getLength() const {
   return this->k;
-};
+}
 //-----------------------------------------------------------------------------
 
 template <class T> size_t HashBuckets<T>::getMaxLoad() const {
   return this->maxLoad;
-};
+}
 //-----------------------------------------------------------------------------
 
 template <class T> void HashBuckets<T>::printStats(bool full) const {
@@ -221,7 +221,7 @@ template <class T> void HashBuckets<T>::printStats(bool full) const {
     }
   }
   std::cout << (full || (this->k < DEFAULT_NSHOW) ? "" : "...") << std::endl;
-};
+}
 //-----------------------------------------------------------------------------
 
 #endif // HASHBUCKETS_TEMPLATE
