@@ -35,11 +35,11 @@ int main(int argc, char **argv) {
         n = atol(optarg); 
         break;
         
-      case 'o': 
+      case 'o':
         outfilename = optarg; 
         break;
         
-      case 'p': 
+      case 'p':
         pstr = optarg;
         break;
         
