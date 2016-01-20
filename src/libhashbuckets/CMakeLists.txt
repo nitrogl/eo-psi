@@ -13,6 +13,7 @@ add_library (${LIBRARY_NAME} SHARED
         zzrandgen.cpp
         zzprandgen.cpp
         strrandgen.cpp
+        stringkeygen.cpp
         strzzpkeygen.cpp
         libhashbuckets.rc
         )

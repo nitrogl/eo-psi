@@ -4,8 +4,8 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef STRING_ZZ_P_KEY_GENERATOR_H
-#define STRING_ZZ_P_KEY_GENERATOR_H
+#ifndef STRING_STRING_KEY_GENERATOR_H
+#define STRING_STRING_KEY_GENERATOR_H
 //-----------------------------------------------------------------------------
 
 #include <string>
@@ -17,31 +17,31 @@
 /**
  * Key generator for big integers modulo p with secret of type string.
  */
-class StringZZpKeyGenerator : public KeyGenerator<std::string, NTL::ZZ_p>
+class StringKeyGenerator : public KeyGenerator<std::string, std::string>
 {
 protected:
-  NTL::ZZ p;
+  size_t length;
   
 public:
-  StringZZpKeyGenerator();
-  virtual ~StringZZpKeyGenerator() {}
+  StringKeyGenerator();
+  virtual ~StringKeyGenerator() {}
   
   virtual void setHashAlgorithm(const HashAlgorithm<std::string>* hashAlgorithm);
   virtual void setSecretKey(const std::string& secret);
   
   /**
-   * Get the modulo p used for the generation.
+   * Get the length of the generation.
    */
-  NTL::ZZ getModulo() const;
+  size_t getLength() const;
   
   /**
-   * Set the modulo p for the generation.
+   * Set the length of the generation.
    * 
    * @param p The modulo p.
    */
-  void setModulo(const NTL::ZZ &p);
+  void setLength(const size_t length);
   
-  virtual NTL::ZZ_p generate(size_t index);
+  virtual std::string generate(size_t index);
 };
 //-----------------------------------------------------------------------------
 

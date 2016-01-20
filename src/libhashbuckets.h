@@ -28,6 +28,7 @@
 #include "libhashbuckets/zzrandgen.h"
 #include "libhashbuckets/zzprandgen.h"
 #include "libhashbuckets/strrandgen.h"
+#include "libhashbuckets/stringkeygen.h"
 #include "libhashbuckets/strzzpkeygen.h"
 
 #define LIB_HASH_BUCKETS_LIBRARY "Hash table for big integers modulo p, blind polynomial evaluation roots. The library"
