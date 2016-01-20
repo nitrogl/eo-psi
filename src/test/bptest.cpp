@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <thread>
 #include <gmpxx.h>
 #include <getopt.h>
 #include <NTL/ZZ.h>
@@ -13,12 +14,22 @@
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -h -k <keys> -l <bucket-size> -p <pad-to-bits> -i <infile>\n"
             << " -a : hash algorithm (MH3|SHA1|SHA256|SHA512)\n"
+            << " -j : force number of threads for evaluation\n"
             << " -k : number of keys of the hash table\n"
             << " -l : size of buckets of the hash table\n"
-            << " -p : pad numbers up to a specific number of bits\n"
+            << " -p : set the padding up to numbers modulo p\n"
             << " -i : file name to read numbers from\n"
             << " -h : show this message and exit\n"
             << std::endl;
+}
+//-----------------------------------------------------------------------------
+
+// The function to call from each thread
+static void polEval(NTL::vec_ZZ_p *evaluations, NTL::ZZ_pX *polynomials, NTL::vec_ZZ_p unknowns, const size_t from, const size_t to) {
+  size_t j;
+  for (j = from; j < to; j++) {
+    eval(evaluations[j], polynomials[j], unknowns);
+  }
 }
 //-----------------------------------------------------------------------------
 
@@ -33,7 +44,8 @@ int main(int argc, char **argv) {
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n;
-  unsigned int padsize = DEFAULT_PADSIZE;
+  std::string pstr = DEFAULT_P;
+  unsigned int padsize;
   unsigned int bs, topad;
   RandomZZpGenerator *rndZZpgen;
   NTL::ZZ_p *z = nullptr;
@@ -43,13 +55,17 @@ int main(int argc, char **argv) {
   NTL::vec_ZZ_p *evaluations;
   NTL::vec_ZZ_p vzzp;
   HashAlgorithm<std::string>* strHashAlgorithm = nullptr;
-  StringZZpKeyGenerator keygen;
-  RandomZZpGenerator *prf;
+  StringZZpKeyGenerator prf;
+  StringKeyGenerator keygen;
   SimpleBenchmark benchmark;
+  unsigned int cores = 0, nThreads = 0;
+  size_t nSplit;
+  size_t *cumulSplit;
+  std::thread *threads;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
-  while ((op = getopt(argc, argv, "a:hi:k:l:p:")) != -1) {
+  while ((op = getopt(argc, argv, "a:hi:j:k:l:p:")) != -1) {
     switch (op) {
       case 'a':
         try {
@@ -69,6 +85,10 @@ int main(int argc, char **argv) {
         }
         break;
         
+      case 'j':
+        nThreads = atoi(optarg); 
+        break;
+        
       case 'k':
         length = atol(optarg); 
         break;
@@ -82,7 +102,7 @@ int main(int argc, char **argv) {
         break;
         
       case 'p': 
-        padsize = atoi(optarg);
+        pstr = optarg;
         break;
         
       case '?':
@@ -94,6 +114,16 @@ int main(int argc, char **argv) {
     }
   }
   
+  // Initialise numbers modulo p
+  p = NTL::to_ZZ(pstr.c_str());
+  NTL::ZZ_p::init(p);
+  padsize = NTL::bits(p);
+  
+  // Number of threads
+  if (nThreads == 0) {
+    cores = std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1;
+    nThreads = cores;
+  }
   
   // Open file with numbers
   if (infilename == DEFAULT_FILENAME) {
@@ -115,14 +145,19 @@ int main(int argc, char **argv) {
     polynomials = new NTL::ZZ_pX[length];
     evaluations = new NTL::vec_ZZ_p[length];
     strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
-    prf = rndZZpgen = new RandomZZpGenerator();
+    rndZZpgen = new RandomZZpGenerator();
+    threads = new std::thread[nThreads];
+    cumulSplit = new size_t[nThreads + 1];
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
     exit(2);
   }
   hashBuckets->setHashAlgorithm(hashAlgorithm);
   
-  // Read the number of numbers
+  // Ignore the original boundary of creation
+  infile >> tmpZ;
+  
+  // Read the number of numbers (The same line as before...)
   infile >> n;
   
   // Check arguments consistency
@@ -199,8 +234,43 @@ int main(int argc, char **argv) {
   std::cout << "Evaluating polynomials... ";
   std::cout.flush();
   benchmark.step();
-  for (size_t i = 0; i < length; i++) {
-    eval(evaluations[i], polynomials[i], unknowns);
+  if (nThreads > 1) {
+    // Also the preparation bust be benchmarked
+    // Compute the loop boundaries
+    nSplit = (length + 1) / nThreads;
+    cumulSplit[0] = 0;
+    for (size_t i = 1; i <= nThreads; i++) {
+      cumulSplit[i] = cumulSplit[i - 1] + nSplit;
+    }
+    // Do not exceed
+    if (cumulSplit[nThreads] > length) {
+      cumulSplit[nThreads] = length;
+    }
+    
+    std::cout << "(" << cumulSplit[0];
+    for (size_t i = 1; i <= nThreads; i++) {
+      std::cout << "-" << cumulSplit[i];
+    }
+    std::cout << ")... ";
+    std::cout.flush();
+    
+    // Run threads
+    for (size_t i = 0; i < nThreads - 1; i++) {
+      threads[i] = std::thread(polEval, evaluations, polynomials, unknowns, cumulSplit[i], cumulSplit[i + 1]);
+    }
+    
+    // Do something in this thread too
+    polEval(evaluations, polynomials, unknowns, cumulSplit[nThreads - 1], cumulSplit[nThreads]);
+    
+    // Wait all threads
+    for (size_t i = 0; i < nThreads - 1; i++) {
+      threads[i].join();
+    }
+  } else {
+    // Evaluating polynomials (single core)
+    for (size_t j = 0; j < length; j++) {
+      eval(evaluations[j], polynomials[j], unknowns);
+    }
   }
   benchmark.step();
   std::cout << "done. " << std::endl;
@@ -208,17 +278,17 @@ int main(int argc, char **argv) {
   // Initialise key generator and pseudo-random function
   keygen.setHashAlgorithm(strHashAlgorithm);
   keygen.setSecretKey("Topsy Kretts");
-  keygen.setModulo(p);
-  prf->setModulo(p);
+  prf.setHashAlgorithm(strHashAlgorithm);
+  prf.setModulo(p);
   
   // Blind evaluations
   std::cout << "Blinding evaluations... ";
   std::cout.flush();
   benchmark.step();
-  for (size_t i = 0; i < length; i++) {
-    prf->setSeed(keygen.next());
-    for (size_t j = 0; j < 2*maxLoad + 1; j++) {
-      evaluations[i][j] = evaluations[i][j] + prf->next();
+  for (size_t j = 0; j < 40; j++) {
+    prf.setSecretKey(keygen.next());
+    for (size_t i = 0; i < 2*maxLoad + 1; i++) {
+      evaluations[j][i] = evaluations[j][i] + prf.next();
     }
   }
   benchmark.stop();
@@ -259,7 +329,7 @@ int main(int argc, char **argv) {
   std::cout << "Total time to evaluate " << length << " polynomials against " << (2*maxLoad + 1) << " unknowns: " 
             << benchmark.benchmark(11).count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to generate each evaluation: " 
-            << (double) benchmark.benchmark(11).count() / (length * (2*maxLoad + 1)) << " µs" << std::endl;
+            << (double) benchmark.benchmark(11).count() / (length * (2*maxLoad + 1)) * nThreads << " µs" << std::endl;
   std::cout << std::endl;
             
   std::cout << "Total time to blind " << length << "x" << (2*maxLoad + 1) << " evaluations: " 
@@ -270,6 +340,9 @@ int main(int argc, char **argv) {
   
   delete(hashAlgorithm);
   delete(hashBuckets);
+  delete(cumulSplit);
+  delete(strHashAlgorithm);
+  delete(rndZZpgen);
   return 0;
 }
 //-----------------------------------------------------------------------------
