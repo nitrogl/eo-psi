@@ -9,6 +9,7 @@ This library makes use of other very popular libraries.
 *   GMP
 *   NTL
 *   CryptoPP
+*   asio
 
 
 Compile from source
