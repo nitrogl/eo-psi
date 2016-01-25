@@ -15,6 +15,8 @@ add_library (${LIBRARY_NAME} SHARED
         strrandgen.cpp
         stringkeygen.cpp
         strzzpkeygen.cpp
+        hspsiserver.cpp
+        hspsiclient.cpp
         libhashbuckets.rc
         )
 
