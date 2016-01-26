@@ -36,18 +36,18 @@ target_link_libraries (bptest ntl gmpxx gmp cryptopp)
 target_link_libraries (bptest "${CMAKE_THREAD_LIBS_INIT}")
 set_target_properties (bptest PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-# Add executable "hspsisrv"
-add_executable(hspsisrv hspsisrv.cpp)
-target_link_libraries (hspsisrv "${LIBRARY_NAME}")
-target_link_libraries (hspsisrv ntl gmpxx gmp cryptopp)
-target_link_libraries (hspsisrv "${CMAKE_THREAD_LIBS_INIT}")
-set_target_properties (hspsisrv PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+# Add executable "eopsisrv"
+add_executable(eopsisrv eopsisrv.cpp)
+target_link_libraries (eopsisrv "${LIBRARY_NAME}")
+target_link_libraries (eopsisrv ntl gmpxx gmp cryptopp)
+target_link_libraries (eopsisrv "${CMAKE_THREAD_LIBS_INIT}")
+set_target_properties (eopsisrv PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-# Add executable "hspsicli"
-add_executable(hspsicli hspsicli.cpp)
-target_link_libraries (hspsicli "${LIBRARY_NAME}")
-target_link_libraries (hspsicli ntl gmpxx gmp cryptopp)
-target_link_libraries (hspsicli "${CMAKE_THREAD_LIBS_INIT}")
-set_target_properties (hspsicli PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+# Add executable "eopsicli"
+add_executable(eopsicli eopsicli.cpp)
+target_link_libraries (eopsicli "${LIBRARY_NAME}")
+target_link_libraries (eopsicli ntl gmpxx gmp cryptopp)
+target_link_libraries (eopsicli "${CMAKE_THREAD_LIBS_INIT}")
+set_target_properties (eopsicli PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Copyright (C) 2015 Roberto Metere

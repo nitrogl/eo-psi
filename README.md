@@ -9,7 +9,6 @@ This library makes use of other very popular libraries.
 *   GMP
 *   NTL
 *   CryptoPP
-*   asio
 
 
 Compile from source
@@ -38,6 +37,8 @@ The compilation produces three test binary files:
 *   `zzrndgen`
 *   `hbtest`
 *   `bptest`
+*   `eopsisrv`
+*   `eopsicli`
 
 In order to use them correctly, just run them with the argument `-h` and read the syntax.
 

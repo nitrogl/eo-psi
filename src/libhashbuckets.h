@@ -30,8 +30,8 @@
 #include "libhashbuckets/strrandgen.h"
 #include "libhashbuckets/stringkeygen.h"
 #include "libhashbuckets/strzzpkeygen.h"
-#include "libhashbuckets/hspsiserver.h"
-#include "libhashbuckets/hspsiclient.h"
+#include "libhashbuckets/eopsiserver.h"
+#include "libhashbuckets/eopsiclient.h"
 
 #define LIB_HASH_BUCKETS_LIBRARY "Hash table for big integers modulo p, blind polynomial evaluation roots. The library"
 
