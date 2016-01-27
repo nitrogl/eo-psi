@@ -1,5 +1,5 @@
 /*
- * The secure computation server of the protocol.
+ * The secure computation server of the EO-PSI protocol.
  * 
  * Copyright (C) 2016  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
@@ -8,21 +8,19 @@
 #include "eopsiclient.h"
 //-----------------------------------------------------------------------------
 
-EOPrivateSetIntersectionClient::EOPrivateSetIntersectionClient() {
-  this->state = EOPSI_CLIENT_STATE_UNREADY;
-}
-//-----------------------------------------------------------------------------
-
-EOPrivateSetIntersectionClient::~EOPrivateSetIntersectionClient() {
+EOPSIClient::EOPSIClient(const std::string& id) : EOPSIParty(id) {
   
 }
 //-----------------------------------------------------------------------------
 
-EOPSIClientState EOPrivateSetIntersectionClient::getState() const {
-  return this->state;
+EOPSIClient::~EOPSIClient() {
+  
 }
 //-----------------------------------------------------------------------------
 
-void EOPrivateSetIntersectionClient::waitForServer() {
+void EOPSIClient::receive(const EOPSIMessage& msg) throw (ProtocolException) {
+  if (msg.getPartyId() == this->id) {
+    throw new ProtocolException("Self-messaging is not allowed in EOPSI protocol");
+  }
 }
 //-----------------------------------------------------------------------------

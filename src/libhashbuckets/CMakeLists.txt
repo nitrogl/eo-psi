@@ -4,6 +4,7 @@
 # The library
 add_library (${LIBRARY_NAME} SHARED
         ntlmiss.cpp
+        exception.cpp
         outofboundex.cpp
         murmurhash3.cpp
         shastr.cpp
@@ -15,6 +16,7 @@ add_library (${LIBRARY_NAME} SHARED
         strrandgen.cpp
         stringkeygen.cpp
         strzzpkeygen.cpp
+        eopsimsg.cpp
         eopsiserver.cpp
         eopsiclient.cpp
         libhashbuckets.rc

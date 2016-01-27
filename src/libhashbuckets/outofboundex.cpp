@@ -8,21 +8,14 @@
 #include "outofboundex.h"
 //-----------------------------------------------------------------------------
 
-OutOfBoundException::OutOfBoundException(std::string message, bool fatal) {
+OutOfBoundException::OutOfBoundException(std::string message, bool fatal) : Exception(message, Exception::NON_FATAL, 1) {
   if (message.compare("") == 0) {
-    this->message = "You have tried to insert or read an element out of allowed bound of some container";
+    this->message = "Did you try to insert or read an element out of allowed bound of some container?";
   } else {
     this->message = message;
   }
   
-  if (fatal) {
-    std::cout << "Fatal exception uncaught (OutOfBoundException). " << this->message << std::endl;
-    exit(1);
-  }
-}
-//-----------------------------------------------------------------------------
-
-const char* OutOfBoundException::what() const throw() {
-  return message.c_str();
+  this->setFatal(fatal);
+  this->handleFatality();
 }
 //-----------------------------------------------------------------------------

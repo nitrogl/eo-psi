@@ -24,9 +24,8 @@ static void printUsage(const char *prgnam) {
 //-----------------------------------------------------------------------------
 
 int main(int argc, char **argv) {
-  EOPrivateSetIntersectionClient client;
+  EOPSIClient client;
   
-  client.waitForServer();
 
   return 0;
 }

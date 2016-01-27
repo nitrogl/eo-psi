@@ -8,8 +8,7 @@
 #define OUT_OF_BOUND_EXCEPTION_H
 //-----------------------------------------------------------------------------
 
-#include <string>
-#include <exception>
+#include "exception.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -17,15 +16,9 @@
  * performed on it do it for some out of bound elements, accesses, etc.
  * For example, N-ary arrays have bounds 0 and (N - 1).
  */
-class OutOfBoundException: public std::exception
+class OutOfBoundException: public Exception
 {
-private:
-  std::string message; ///< A specific message to give as a feedback.
-
 public:
-  static const bool FATAL = true;       ///< Fatal means that even if the exception is caught, it exits the program
-  static const bool NON_FATAL = !FATAL; ///< Non fatal is a synonym of <i>standard</i> exception behaviour.
-  
   /**
    * Default constructor.
    * 
@@ -33,11 +26,6 @@ public:
    * @param fatal true if launching this exception will exit the program, false otherwise
    */
   OutOfBoundException(std::string message = "", bool fatal = NON_FATAL);
-  
-  /**
-   * The reason why the exception was thrown.
-   */
-  virtual const char* what() const throw();
 };
 //-----------------------------------------------------------------------------
 

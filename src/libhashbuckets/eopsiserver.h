@@ -1,39 +1,32 @@
 /*
- * The secure computation server of the protocol.
+ * The secure computation server of the EO-PSI protocol.
  * 
  * Copyright (C) 2016  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef EOPSI_PRIVATE_SET_INTERSECTION_SERVER_H
-#define EOPSI_PRIVATE_SET_INTERSECTION_SERVER_H
+#ifndef EOPSI_SERVER_H
+#define EOPSI_SERVER_H
 //-----------------------------------------------------------------------------
 
 #include <string>
 #include <list>
+#include "eopsiparty.hpp"
 #include "eopsiclient.h"
 //-----------------------------------------------------------------------------
 
-typedef enum EOPSIServerState {
-  EOPSI_SERVER_STATE_UNREADY = 0,
-  EOPSI_SERVER_STATE_READY = 1,
-  EOPSI_SERVER_STATE_OUSOURCING = 2,
-  EOPSI_SERVER_STATE_WAITING = 3
-} EOPSIServerState;
-//-----------------------------------------------------------------------------
+class EOPSIClient;
 
-class EOPrivateSetIntersectionServer {
+class EOPSIServer : public EOPSIParty {
 protected:
-  EOPSIServerState state;
-  std::list<EOPrivateSetIntersectionClient> clients;
+  std::list<EOPSIMessage*> storedData;
+  
   
 public:
-  EOPrivateSetIntersectionServer();
-  virtual ~EOPrivateSetIntersectionServer();
+  EOPSIServer(const std::string& id = "");
+  virtual ~EOPSIServer();
   
-  virtual void addClient(const EOPrivateSetIntersectionClient& client);
-  virtual EOPSIServerState getState() const;
-  virtual void sendToClient(const EOPrivateSetIntersectionClient& client, const std::string msg);
+  virtual void receive(const EOPSIMessage& msg) throw (ProtocolException);
 };
 //-----------------------------------------------------------------------------
 
-#endif // EOPSI_PRIVATE_SET_INTERSECTION_SERVER_H
+#endif // EOPSI_SERVER_H
