@@ -20,7 +20,7 @@ EOPSIClient::~EOPSIClient() {
 
 void EOPSIClient::receive(const EOPSIMessage& msg) throw (ProtocolException) {
   if (msg.getPartyId() == this->id) {
-    throw new ProtocolException("Self-messaging is not allowed in EOPSI protocol");
+    throw new ProtocolException("Self-messaging is not allowed in EO-PSI protocol");
   }
 }
 //-----------------------------------------------------------------------------
