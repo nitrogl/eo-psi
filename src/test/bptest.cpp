@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
     std::cerr << argv[0] << ". WARNING: too many numbers for the hashtable." << std::endl;
   }
   
-  std::cout << "Reading and padding numbers... ";
+  std::cout << "Reading " << n << " " << NTL::bits(tmpZ) << "-bit numbers and padding to " << padsize << " bits... ";
   std::cout.flush();
   try {
     z = new NTL::ZZ_p[n];
@@ -338,11 +338,12 @@ int main(int argc, char **argv) {
             << (double) benchmark.benchmark(13).count() / (length * (2*maxLoad + 1)) << " µs" << std::endl;
   std::cout << std::endl;
   
-  delete(hashAlgorithm);
-  delete(hashBuckets);
-  delete(cumulSplit);
-  delete(strHashAlgorithm);
-  delete(rndZZpgen);
+  delete [] z;
+  delete hashAlgorithm;
+  delete hashBuckets;
+  delete cumulSplit;
+  delete strHashAlgorithm;
+  delete rndZZpgen;
   return 0;
 }
 //-----------------------------------------------------------------------------

@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
   
-  // Initialize numbers modulo p
+  // Initialise numbers modulo p
   infile >> p;
   NTL::ZZ_p::init(p);
   
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
   try {
     z = new NTL::ZZ_p[n];
   } catch (std::bad_alloc &) {
-    std::cerr << argv[0] << ". Error loading all " << n << " numbers to memory." << std::endl;
+    std::cerr << argv[0] << ". Error allocating space for the " << n << " numbers to memory." << std::endl;
     exit(2);
   }
   for (size_t i = 0; i < n; i++) {
@@ -139,8 +139,9 @@ int main(int argc, char **argv) {
   std::cout << "Total time to add " << n << " elements to the hashtable: " << benchmark.benchmark().count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to add an element to the hashtable: " << (double) benchmark.benchmark().count() / n << " µs" << std::endl;
   
-  delete(hashAlgorithm);
-  delete(hashBuckets);
+  delete [] z;
+  delete hashAlgorithm;
+  delete hashBuckets;
   return 0;
 }
 //-----------------------------------------------------------------------------

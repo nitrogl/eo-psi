@@ -97,7 +97,10 @@ template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad) {
 //-----------------------------------------------------------------------------
 
 template <class T> HashBuckets<T>::~HashBuckets() {
-  //delete(this->buckets);
+  delete [] this->buckets;
+  if (this->hashStrInt != nullptr) {
+    delete this->hashStrInt;
+  }
 }
 //-----------------------------------------------------------------------------
 

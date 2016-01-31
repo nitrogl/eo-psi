@@ -39,6 +39,14 @@ protected:
   void setFlavour(HashFlavour flavour) {
     this->flavour = flavour;
     
+    // Delete previous sha and lastHash
+    if (this->sha != nullptr) {
+      delete this->sha;
+    }
+    if (this->lastHash != nullptr) {
+      delete this->lastHash;
+    }
+    
     switch (this->flavour) {
       case SHA256_FLAVOUR:
         this->sha = new CryptoPP::SHA256();
@@ -59,6 +67,15 @@ protected:
 public:
   SHA(HashFlavour flavour = SHA1_FLAVOUR) : HashAlgorithm<T>() {
     this->setFlavour(flavour);
+  }
+  
+  ~SHA() {
+    if (this->sha != nullptr) {
+      delete this->sha;
+    }
+    if (this->lastHash != nullptr) {
+      delete this->lastHash;
+    }
   }
   
   /**
