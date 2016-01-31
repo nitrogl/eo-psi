@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
         return 1;
     }
   }
-  // Initialize random seed
+  // Initialise random seed
   srand(time(NULL));
   
   // Initialise random ZZ generator
