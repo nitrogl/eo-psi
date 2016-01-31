@@ -53,12 +53,14 @@ run_tests() {
 build
 cd build
 
-# HB test
+# Generation
 # generate_rnd_zz
+
+# HB test
 # $HBTESTBIN -a MH3    -k 16536 -l 128 -i $FILE
 # $HBTESTBIN -a SHA1   -k 16536 -l 128 -i $FILE
 # $HBTESTBIN -a SHA256 -k 16536 -l 128 -i $FILE
 
 # BP test
 # P="604462909807314587353111" generate_rnd_zz
-$BPTESTBIN -a MH3    -k 16536 -l 128 -p 210 -i $FILE
+$BPTESTBIN -a MH3    -k 16536 -l 128 -p $P -i $FILE
