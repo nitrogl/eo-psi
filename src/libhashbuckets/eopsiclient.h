@@ -17,7 +17,8 @@ public:
   EOPSIClient(const std::string& id = "");
   virtual ~EOPSIClient();
   
-  virtual void receive(const EOPSIMessage& msg) throw (ProtocolException);
+  virtual void receive(EOPSIMessage& msg) throw (ProtocolException);
+  virtual bool isAuthorised(const EOPSIMessage& msg) const;
 };
 //-----------------------------------------------------------------------------
 

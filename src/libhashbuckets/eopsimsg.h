@@ -16,11 +16,11 @@
  * Type of message in the EO-PSI protocol
  */
 typedef enum EOPSIMessageType {
-  EOPSI_MESSAGE_OUTSOURCING_DATA,
-  EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST,
-  EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST,
-  EOPSI_MESSAGE_OUTSOURCING_COMPUTATION,
-  EOPSI_MESSAGE_POLYNOMIAL,
+  EOPSI_MESSAGE_OUTSOURCING_DATA,            ///< Data to store into the cloud (server)
+  EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST,  ///< Client outsource computation to another client
+  EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST,   ///< Client outsource computation to server
+  EOPSI_MESSAGE_OUTPUT_COMPUTATION,          ///< Server/Cloud outputs some computation
+  EOPSI_MESSAGE_POLYNOMIAL,                  ///< Client sends a polynomial to another client as "glasses" for the output from the cloud
 } EOPSIMessageType;
 //-----------------------------------------------------------------------------
 
