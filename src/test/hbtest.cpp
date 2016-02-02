@@ -8,6 +8,11 @@
 #include "hbtest.h"
 //-----------------------------------------------------------------------------
 
+/**
+ * Prints the usage of this executable
+ * 
+ * @param prgnam the name of the program/binary called
+ */
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -k <keys> -l <bucket-size> -i <infile>\n"
             << " -a : hash algorithm (MH3|SHA1|SHA256|SHA512)\n"

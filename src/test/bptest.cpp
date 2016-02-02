@@ -11,20 +11,33 @@
 #include "bptest.h"
 //-----------------------------------------------------------------------------
 
+/**
+ * Prints the usage of this executable
+ * 
+ * @param prgnam the name of the program/binary called
+ */
 static void printUsage(const char *prgnam) {
-  std::cout << "Syntax: " << prgnam << " -h -k <keys> -l <bucket-size> -p <pad-to-bits> -i <infile>\n"
+  std::cout << "Syntax: " << prgnam << " -h -k <keys> -l <bucket-size> -p <field-size> -i <infile>\n"
             << " -a : hash algorithm (MH3|SHA1|SHA256|SHA512)\n"
             << " -j : force number of threads for evaluation\n"
             << " -k : number of keys of the hash table\n"
             << " -l : size of buckets of the hash table\n"
-            << " -p : set the padding up to numbers modulo p\n"
+            << " -p : set the padding up to numbers modulo p (in the field Z_p)\n"
             << " -i : file name to read numbers from\n"
             << " -h : show this message and exit\n"
             << std::endl;
 }
 //-----------------------------------------------------------------------------
 
-// The function to call from each thread
+/**
+ * The function to call from each thread to evaluate polynomials
+ * 
+ * @param evaluations the result is stored here
+ * @param polynomials the polynomials to evaluate
+ * @param unknowns the unknowns to use in the evaluations
+ * @param from the first index for the subset of unknowns to evaluate
+ * @param from the last index (excluded) for the subset of unknowns to evaluate
+ */
 static void polEval(NTL::vec_ZZ_p *evaluations, NTL::ZZ_pX *polynomials, NTL::vec_ZZ_p unknowns, const size_t from, const size_t to) {
   size_t j;
   for (j = from; j < to; j++) {
@@ -46,7 +59,6 @@ int main(int argc, char **argv) {
   size_t n;
   std::string pstr = DEFAULT_P;
   unsigned int padsize;
-  unsigned int bs, topad;
   RandomZZpGenerator *rndZZpgen;
   NTL::ZZ_p *z = nullptr;
   NTL::ZZ p, tmpZ;
@@ -141,7 +153,7 @@ int main(int argc, char **argv) {
       std::cerr << argv[0] << ". WARNING: using default hash algorithm MurmurHash3." << std::endl;
       hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
     }
-    hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
+    hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
     polynomials = new NTL::ZZ_pX[length];
     evaluations = new NTL::vec_ZZ_p[length];
     strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
@@ -152,7 +164,6 @@ int main(int argc, char **argv) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
     exit(2);
   }
-  hashBuckets->setHashAlgorithm(hashAlgorithm);
   
   // Ignore the original boundary of creation
   infile >> tmpZ;
@@ -176,15 +187,7 @@ int main(int argc, char **argv) {
   benchmark.start();
   for (size_t i = 0; i < n; i++) {
     infile >> tmpZ;
-    bs = NTL::bits(tmpZ);
-    topad = (padsize > bs ? padsize - bs : 0L);
-    if (topad > 0L) {
-//       std::cout << NTL::bits(tmpZ) << " -> ";
-      tmpZ = tmpZ << topad - 1;
-//       std::cout << NTL::bits(z[i]) << std::endl;
-    } else {
-      conv(z[i], tmpZ);
-    }
+    tmpZ = NTL::zeroPad(tmpZ, padsize);
     conv(z[i], tmpZ);
   }
   benchmark.step();
@@ -262,7 +265,7 @@ int main(int argc, char **argv) {
     // Do something in this thread too
     polEval(evaluations, polynomials, unknowns, cumulSplit[nThreads - 1], cumulSplit[nThreads]);
     
-    // Wait all threads
+    // Wait for all threads
     for (size_t i = 0; i < nThreads - 1; i++) {
       threads[i].join();
     }
@@ -285,7 +288,7 @@ int main(int argc, char **argv) {
   std::cout << "Blinding evaluations... ";
   std::cout.flush();
   benchmark.step();
-  for (size_t j = 0; j < 40; j++) {
+  for (size_t j = 0; j < length; j++) {
     prf.setSecretKey(keygen.next());
     for (size_t i = 0; i < 2*maxLoad + 1; i++) {
       evaluations[j][i] = evaluations[j][i] + prf.next();

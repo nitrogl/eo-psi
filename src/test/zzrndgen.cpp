@@ -7,9 +7,14 @@
 #include "zzrndgen.h"
 //-----------------------------------------------------------------------------
 
+/**
+ * Prints the usage of this executable
+ * 
+ * @param prgnam the name of the program/binary called
+ */
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -h -p <modulo> -n <number> -o <outfile>\n"
-            << " -p : set p generating numbers modulo p (big integer)\n"
+            << " -s : set s generating numbers up to the supremum s (big integer)\n"
             << " -n : amount of random numbers to generate\n"
             << " -o : file name to store generated numbers\n"
             << " -h : show this message and exit\n"
@@ -18,10 +23,10 @@ static void printUsage(const char *prgnam) {
 //-----------------------------------------------------------------------------
 
 int main(int argc, char **argv) {
-  NTL::ZZ p;
+  NTL::ZZ supremum;
   std::ofstream outfile;
   size_t n = DEFAULT_N;
-  std::string pstr = DEFAULT_P;
+  std::string supremumStr = DEFAULT_SUPREMUM;
   std::string outfilename = DEFAULT_FILENAME;
   RandomStringGenerator rndStrgen;
   RandomZZGenerator rndZZgen;
@@ -29,7 +34,7 @@ int main(int argc, char **argv) {
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
-  while ((op = getopt(argc, argv, "hn:o:p:")) != -1) {
+  while ((op = getopt(argc, argv, "hn:o:s:")) != -1) {
     switch (op) {
       case 'n':
         n = atol(optarg); 
@@ -39,8 +44,8 @@ int main(int argc, char **argv) {
         outfilename = optarg; 
         break;
         
-      case 'p':
-        pstr = optarg;
+      case 's':
+        supremumStr = optarg;
         break;
         
       case '?':
@@ -55,10 +60,10 @@ int main(int argc, char **argv) {
   srand(time(NULL));
   
   // Initialise random ZZ generator
-  p = NTL::to_ZZ(pstr.c_str());
-  NTL::ZZ_p::init(p);
+  supremum = NTL::to_ZZ(supremumStr.c_str());
+  NTL::ZZ_p::init(supremum);
   len = rand() % SEED_MAX_LENGTH + 1;
-  rndZZgen.setSupremum(p);
+  rndZZgen.setSupremum(supremum);
   rndZZgen.setSeed(NTL::ZZFromBytes((const byte*) rndStrgen.next(len).c_str(), len));
   
   // Open file
@@ -71,7 +76,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
   
-  outfile << p << "\n";
+  outfile << supremum << "\n";
   outfile << n << "\n";
   // Generate stuff
   std::cout << "Generating numbers. This may take a while ...";
@@ -88,7 +93,7 @@ int main(int argc, char **argv) {
   outfile.close();
   
   // Finish feedback
-  std::cout << n << " pseudo-random numbers modulo " << p << " have been successfully written to file \"" << outfilename << "\"" << std::endl;
+  std::cout << n << " pseudo-random numbers modulo " << supremum << " have been successfully written to file \"" << outfilename << "\"" << std::endl;
   
   return 0;
 }
