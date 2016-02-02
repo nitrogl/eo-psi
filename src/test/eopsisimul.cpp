@@ -8,9 +8,17 @@
 #include "eopsisimul.h"
 //-----------------------------------------------------------------------------
 
+/**
+ * Prints the usage of this executable
+ * 
+ * @param prgnam the name of the program/binary called
+ */
 static void printUsage(const char *prgnam) {
-  std::cout << "Syntax: " << prgnam << " -h -p <modulo> -n <number> -r <number>\n"
-            << " -p : set p generating numbers modulo p (big integer)\n"
+  std::cout << "Syntax: " << prgnam << " -h -s <supremum-generation> -p <field-size> -n <number> -r <number>\n"
+            << " -k : number of keys of the hash table\n"
+            << " -l : size of buckets of the hash table\n"
+            << " -p : set the padding up to numbers modulo p\n"
+            << " -s : set s generating numbers up to the supremum s (big integer)\n"
             << " -n : amount of random numbers to generate\n"
             << " -r : amount of minimum common data for clients (less or equal to n)\n"
             << " -h : show this message and exit\n"
@@ -45,12 +53,12 @@ static void authentication(Args... args) {
  * @param card2 the cardinality of the second set
  * @return A pointer to the bare union which should be manually deleted.
  */
-static NTL::ZZ_p* join(const NTL::ZZ_p *set1, const size_t card1, const NTL::ZZ_p *set2, const size_t card2) {
-  NTL::ZZ_p *res;
+static NTL::ZZ* join(const NTL::ZZ *set1, const size_t card1, const NTL::ZZ *set2, const size_t card2) {
+  NTL::ZZ *res;
   size_t i;
   
   try {
-    res = new NTL::ZZ_p[card1 + card2];
+    res = new NTL::ZZ[card1 + card2];
   } catch (std::bad_alloc &) {
     std::cerr << "listUnite(). Error allocating memory." << std::endl;
     exit(1);
@@ -80,19 +88,19 @@ static NTL::ZZ_p* join(const NTL::ZZ_p *set1, const size_t card1, const NTL::ZZ_
  * @param card pointer to the cardinality of the intersection to save
  * @return A pointer to the intersection which should be manually deleted.
  */
-static NTL::ZZ_p* intersect(const NTL::ZZ_p *set1, const size_t card1, const NTL::ZZ_p *set2, const size_t card2, size_t *card) {
-  NTL::ZZ_p *res, *tmp;
-  NTL::ZZ_p *listUnion;
+static NTL::ZZ* intersect(const NTL::ZZ *set1, const size_t card1, const NTL::ZZ *set2, const size_t card2, size_t *card) {
+  NTL::ZZ *res, *tmp;
+  NTL::ZZ *listUnion;
   size_t i, k;
   auto compare = [](const void *a, const void *b) {
-    NTL::ZZ n1 = rep(*(NTL::ZZ_p *) a);
-    NTL::ZZ n2 = rep(*(NTL::ZZ_p *) b);
+    NTL::ZZ n1 = (*(NTL::ZZ *) a);
+    NTL::ZZ n2 = (*(NTL::ZZ *) b);
     return n1 == n2 ? 0 : (n1 < n2 ? -1 : 1);
   };
   
   // Join and sort them
   listUnion = join(set1, card1, set2, card2);
-  qsort(listUnion, card1 + card2, sizeof(NTL::ZZ_p), compare);
+  qsort(listUnion, card1 + card2, sizeof(NTL::ZZ), compare);
   
   // One loop to find them...
   *card = 0;
@@ -106,7 +114,7 @@ static NTL::ZZ_p* intersect(const NTL::ZZ_p *set1, const size_t card1, const NTL
   
   // ... and in the darkness bind them!
   try {
-    res = new NTL::ZZ_p[*card];
+    res = new NTL::ZZ[*card];
   } catch (std::bad_alloc &) {
     std::cerr << "intersect(). Error allocating memory." << std::endl;
     exit(1);
@@ -124,25 +132,25 @@ static NTL::ZZ_p* intersect(const NTL::ZZ_p *set1, const size_t card1, const NTL
 //-----------------------------------------------------------------------------
 
 /**
- * This function generates random ZZ_p numbers which are data stored in to 
+ * This function generates random ZZ numbers which are data stored in to 
  * the cloud.
  * 
  * @param n the amount of data to generate
- * @param rndZZpgen the generator
+ * @param rndZZgen the generator
  * @return A pointer to the data which should be manually deleted.
  */
-NTL::ZZ_p * randomData(const size_t n, RandomZZpGenerator rndZZpgen) {
-  NTL::ZZ_p *data;
+NTL::ZZ * randomData(const size_t n, RandomZZGenerator rndZZgen) {
+  NTL::ZZ *data;
   
   try {
-    data = new NTL::ZZ_p[n];
+    data = new NTL::ZZ[n];
   } catch (std::bad_alloc &) {
     std::cerr << "randomData(). Error allocating memory." << std::endl;
     exit(1);
   }
   
   for (size_t i = 0; i < n; i++) {
-    data[i] = rndZZpgen.next();
+    data[i] = rndZZgen.next();
   }
   
   return data;
@@ -154,21 +162,26 @@ int main(int argc, char **argv) {
   EOPSIServer *cloud;
   EOPSIMessage msgStoreDataAlice, msgStoreDataBob;
   EOPSIMessage msgBobAlice, msgAliceBob, msgAliceCloud, msgCloudBob;
-  NTL::ZZ p;
-  NTL::ZZ_p seed;
-  NTL::ZZ_p *dataAlice, *dataBob, *minCommonData;
-  NTL::ZZ_p *setcap;
+  NTL::ZZ supremum, fieldsize;
+  NTL::ZZ *dataAlice, *dataBob, *minCommonData;
+  NTL::ZZ *setcap;
   size_t setcapCard;
-  std::string pstr = DEFAULT_P;
-  size_t len;
+  std::string supremumStr = DEFAULT_SUPREMUM;
+  std::string fieldsizeStr = DEFAULT_P;
+  size_t len, padsize;
   size_t n = DEFAULT_N;
   size_t r = DEFAULT_MIN_COMMON_DATA_RATIO;
   RandomStringGenerator rndStrgen;
-  RandomZZpGenerator rndZZpgen;
+  RandomZZGenerator rndZZgen;
+  size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
+  size_t length = DEFAULT_HASHBUCKETS_LENGTH;
+  HashAlgorithm<NTL::ZZ_p>* hashAlgorithm = nullptr;
+  HashBuckets<NTL::ZZ_p>* hashBucketsAlice = nullptr;
+  HashBuckets<NTL::ZZ_p>* hashBucketsBob = nullptr;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
-  while ((op = getopt(argc, argv, "hn:o:p:r:")) != -1) {
+  while ((op = getopt(argc, argv, "hn:o:p:r:s:")) != -1) {
     switch (op) {
       case 'n':
         n = atol(optarg); 
@@ -178,11 +191,15 @@ int main(int argc, char **argv) {
         break;
         
       case 'p':
-        pstr = optarg;
+        fieldsizeStr = optarg;
         break;
         
       case 'r':
         r = atol(optarg); 
+        break;
+        
+      case 's':
+        supremumStr = optarg;
         break;
         
       case '?':
@@ -197,18 +214,24 @@ int main(int argc, char **argv) {
   // Initialise random seed
   srand(time(NULL));
   
-  // Initialise random ZZ_p generator
-  p = NTL::to_ZZ(pstr.c_str());
-  NTL::ZZ_p::init(p);
+  // Initialise random ZZ generator
+  supremum = NTL::to_ZZ(supremumStr.c_str());
   len = rand() % SEED_MAX_LENGTH + 1;
-  rndZZpgen.setModulo(p);
-  conv(seed, NTL::ZZFromBytes((const byte*) rndStrgen.next(len).c_str(), len));
-  rndZZpgen.setSeed(seed);
+  rndZZgen.setSupremum(supremum);
+  rndZZgen.setSeed(NTL::ZZFromBytes((const byte*) rndStrgen.next(len).c_str(), len));
+  
+  // Initialise modulo operations in NTL
+  fieldsize = NTL::to_ZZ(fieldsizeStr.c_str());
+  NTL::ZZ_p::init(fieldsize);
+  padsize = NTL::bits(fieldsize);
   
   // Create parties
   try {
-    alice = new EOPSIClient("Alice");
-    bob = new EOPSIClient("Bob");
+    hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
+    hashBucketsAlice = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
+    hashBucketsBob = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
+    alice = new EOPSIClient(*hashBucketsAlice, fieldsize, "Alice");
+    bob = new EOPSIClient(*hashBucketsBob, fieldsize, "Bob");
     cloud = new EOPSIServer("Cloud");
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
@@ -219,13 +242,17 @@ int main(int argc, char **argv) {
   authentication(alice, bob, cloud);
   
   // 0. Alice and Bob stores blinded values into the cloud.
-  minCommonData = randomData(r, rndZZpgen);
-  dataAlice = join(minCommonData, r, randomData(n - r, rndZZpgen), n - r);
-  dataBob = join(minCommonData, r, randomData(n - r, rndZZpgen), n - r);
+  minCommonData = randomData(r, rndZZgen);
+  dataAlice = join(minCommonData, r, randomData(n - r, rndZZgen), n - r);
+  dataBob = join(minCommonData, r, randomData(n - r, rndZZgen), n - r);
   msgStoreDataAlice.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataBob.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataAlice.setPartyId(alice->getId());
   msgStoreDataBob.setPartyId(bob->getId());
+  alice->setRawData(dataAlice, n);
+  bob->setRawData(dataBob, n);
+  msgStoreDataAlice.setData(alice->getBlindedData(), alice->getBlindedDataSize());
+  msgStoreDataBob.setData(bob->getBlindedData(), bob->getBlindedDataSize());
   try {
     alice->send(*cloud, msgStoreDataAlice);
     bob->send(*cloud, msgStoreDataBob);
@@ -242,11 +269,13 @@ int main(int argc, char **argv) {
    */
   setcap = intersect(dataAlice, n, dataBob, n, &setcapCard);
   
+  // 1. B outsources some elaboration to A
+  
   delete [] dataAlice;
   delete [] dataBob;
-  delete alice;
-  delete bob;
-  delete cloud;
+//   delete alice;
+//   delete bob;
+//   delete cloud;
   return 0;
 }
 //-----------------------------------------------------------------------------
