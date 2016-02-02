@@ -56,5 +56,22 @@ namespace NTL {
     return res;
   }
   //---------------------------------------------------------------------------
+  
+  NTL::ZZ zeroPad(const NTL::ZZ z, const size_t padsize) {
+    unsigned int bs, topad;
+    NTL::ZZ pz;
+    
+    pz = z;
+    bs = NTL::bits(z);
+    topad = (padsize > bs ? padsize - bs : 0L);
+    if (topad > 0L) {
+  //       std::cout << "Padding: " << NTL::bits(pz) << " -> ";
+      pz = pz << topad - 1;
+  //       std::cout << NTL::bits(pz) << std::endl;
+    }
+    
+    return pz;
+  }
+  //---------------------------------------------------------------------------
 
 }

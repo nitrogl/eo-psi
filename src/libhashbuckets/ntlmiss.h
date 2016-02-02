@@ -55,6 +55,16 @@ namespace NTL {
    * @param v The STL vector to read from.
    */
   vec_ZZ_p vector2VecZZp(const std::vector<ZZ_p> &v);
+  
+  /**
+   * This function adds a zero padding to a big integer up to a specific
+   * padding size (-1).
+   * 
+   * @param z the number to pad
+   * @param padsize the pad size up to which expand z
+   * @return the padded z up to padsize
+   */
+  NTL::ZZ zeroPad(const NTL::ZZ z, const size_t padsize);
 }
 //-----------------------------------------------------------------------------
 
