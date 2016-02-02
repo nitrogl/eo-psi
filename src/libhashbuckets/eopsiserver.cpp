@@ -45,6 +45,7 @@ void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
         throw new ProtocolException("Outsourcing data between servers is not (yet) supported");
       }
       storedData[sender->getId()] = &msg;
+      std::cout << id << ". Data from " << sender->getId() << " stored (size " << msg.length() << ")." << std::endl;
       break;
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
