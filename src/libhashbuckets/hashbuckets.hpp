@@ -40,7 +40,7 @@ public:
    * @param length The number of buckets.
    * @param maxLoad The maximum number of elements for each bucket.
    */
-  HashBuckets(size_t length, size_t maxLoad);
+  HashBuckets(size_t length, size_t maxLoad, const HashAlgorithm<T>* hashAlgorithm = nullptr);
   virtual ~HashBuckets();
   
   /**
@@ -75,11 +75,11 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad) {
+template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad, const HashAlgorithm<T>* hashAlgorithm) {
   this->k = length;
   this->maxLoad = maxLoad;
   this->hashStrInt = nullptr;
-  this->hashAlgorithm = nullptr;
+  this->setHashAlgorithm(hashAlgorithm);
   
   try {
     this->buckets = new MarkedVector<T>[length];
