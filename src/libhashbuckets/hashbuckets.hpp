@@ -128,7 +128,7 @@ template <class T> void HashBuckets<T>::add(const T& element) throw (OutOfBoundE
     index = this->hashStrInt->rem(this->k);
     
     if (this->buckets[index].size() == this->maxLoad) {
-      throw new OutOfBoundException("HashBuckets<T>::addToBucket(). MarkedVector full.", OutOfBoundException::FATAL);
+      throw OutOfBoundException("HashBuckets<T>::addToBucket(). MarkedVector full.", OutOfBoundException::FATAL);
     }
   } else {
     index = 0;
@@ -146,7 +146,7 @@ template <class T> void HashBuckets<T>::addToBucket(const T& element, const size
   if (index < this->k) {
     this->buckets[index].push_back(element);
   } else {
-    throw new OutOfBoundException("HashBuckets<T>::addToBucket(). Index out of bound.", OutOfBoundException::FATAL);
+    throw OutOfBoundException("HashBuckets<T>::addToBucket(). Index out of bound.", OutOfBoundException::FATAL);
   }
 }
 //-----------------------------------------------------------------------------
