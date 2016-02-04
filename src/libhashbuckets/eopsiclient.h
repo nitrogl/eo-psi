@@ -41,7 +41,7 @@ public:
   virtual void setFieldsize(const NTL::ZZ& fieldsize);
   virtual NTL::ZZ getFieldsize() const;
   
-  virtual void setRawData(NTL::ZZ *rawData, const size_t size);
+  virtual void setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads = 0);
   virtual NTL::ZZ * getRawData() const;
   virtual NTL::vec_ZZ_p * getBlindedData() const;
   virtual size_t getRawDataSize() const;

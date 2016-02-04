@@ -56,12 +56,29 @@ EOPSIClient::~EOPSIClient() {
 //-----------------------------------------------------------------------------
 
 void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
+  EOPSIParty *sender;
+  std::string msgClaimedId;
+  
   if (msg.getPartyId() == this->id) {
-    throw new ProtocolException("Self-messaging is not allowed in EO-PSI protocol");
+    throw ProtocolException("Self-messaging is not allowed in EO-PSI protocol");
   }
+  
+  // Is the sender authorised?
+  if (!isAuthorised(msg)) {
+    throw ProtocolException("Party \"" + msg.getPartyId() + "\" is not authorised");
+  }
+  
+  // Get the sender
+  sender = getPartyById(msg.getPartyId());
   
   switch(msg.getType()) {
     case EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST:
+      msgClaimedId = (char *) msg.getData();
+      if (msgClaimedId != sender->getId()) {
+	throw ProtocolException("Id mismatch between sender and message data");
+      }
+      
+      std::cout << "not fully implemented. I, " << id << ", received \"" << (&((byte *) msg.getData())[msgClaimedId.length() + 1]) << "\" from " << sender->getId() << std::endl;
       break;
       
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
@@ -74,10 +91,10 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       break;
       
     case EOPSI_MESSAGE_OUTSOURCING_DATA:
-      break;
+      throw ProtocolException("The protocol forbids passing this type of message to clients.");
       
     default:
-      break;
+      throw ProtocolException("Unknown message type detected.");
   }
 }
 //-----------------------------------------------------------------------------
@@ -246,13 +263,13 @@ void EOPSIClient::blind(unsigned int nThreads) {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIClient::setRawData(NTL::ZZ *rawData, const size_t size) {
+void EOPSIClient::setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads) {
   if (rawData == nullptr || size == 0) {
     std::cerr << "setRawData(). WARNING: Empty data to store; nothing to do" << std::endl;
   } else {
     this->rawData = rawData;
     this->rawDataSize = size;
-    blind(4);
+    blind(nThreads);
   }
 }
 //-----------------------------------------------------------------------------

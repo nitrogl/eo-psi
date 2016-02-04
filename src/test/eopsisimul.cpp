@@ -15,6 +15,7 @@
  */
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -h -s <supremum-generation> -p <field-size> -n <number> -r <number>\n"
+//             << " -j : force number of threads for evaluation\n"
             << " -k : number of keys of the hash table\n"
             << " -l : size of buckets of the hash table\n"
             << " -p : set the padding up to numbers modulo p\n"
@@ -165,10 +166,11 @@ int main(int argc, char **argv) {
   NTL::ZZ supremum, fieldsize;
   NTL::ZZ *dataAlice, *dataBob, *minCommonData;
   NTL::ZZ *setcap;
+  std::string rndstr;
   size_t setcapCard;
   std::string supremumStr = DEFAULT_SUPREMUM;
   std::string fieldsizeStr = DEFAULT_P;
-  size_t len, padsize;
+  size_t len;
   size_t n = DEFAULT_N;
   size_t r = DEFAULT_MIN_COMMON_DATA_RATIO;
   RandomStringGenerator rndStrgen;
@@ -178,13 +180,22 @@ int main(int argc, char **argv) {
   HashAlgorithm<NTL::ZZ_p>* hashAlgorithm = nullptr;
   HashBuckets<NTL::ZZ_p>* hashBucketsAlice = nullptr;
   HashBuckets<NTL::ZZ_p>* hashBucketsBob = nullptr;
+  int nThreads = 1;
+  byte *data = nullptr;
+  size_t i, dataLen;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
-  while ((op = getopt(argc, argv, "hn:o:p:r:s:")) != -1) {
+  while ((op = getopt(argc, argv, "hj:n:o:p:r:s:")) != -1) {
     switch (op) {
+      case 'j':
+	std::cerr << argv[0] << ". Ignoring option -j (not yet implemented)" << std::endl;
+        nThreads = 1;
+//         nThreads = atoi(optarg);
+        break;
+	
       case 'n':
-        n = atol(optarg); 
+        n = atol(optarg);
         break;
         
       case 'o':
@@ -195,7 +206,7 @@ int main(int argc, char **argv) {
         break;
         
       case 'r':
-        r = atol(optarg); 
+        r = atol(optarg);
         break;
         
       case 's':
@@ -223,7 +234,6 @@ int main(int argc, char **argv) {
   // Initialise modulo operations in NTL
   fieldsize = NTL::to_ZZ(fieldsizeStr.c_str());
   NTL::ZZ_p::init(fieldsize);
-  padsize = NTL::bits(fieldsize);
   
   // Create parties
   try {
@@ -249,8 +259,8 @@ int main(int argc, char **argv) {
   msgStoreDataBob.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataAlice.setPartyId(alice->getId());
   msgStoreDataBob.setPartyId(bob->getId());
-  alice->setRawData(dataAlice, n);
-  bob->setRawData(dataBob, n);
+  alice->setRawData(dataAlice, n, nThreads);
+  bob->setRawData(dataBob, n, nThreads);
   msgStoreDataAlice.setData(alice->getBlindedData(), alice->getBlindedDataSize());
   msgStoreDataBob.setData(bob->getBlindedData(), bob->getBlindedDataSize());
   try {
@@ -258,7 +268,7 @@ int main(int argc, char **argv) {
     bob->send(*cloud, msgStoreDataBob);
   } catch (ProtocolException &e) {
     std::cerr << argv[0] << ". " << e.what() << std::endl;
-    exit(1);
+    exit(2);
   }
   
   /*
@@ -270,6 +280,33 @@ int main(int argc, char **argv) {
   setcap = intersect(dataAlice, n, dataBob, n, &setcapCard);
   
   // 1. B outsources some elaboration to A
+  msgBobAlice.setType(EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST);
+  msgBobAlice.setPartyId(bob->getId());
+  rndstr = rndStrgen.next(10);
+  try {
+    if (data != nullptr) {
+      delete [] data;
+    }
+    
+    // Prepare message
+    dataLen = rndstr.length() + 1 + bob->getId().length() + 1;
+    data = new byte[dataLen];
+    strcpy((char *) data, &bob->getId()[0]);
+    for (i = 0; i < rndstr.length(); i++) {
+      data[bob->getId().length() + 1 + i] = rndstr[i];
+    }
+    msgBobAlice.setData(data, dataLen);
+    
+    // Send the message
+    std::cout << bob->getId() << ". Sending random string \"" << (&data[bob->getId().length() + 1]) << "\" to " << alice->getId() << std::endl;
+    bob->send(*alice, msgBobAlice);
+  } catch (std::bad_alloc &) {
+    std::cerr << argv[0] << ". Error allocating memory." << std::endl;
+    exit(1);
+  } catch (ProtocolException &e) {
+    std::cerr << argv[0] << ". " << e.what() << std::endl;
+    exit(2);
+  }
   
   delete [] dataAlice;
   delete [] dataBob;
