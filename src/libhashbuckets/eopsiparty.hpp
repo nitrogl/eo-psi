@@ -12,6 +12,7 @@
 #include <map>
 #include "eopsimsg.h"
 #include "protocolex.h"
+#include "strzzpkeygen.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -28,6 +29,7 @@ protected:
   std::string id;
   EOPSIPartyType type;
   std::map<std::string, EOPSIParty*> parties;
+  StringZZpKeyGenerator prf;
   
   virtual EOPSIParty* getPartyById(const std::string& id) const {
     std::map<std::string, EOPSIParty*>::const_iterator i = parties.find(id);

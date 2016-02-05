@@ -8,8 +8,6 @@
 #include "eopsiclient.h"
 #include "ntlmiss.h"
 #include "shastr.h"
-#include "stringkeygen.h"
-#include "strzzpkeygen.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -41,6 +39,8 @@ EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fie
     this->rndZZpgen = new RandomZZpGenerator();
     this->rndZZpgen->setModulo(fieldsize);
     this->strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
+    this->keygen.setHashAlgorithm(this->strHashAlgorithm);
+    this->prf.setHashAlgorithm(this->strHashAlgorithm);
   } catch (std::bad_alloc &) {
     std::cerr << "EOPSIClient(). Error allocating memory." << std::endl;
     exit(2);
@@ -123,6 +123,65 @@ bool EOPSIClient::isAuthorised(const EOPSIMessage& msg) const {
 }
 //-----------------------------------------------------------------------------
 
+void EOPSIClient::setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads) {
+  if (rawData == nullptr || size == 0) {
+    std::cerr << "setRawData(). WARNING: Empty data to store; nothing to do" << std::endl;
+  } else {
+    this->rawData = rawData;
+    this->rawDataSize = size;
+    blind(nThreads);
+  }
+}
+//-----------------------------------------------------------------------------
+
+NTL::ZZ * EOPSIClient::getRawData() const {
+  return this->rawData;
+}
+//-----------------------------------------------------------------------------
+
+NTL::vec_ZZ_p * EOPSIClient::getBlindedData() const {
+  return this->blindedData;
+}
+//-----------------------------------------------------------------------------
+
+size_t EOPSIClient::getRawDataSize() const {
+  return this->rawDataSize;
+}
+//-----------------------------------------------------------------------------
+
+size_t EOPSIClient::getBlindedDataSize() const {
+  if (this->hashBuckets != nullptr) {
+    return (2*this->hashBuckets->getMaxLoad() + 1)*this->hashBuckets->getLength();
+  } else {
+    std::cerr << "getBlindedDataSize(). WARNING: Internal data structure hash buckets is not instantiated" << std::endl;
+    return 0;
+  }
+}
+//-----------------------------------------------------------------------------
+
+void EOPSIClient::setSecret(const std::string& secret) {
+  this->secret = secret;
+  this->keygen.setSecretKey(this->secret);
+}
+//-----------------------------------------------------------------------------
+
+std::string EOPSIClient::getSecret() const {
+  return this->secret;
+}
+//-----------------------------------------------------------------------------
+
+void EOPSIClient::setFieldsize(const NTL::ZZ& fieldsize) {
+  this->fieldsize = fieldsize;
+  NTL::ZZ_p::init(fieldsize);
+  this->prf.setModulo(this->fieldsize);
+}
+//-----------------------------------------------------------------------------
+
+NTL::ZZ EOPSIClient::getFieldsize() const {
+  return this->fieldsize;
+}
+//-----------------------------------------------------------------------------
+
 void EOPSIClient::blind(unsigned int nThreads) {
   size_t padsize;
   NTL::ZZ_p z;
@@ -132,8 +191,6 @@ void EOPSIClient::blind(unsigned int nThreads) {
   size_t nSplit;
   size_t *cumulSplit;
   std::thread *threads;
-  StringZZpKeyGenerator prf;
-  StringKeyGenerator keygen;
   
   // This should never occur...
   if (hashBuckets == nullptr) {
@@ -244,11 +301,8 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout << ".";
   std::cout.flush();
   
-  // Initialise key generator and pseudo-random function
-  keygen.setHashAlgorithm(this->strHashAlgorithm);
+  // Initialise key generator
   keygen.setSecretKey(this->secret);
-  prf.setHashAlgorithm(this->strHashAlgorithm);
-  prf.setModulo(this->fieldsize);
   
   // Blind evaluations
   for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
@@ -263,59 +317,29 @@ void EOPSIClient::blind(unsigned int nThreads) {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIClient::setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads) {
-  if (rawData == nullptr || size == 0) {
-    std::cerr << "setRawData(). WARNING: Empty data to store; nothing to do" << std::endl;
-  } else {
-    this->rawData = rawData;
-    this->rawDataSize = size;
-    blind(nThreads);
+void EOPSIClient::delegationOutput(const std::string secretOtherParty) {
+  std::string tmpKey;
+  StringKeyGenerator keygenOtherParty;
+  NTL::ZZ_p **a;
+  
+  // Initialise key generator
+  keygen.setSecretKey(this->secret);
+  keygenOtherParty.setSecretKey(secretOtherParty);
+  
+  try {
+    a = new NTL::ZZ_p *[this->hashBuckets->getLength()];
+    for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
+      a[i] = new NTL::ZZ_p[this->hashBuckets->getMaxLoad()];
+    }
+  } catch (std::bad_alloc &) {
+    std::cerr << "blind(). Error allocating memory." << std::endl;
+    exit(2);
   }
-}
-//-----------------------------------------------------------------------------
-
-NTL::ZZ * EOPSIClient::getRawData() const {
-  return this->rawData;
-}
-//-----------------------------------------------------------------------------
-
-NTL::vec_ZZ_p * EOPSIClient::getBlindedData() const {
-  return this->blindedData;
-}
-//-----------------------------------------------------------------------------
-
-size_t EOPSIClient::getRawDataSize() const {
-  return this->rawDataSize;
-}
-//-----------------------------------------------------------------------------
-
-size_t EOPSIClient::getBlindedDataSize() const {
-  if (this->hashBuckets != nullptr) {
-    return (2*this->hashBuckets->getMaxLoad() + 1)*this->hashBuckets->getLength();
-  } else {
-    std::cerr << "getBlindedDataSize(). WARNING: Internal data structure hash buckets is not instantiated" << std::endl;
-    return 0;
+  
+  for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
+    for (size_t j = 0; j < 2*this->hashBuckets->getMaxLoad() + 1; j++) {
+//       a[i][j] = 
+    }
   }
-}
-//-----------------------------------------------------------------------------
-
-void EOPSIClient::setSecret(const std::string& secret) {
-  this->secret = secret;
-}
-//-----------------------------------------------------------------------------
-
-std::string EOPSIClient::getSecret() const {
-  return this->secret;
-}
-//-----------------------------------------------------------------------------
-
-void EOPSIClient::setFieldsize(const NTL::ZZ& fieldsize) {
-  this->fieldsize = fieldsize;
-  NTL::ZZ_p::init(fieldsize);
-}
-//-----------------------------------------------------------------------------
-
-NTL::ZZ EOPSIClient::getFieldsize() const {
-  return this->fieldsize;
 }
 //-----------------------------------------------------------------------------

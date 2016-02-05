@@ -240,8 +240,8 @@ int main(int argc, char **argv) {
     hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
     hashBucketsAlice = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
     hashBucketsBob = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
-    alice = new EOPSIClient(*hashBucketsAlice, fieldsize, "Alice");
-    bob = new EOPSIClient(*hashBucketsBob, fieldsize, "Bob");
+    alice = new EOPSIClient(*hashBucketsAlice, fieldsize, "Alice", "23");
+    bob = new EOPSIClient(*hashBucketsBob, fieldsize, "Bob", "Jim");
     cloud = new EOPSIServer("Cloud");
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
@@ -282,19 +282,19 @@ int main(int argc, char **argv) {
   // 1. B outsources some elaboration to A
   msgBobAlice.setType(EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST);
   msgBobAlice.setPartyId(bob->getId());
-  rndstr = rndStrgen.next(10);
   try {
     if (data != nullptr) {
       delete [] data;
     }
     
     // Prepare message
-    dataLen = rndstr.length() + 1 + bob->getId().length() + 1;
+    dataLen = bob->getSecret().length() + 1 + bob->getId().length() + 1;
     data = new byte[dataLen];
     strcpy((char *) data, &bob->getId()[0]);
-    for (i = 0; i < rndstr.length(); i++) {
-      data[bob->getId().length() + 1 + i] = rndstr[i];
+    for (i = 0; i < bob->getSecret().length(); i++) {
+      data[bob->getId().length() + 1 + i] = bob->getSecret()[i];
     }
+    data[dataLen - 1] = '\0'; // Correctly end data
     msgBobAlice.setData(data, dataLen);
     
     // Send the message

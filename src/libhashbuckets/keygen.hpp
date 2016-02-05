@@ -24,28 +24,20 @@ protected:
   HashAlgorithm<S>* hashAlgorithm; ///< The hash algorithm to use for the generated keys.
   S secret;                        ///< The secret key
   size_t index;                    ///< Internal index
-//   bool memoriseKeys;
-//   std::vector<T> memory;
   
 public:
   KeyGenerator() {
-//   KeyGenerator(const bool memoriseKeys = false) {
-//     this->memoriseKeys = memoriseKeys;
-//     this->memory.reserve(10);
     this->hashAlgorithm = nullptr;
     this->index = 0;
   }
   
   KeyGenerator(const S& secret) : KeyGenerator() {
-//   KeyGenerator(const S& secret, const bool memoriseKeys = false) : KeyGenerator(memoriseKeys) {
-//     this->memoriseKeys = memoriseKeys;
-//     this->memory.reserve(10);
+    this->setSecretKey(secret);
   }
   KeyGenerator(const S& secret, const HashAlgorithm<S>* hashAlgorithm) : KeyGenerator(secret) {
-//   KeyGenerator(const S& secret, const HashAlgorithm<S>* hashAlgorithm, const bool memoriseKeys = false) : KeyGenerator(secret, memoriseKeys) {
     this->setHashAlgorithm(hashAlgorithm);
   }
-  virtual ~KeyGenerator() {}
+  virtual ~KeyGenerator() {};
   
   /**
    * Set the hash algorithm to use to generate new keys.
@@ -58,15 +50,17 @@ public:
   
   /**
    * The secret for the generation.
+   * WARNING: A side effect of this method is that it resets the internal index
    * 
    * @param secret the secret key of the generator
    */
   virtual void setSecretKey(const S& secret) {
     this->secret = secret;
+    this->index = 0;
   }
   
   /**
-   * Get the next key generated according to an internal index
+   * Get the next key generated according to the internal index incrementing it
    * 
    * @return the next key
    */
