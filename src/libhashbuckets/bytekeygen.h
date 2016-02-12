@@ -1,7 +1,7 @@
 /*
- * Key generator string -> integers modulo n
+ * Key generator string -> byte array
  * 
- * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
+ * Copyright (C) 2016  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
 #ifndef STRING_STRING_KEY_GENERATOR_H
@@ -9,7 +9,6 @@
 //-----------------------------------------------------------------------------
 
 #include <string>
-#include <NTL/ZZ_p.h>
 #include "zzprandgen.h"
 #include "keygen.hpp"
 //-----------------------------------------------------------------------------
@@ -17,14 +16,14 @@
 /**
  * Key generator for big integers modulo p with secret of type string.
  */
-class StringKeyGenerator : public KeyGenerator<std::string, std::string>
+class ByteKeyGenerator : public KeyGenerator<std::string, byte *>
 {
 protected:
   size_t length;
   
 public:
-  StringKeyGenerator();
-  virtual ~StringKeyGenerator() {}
+  ByteKeyGenerator();
+  virtual ~ByteKeyGenerator();
   
   virtual void setHashAlgorithm(const HashAlgorithm<std::string>* hashAlgorithm);
   virtual void setSecretKey(const std::string& secret);
@@ -41,7 +40,7 @@ public:
    */
   void setLength(const size_t length);
   
-  virtual std::string generate(size_t index);
+  virtual byte* generate(size_t index);
 };
 //-----------------------------------------------------------------------------
 

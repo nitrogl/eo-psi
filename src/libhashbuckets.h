@@ -29,7 +29,7 @@
 #include "libhashbuckets/zzrandgen.h"
 #include "libhashbuckets/zzprandgen.h"
 #include "libhashbuckets/strrandgen.h"
-#include "libhashbuckets/stringkeygen.h"
+#include "libhashbuckets/bytekeygen.h"
 #include "libhashbuckets/strzzpkeygen.h"
 #include "libhashbuckets/eopsimsg.h"
 #include "libhashbuckets/eopsiserver.h"
