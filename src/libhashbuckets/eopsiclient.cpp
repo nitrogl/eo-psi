@@ -8,7 +8,7 @@
 #include "eopsiclient.h"
 #include "ntlmiss.h"
 #include "shastr.h"
-#include "stringkeygen.h"
+#include "bytekeygen.h"
 #include "strzzpkeygen.h"
 //-----------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   size_t *cumulSplit;
   std::thread *threads;
   StringZZpKeyGenerator prf;
-  StringKeyGenerator keygen;
+  ByteKeyGenerator keygen;
   
   // This should never occur...
   if (hashBuckets == nullptr) {
@@ -252,7 +252,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   
   // Blind evaluations
   for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
-    prf.setSecretKey(keygen.next());
+    prf.setSecretKey(std::string((char *) keygen.next()));
     for (size_t i = 0; i < 2*this->hashBuckets->getMaxLoad() + 1; i++) {
       this->blindedData[j][i] = this->blindedData[j][i] + prf.next();
     }

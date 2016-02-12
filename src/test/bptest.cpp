@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
   NTL::vec_ZZ_p vzzp;
   HashAlgorithm<std::string>* strHashAlgorithm = nullptr;
   StringZZpKeyGenerator prf;
-  StringKeyGenerator keygen;
+  ByteKeyGenerator keygen;
   SimpleBenchmark benchmark;
   unsigned int cores = 0, nThreads = 0;
   size_t nSplit;
@@ -289,7 +289,7 @@ int main(int argc, char **argv) {
   std::cout.flush();
   benchmark.step();
   for (size_t j = 0; j < length; j++) {
-    prf.setSecretKey(keygen.next());
+    prf.setSecretKey(std::string((char *) keygen.next()));
     for (size_t i = 0; i < 2*maxLoad + 1; i++) {
       evaluations[j][i] = evaluations[j][i] + prf.next();
     }
