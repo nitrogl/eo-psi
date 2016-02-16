@@ -58,8 +58,15 @@ EOPSIClient::~EOPSIClient() {
 //-----------------------------------------------------------------------------
 
 void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
-  EOPSIParty *sender;
+  EOPSIParty *sender, *cloud;
   std::string msgClaimedId;
+  std::string otherSecret;
+  std::string rndstr;
+  byte *data = nullptr;
+  size_t dataLen, i;
+  std::map<std::string, EOPSIParty*>::const_iterator mi;
+  EOPSIMessage msgToCloud, msgToClient;
+  NTL::ZZ_p **q;
   
   if (msg.getPartyId() == this->id) {
     throw ProtocolException("Self-messaging is not allowed in EO-PSI protocol");
@@ -67,7 +74,7 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
   
   // Is the sender authorised?
   if (!isAuthorised(msg)) {
-    throw ProtocolException("Party \"" + msg.getPartyId() + "\" is not authorised");
+    throw ProtocolException("Party \"" + msg.getPartyId() + "\" is not authorised by " + this->getId() + ".");
   }
   
   // Get the sender
@@ -75,12 +82,71 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
   
   switch(msg.getType()) {
     case EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST:
+      // Check sender and message content
       msgClaimedId = (char *) msg.getData();
       if (msgClaimedId != sender->getId()) {
-	throw ProtocolException("Id mismatch between sender and message data");
+        throw ProtocolException("Id mismatch between sender and message data");
       }
       
-      std::cout << "not fully implemented. I, " << id << ", received \"" << (&((byte *) msg.getData())[msgClaimedId.length() + 1]) << "\" from " << sender->getId() << std::endl;
+      /*
+       * 1. Send outsourcing request to the cloud
+       */
+      // Prepare message for the Cloud
+      rndstr = rndStrgen.next(4);
+      dataLen = this->getId().length() + 1 + sender->getId().length() + 1 + rndstr.length() + 1;
+      
+      try {
+        data = new byte[dataLen];
+      } catch (std::bad_alloc &) {
+        std::cerr << "receive(). Error allocating memory." << std::endl;
+        exit(1);
+      }
+      
+      strcpy((char *) data, &this->getId()[0]);
+      strcpy((char *) (data + this->getId().length() + 1), &sender->getId()[0]);
+      for (i = 0; i < rndstr.length(); i++) {
+        data[this->getId().length() + 1 + sender->getId().length() + 1 + i] = rndstr[i];
+      }
+      data[dataLen - 1] = '\0'; // Correctly end data
+      msgToCloud.setData(data, dataLen);
+      msgToCloud.setType(EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST);
+      msgToCloud.setPartyId(this->getId());
+      
+      // Find some cloud among authenticated parties
+      cloud = nullptr;
+      mi = parties.begin();
+      while (mi != parties.end() && cloud == nullptr) {
+        if (mi->second->getType() == EOPSI_PARTY_SERVER) {
+          cloud = mi->second;
+        }
+        mi++;
+      }
+      if (cloud == nullptr) {
+        std::cerr << "receive(). Could not find any cloud to outsource data to." << std::endl;
+        exit(2);
+      }
+      
+      // Reception feedback
+      otherSecret = &((char *) msg.getData())[msgClaimedId.length() + 1];
+      std::cout << id << ". Received \"" << otherSecret << "\" from " << sender->getId() << std::endl;
+      
+      // Send the message
+      try {
+        std::cout << this->getId() << ". Sending cloud computation request with random string \"" << (&data[this->getId().length() + 1 + sender->getId().length() + 1]) << "\" to " << cloud->getId() << "." << std::endl;
+        this->send(*cloud, msgToCloud);
+      } catch (ProtocolException &e) {
+        std::cerr << "receive(). " << e.what() << std::endl;
+        exit(2);
+      }
+      
+      /*
+       * 2. Send q to client
+       */
+      q = delegationOutput(otherSecret);
+      msgToClient.setData((void *) q, 1);
+      msgToClient.setType(EOPSI_MESSAGE_POLYNOMIAL);
+      msgToClient.setPartyId(this->getId());
+      this->send(*sender, msgToClient);
       break;
       
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
@@ -90,6 +156,9 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
+      // Reception feedback
+      q = (NTL::ZZ_p **) msg.getData();
+      std::cout << "not fully implemented. I, " << id << ", received \"" << q[0][0] << "\" from " << sender->getId() << std::endl;
       break;
       
     case EOPSI_MESSAGE_OUTSOURCING_DATA:
@@ -176,11 +245,27 @@ void EOPSIClient::setFieldsize(const NTL::ZZ& fieldsize) {
   this->fieldsize = fieldsize;
   NTL::ZZ_p::init(fieldsize);
   this->prf.setModulo(this->fieldsize);
+  this->keygen.setLength((NTL::bits(this->fieldsize) + sizeof(byte) - 1)/sizeof(byte));
 }
 //-----------------------------------------------------------------------------
 
 NTL::ZZ EOPSIClient::getFieldsize() const {
   return this->fieldsize;
+}
+//-----------------------------------------------------------------------------
+
+NTL::vec_ZZ_p EOPSIClient::generateUnknowns() {
+  NTL::vec_ZZ_p unknowns;
+  NTL::ZZ_p zero;
+  
+  conv(zero, 0);
+  unknowns.SetLength(2*this->hashBuckets->getMaxLoad() + 1);
+  this->rndZZpgen->setSeed(zero);
+  for (size_t j = 0; j < 2*this->hashBuckets->getMaxLoad() + 1; j++) {
+    append(unknowns, this->rndZZpgen->next());
+  }
+  
+  return unknowns;
 }
 //-----------------------------------------------------------------------------
 
@@ -258,10 +343,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout.flush();
   
   // Generating random unknowns
-  unknowns.SetLength(2*this->hashBuckets->getMaxLoad() + 1);
-  for (size_t j = 0; j < 2*this->hashBuckets->getMaxLoad() + 1; j++) {
-    append(unknowns, this->rndZZpgen->next());
-  }
+  unknowns = this->generateUnknowns();
   
   // FEEDBACK
   std::cout << ".";
@@ -319,30 +401,59 @@ void EOPSIClient::blind(unsigned int nThreads) {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIClient::delegationOutput(const std::string secretOtherParty) {
+NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty) {
   std::string tmpKey;
+  NTL::ZZ_p **q, tmp;
+  NTL::ZZ_pX omega, omegaOther;
+  size_t aIdx, omegaIdx, omegaOtherIdx;
+  NTL::vec_ZZ_p unknowns;
   ByteKeyGenerator keygenOtherParty;
-  NTL::ZZ_p **a;
   
   // Initialise key generator
   keygen.setHashAlgorithm(this->strHashAlgorithm);
   keygen.setSecretKey(this->secret);
-  keygenOtherParty.setSecretKey(secretOtherParty);
   
   try {
-    a = new NTL::ZZ_p *[this->hashBuckets->getLength()];
+    q = new NTL::ZZ_p *[this->hashBuckets->getLength()];
     for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
-      a[i] = new NTL::ZZ_p[this->hashBuckets->getMaxLoad()];
+      q[i] = new NTL::ZZ_p[2*this->hashBuckets->getMaxLoad() + 1];
     }
   } catch (std::bad_alloc &) {
-    std::cerr << "blind(). Error allocating memory." << std::endl;
+    std::cerr << "delegationOutput(). Error allocating memory." << std::endl;
     exit(2);
   }
+    
+  // Not secret unknowns
+  unknowns = generateUnknowns();
   
+  // Initialise key generator
+  keygenOtherParty.setHashAlgorithm(this->strHashAlgorithm);
+  keygenOtherParty.setSecretKey(secretOtherParty);
+  
+  // Compute q
+  aIdx = 0;
+  omegaIdx = this->hashBuckets->getLength() * (2*this->hashBuckets->getMaxLoad() + 1);
+  omegaOtherIdx = omegaIdx + this->hashBuckets->getLength() * (2*this->hashBuckets->getMaxLoad() + 1);
   for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
     for (size_t j = 0; j < 2*this->hashBuckets->getMaxLoad() + 1; j++) {
-//       a[i][j] = 
+      conv(q[i][j], NTL::ZZFromBytes(keygen.generate(aIdx++), keygen.getLength()));
+      if (j == 2*this->hashBuckets->getMaxLoad()) {
+        conv(tmp, NTL::ZZFromBytes((const byte *) "\1", 1));
+        NTL::SetCoeff(omega, j, tmp);
+        NTL::SetCoeff(omegaOther, j, tmp);
+        omegaIdx++;
+        omegaOtherIdx++;
+      }
+      conv(tmp, NTL::ZZFromBytes(keygen.generate(omegaIdx++), keygen.getLength()));
+      NTL::SetCoeff(omega, j, tmp);
+      conv(tmp, NTL::ZZFromBytes(keygen.generate(omegaOtherIdx++), keygen.getLength()));
+      NTL::SetCoeff(omegaOther, j, tmp);
+      
+      // Reuse of variable "q" to store q data
+      q[i][j] = q[i][j] + eval(omega, unknowns[j]) + eval(omegaOther, unknowns[j]);
     }
   }
+  
+  return q;
 }
 //-----------------------------------------------------------------------------

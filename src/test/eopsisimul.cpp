@@ -36,7 +36,7 @@ static void authentication(Args... args) {
   EOPSIParty *parties[] = { args... };
   size_t i, j;
   
-  // For each party, authenticate with others
+  // Authenticate parties each other
   for (i = 0; i < sizeof...(args); i++) {
     for (j = 0; j < sizeof...(args); j++) {
       parties[i]->authenticate(*parties[j]);
@@ -140,7 +140,7 @@ static NTL::ZZ* intersect(const NTL::ZZ *set1, const size_t card1, const NTL::ZZ
  * @param rndZZgen the generator
  * @return A pointer to the data which should be manually deleted.
  */
-NTL::ZZ * randomData(const size_t n, RandomZZGenerator rndZZgen) {
+NTL::ZZ * randomData(const size_t n, RandomZZGenerator& rndZZgen) {
   NTL::ZZ *data;
   
   try {
@@ -189,11 +189,11 @@ int main(int argc, char **argv) {
   while ((op = getopt(argc, argv, "hj:n:o:p:r:s:")) != -1) {
     switch (op) {
       case 'j':
-	std::cerr << argv[0] << ". Ignoring option -j (not yet implemented)" << std::endl;
+        std::cerr << argv[0] << ". Ignoring option -j (not yet implemented)" << std::endl;
         nThreads = 1;
 //         nThreads = atoi(optarg);
         break;
-	
+        
       case 'n':
         n = atol(optarg);
         break;
@@ -226,7 +226,7 @@ int main(int argc, char **argv) {
   srand(time(NULL));
   
   // Initialise random ZZ generator
-  supremum = NTL::to_ZZ(supremumStr.c_str());
+  supremum = NTL::to_ZZ(&supremumStr[0]);
   len = rand() % SEED_MAX_LENGTH + 1;
   rndZZgen.setSupremum(supremum);
   rndZZgen.setSeed(NTL::ZZFromBytes((const byte*) rndStrgen.next(len).c_str(), len));
@@ -251,7 +251,9 @@ int main(int argc, char **argv) {
   // Preconditions: parties are communicating each other through secure channels
   authentication(alice, bob, cloud);
   
-  // 0. Alice and Bob stores blinded values into the cloud.
+  /*
+   * 0. Alice and Bob stores blinded values into the cloud.
+   */
   minCommonData = randomData(r, rndZZgen);
   dataAlice = join(minCommonData, r, randomData(n - r, rndZZgen), n - r);
   dataBob = join(minCommonData, r, randomData(n - r, rndZZgen), n - r);
@@ -279,14 +281,12 @@ int main(int argc, char **argv) {
    */
   setcap = intersect(dataAlice, n, dataBob, n, &setcapCard);
   
-  // 1. B outsources some elaboration to A
+  /*
+   * 1. B outsources some elaboration to A
+   */
   msgBobAlice.setType(EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST);
   msgBobAlice.setPartyId(bob->getId());
   try {
-    if (data != nullptr) {
-      delete [] data;
-    }
-    
     // Prepare message
     dataLen = bob->getSecret().length() + 1 + bob->getId().length() + 1;
     data = new byte[dataLen];
@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
     msgBobAlice.setData(data, dataLen);
     
     // Send the message
-    std::cout << bob->getId() << ". Sending random string \"" << (&data[bob->getId().length() + 1]) << "\" to " << alice->getId() << std::endl;
+    std::cout << bob->getId() << ". Sending client computation request with random string \"" << (&data[bob->getId().length() + 1]) << "\" to " << alice->getId() << "." << std::endl;
     bob->send(*alice, msgBobAlice);
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;

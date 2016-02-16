@@ -20,6 +20,9 @@ EOPSIServer::~EOPSIServer() {
 
 void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
   EOPSIParty *sender;
+  std::string msgClaimedId;
+  std::string partnerId;
+  byte *data = nullptr;
   
   if (msg.getPartyId() == this->id) {
     throw ProtocolException("Self-messaging is not allowed in EOPSI protocol");
@@ -27,7 +30,7 @@ void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
   
   // Is the sender authorised?
   if (!isAuthorised(msg)) {
-    throw ProtocolException("Party \"" + msg.getPartyId() + "\" is not authorised");
+    throw ProtocolException("Party \"" + msg.getPartyId() + "\" is not authorised by " + this->getId() + ".");
   }
   
   // Get the sender
@@ -38,6 +41,17 @@ void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
       if (sender->getType() == EOPSI_PARTY_SERVER) {
         throw ProtocolException("Outsourcing computation requests between servers is not (yet) supported");
       }
+      
+      // Check sender and message content
+      msgClaimedId = (char *) msg.getData();
+      if (msgClaimedId != sender->getId()) {
+        throw ProtocolException("Id mismatch between sender and message data");
+      }
+      partnerId = &((char *) msg.getData())[msgClaimedId.length() + 1];
+      
+      // Prepare message for the partner client
+      
+      std::cout << "not fully implemented. I, " << id << ", received \"" << (&((byte *) msg.getData())[msgClaimedId.length() + 1 + partnerId.length() + 1]) << "\" from " << sender->getId() << std::endl;
       break;
       
     case EOPSI_MESSAGE_OUTSOURCING_DATA:
@@ -72,7 +86,7 @@ bool EOPSIServer::isAuthorised(const EOPSIMessage& msg) const {
   switch(msg.getType()) {
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
     case EOPSI_MESSAGE_OUTSOURCING_DATA:
-      return true;
+      return (sender->getType() == EOPSI_PARTY_SERVER) || (sender->getType() == EOPSI_PARTY_CLIENT);
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
       return sender->getType() == EOPSI_PARTY_SERVER;

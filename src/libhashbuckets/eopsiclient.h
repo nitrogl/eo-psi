@@ -16,6 +16,7 @@
 #include "eopsiserver.h"
 #include "hashbuckets.hpp"
 #include "zzprandgen.h"
+#include "strrandgen.h"
 #include "bytekeygen.h"
 //-----------------------------------------------------------------------------
 
@@ -30,9 +31,11 @@ protected:
   RandomZZpGenerator *rndZZpgen;
   HashAlgorithm<std::string>* strHashAlgorithm;
   ByteKeyGenerator keygen;
+  RandomStringGenerator rndStrgen;
   
+  virtual NTL::vec_ZZ_p generateUnknowns();
   virtual void blind(unsigned int nThreads = 0);
-  virtual void delegationOutput(const std::string secretOtherParty);
+  virtual NTL::ZZ_p ** delegationOutput(const std::string secretOtherParty);
   
 public:
   EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const std::string& id = "", const std::string& secret = "Topsy Kretts");
