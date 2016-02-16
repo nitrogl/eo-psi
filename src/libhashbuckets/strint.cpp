@@ -9,7 +9,7 @@
 #include "strint.h"
 //-----------------------------------------------------------------------------
 
-StrInt::StrInt(const size_t bytes, const unsigned char *n, const size_t len) {
+StrInt::StrInt(const size_t bytes, const byte *n, const size_t len) {
   size_t i;
   
   // Auto-adjust/interpret bytes
@@ -42,6 +42,19 @@ StrInt::StrInt(const size_t bytes, const unsigned char *n, const size_t len) {
   // Set number
   if (n != nullptr && len*bytes > 0) {
     this->set(n, len);
+  } else {
+    byte *zero;
+    try {
+      zero = new byte[len];
+    } catch (std::bad_alloc&) {
+      std::cerr << "StrInt(). Error allocating space." << std::endl;
+      exit(2);
+    }
+    for (i = 0; i < len; i++) {
+      zero = '\0';
+    }
+    this->set(zero, len);
+    delete [] zero;
   }
 }
 //-----------------------------------------------------------------------------
@@ -60,7 +73,12 @@ StrInt::~StrInt() {
 }
 //-----------------------------------------------------------------------------
 
-void StrInt::set(const unsigned char *n, const size_t len) {
+void StrInt::set(const unsigned long len) {
+  mpz_set_ui(z, len);
+}
+//-----------------------------------------------------------------------------
+
+void StrInt::set(const byte *n, const size_t len) {
   size_t i, j;
   size_t dim = (len > this->length) ? this->length : len;
   
@@ -94,6 +112,11 @@ unsigned long StrInt::rem(const unsigned long divisor) const {
 }
 //-----------------------------------------------------------------------------
 
+unsigned long StrInt::lsb() const {
+  return mpz_fdiv_ui(b[0], (unsigned long) (-1L));
+}
+//-----------------------------------------------------------------------------
+
 void StrInt::inc() {
   mpz_add(z, z, pow2[0]);
 }
@@ -107,8 +130,47 @@ void StrInt::add(const unsigned long n) {
 
 std::string StrInt::toString() const {
   std::stringstream sstr;
-  sstr << z;
+  sstr << this->z;
   return sstr.str();
+}
+//-----------------------------------------------------------------------------
+
+byte* StrInt::toBytes(byte *barr, size_t* bytelen) const {
+  const int MSB_FIRST = 1;
+  const int BIG_ENDIANNESS = 1;
+  const size_t LEN = this->getByteSize();
+  
+  if ((barr != NULL) && (bytelen != NULL) && (*bytelen != LEN)) {
+    try {
+      barr = new byte[LEN];
+    } catch (std::bad_alloc&) {
+      std::cerr << "toBytes(). Error allocating space." << std::endl;
+      exit(2);
+    }
+  }
+  mpz_export((void *) barr, bytelen, MSB_FIRST, sizeof(byte), BIG_ENDIANNESS, 0, this->z);
+  
+  /*
+   * If this->z is zero then the count returned will be zero and nothing 
+   * written to barr. If barr is NULL in this case, no block is allocated, 
+   * just NULL is returned. 
+   */
+  if (*bytelen == 0 && LEN == 1) {
+    barr[0] = '\0';
+    *bytelen = 1;
+  }
+  
+  if (*bytelen != LEN) {
+    std::cerr << "toBytes(). Something unexpected happened in conversion." << std::endl;
+    exit(2);
+  }
+  
+  return barr;
+}
+//-----------------------------------------------------------------------------
+
+size_t StrInt::getByteSize() const {
+  return (mpz_sizeinbase(this->z, 2) + sizeof(byte) - 1)/sizeof(byte);
 }
 //-----------------------------------------------------------------------------
 

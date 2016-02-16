@@ -14,7 +14,7 @@ add_library (${LIBRARY_NAME} SHARED
         zzrandgen.cpp
         zzprandgen.cpp
         strrandgen.cpp
-        stringkeygen.cpp
+        bytekeygen.cpp
         strzzpkeygen.cpp
         eopsimsg.cpp
         eopsiserver.cpp

@@ -16,7 +16,7 @@
 #include "eopsiserver.h"
 #include "hashbuckets.hpp"
 #include "zzprandgen.h"
-#include "stringkeygen.h"
+#include "bytekeygen.h"
 //-----------------------------------------------------------------------------
 
 class EOPSIClient : public EOPSIParty {
@@ -29,7 +29,7 @@ protected:
   HashBuckets<NTL::ZZ_p> *hashBuckets;
   RandomZZpGenerator *rndZZpgen;
   HashAlgorithm<std::string>* strHashAlgorithm;
-  StringKeyGenerator keygen;
+  ByteKeyGenerator keygen;
   
   virtual void blind(unsigned int nThreads = 0);
   virtual void delegationOutput(const std::string secretOtherParty);
