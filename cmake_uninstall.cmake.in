@@ -4,7 +4,7 @@
 
 # Get informations about the installation from the file "install_manifest.txt"
 if (NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
-	message (FATAL_ERROR "Cannot find install manifest: \"@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt\"")
+        message (FATAL_ERROR "Cannot find install manifest: \"@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt\"")
 endif (NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
 
 # Find any installed file from the manifest
@@ -13,22 +13,22 @@ string (REGEX REPLACE "\n" ";" files "${files}")
 
 # Just loop the deletion of any (possibly) installed
 foreach (file ${files})
-	# Uninstalling files...
-	message (STATUS "Uninstalling \"$ENV{DESTDIR}${file}\"... ")
+        # Uninstalling files...
+        message (STATUS "Uninstalling \"$ENV{DESTDIR}${file}\"... ")
 
-	# Don't care if existing or not, just try to remove it!
-	execute_process (
-		COMMAND @CMAKE_COMMAND@ -E remove "$ENV{DESTDIR}${file}"
-		OUTPUT_VARIABLE rm_out
-		RESULT_VARIABLE rm_retval
-		)
+        # Don't care if existing or not, just try to remove it!
+        execute_process (
+                COMMAND @CMAKE_COMMAND@ -E remove "$ENV{DESTDIR}${file}"
+                OUTPUT_VARIABLE rm_out
+                RESULT_VARIABLE rm_retval
+                )
 
-	# Give a feedback about the removal
-	if (${rm_retval} EQUAL 0)
-		message ("\"$ENV{DESTDIR}${file}\" successfully removed (if existing).")
-	else (${rm_retval} EQUAL 0)
-		message ("Error removing \"$ENV{DESTDIR}${file}\" (It could not exist any more.)")
-	endif (${rm_retval} EQUAL 0)
+        # Give a feedback about the removal
+        if (${rm_retval} EQUAL 0)
+                message ("\"$ENV{DESTDIR}${file}\" successfully removed (if existing).")
+        else (${rm_retval} EQUAL 0)
+                message ("Error removing \"$ENV{DESTDIR}${file}\" (It could not exist any more.)")
+        endif (${rm_retval} EQUAL 0)
 
 endforeach(file)
 

@@ -13,7 +13,7 @@ include (CheckIncludeFiles)
 
 # After an update of cmake 2.8.x to 2.8.4
 # if (WIN32)
-# 	set(CMAKE_RC_COMPILER windres)
+#         set(CMAKE_RC_COMPILER windres)
 # endif()
 
 project (${LIBRARY_NAME})
@@ -49,21 +49,21 @@ endif(BIT32)
 
 # Detect the compilation system
 if (APPLE)
-	message ("Apple system found.")
+        message ("Apple system found.")
 elseif (WIN32)
-	message ("Windows system found.")
+        message ("Windows system found.")
 elseif (UNIX)
-	message ("UNIX system found.")
+        message ("UNIX system found.")
 else (UNIX)
-	message ("WARNING: Unknown system.")
+        message ("WARNING: Unknown system.")
 endif (APPLE)
 
 # Code flags
 if (CYGWIN)
-	set (PLATFORM_INDEPENDENT_CODE_FLAG "")
+        set (PLATFORM_INDEPENDENT_CODE_FLAG "")
 endif (CYGWIN)
 if (WIN32)
-	set (PLATFORM_INDEPENDENT_CODE_FLAG "")
+        set (PLATFORM_INDEPENDENT_CODE_FLAG "")
 endif (WIN32)
 
 set (CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra -pedantic -O${OPTIMIZATION} ${BIT32} ${PLATFORM_INDEPENDENT_CODE_FLAG} ${DEBUG_FLAG} ${DEBUG_INFO_FLAG} ${ARCH_CFLAG}")
