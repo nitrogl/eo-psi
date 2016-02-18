@@ -89,6 +89,10 @@ namespace NTL {
 
   };
 }
+#else
+namespace NTL {
+  typedef Vec<byte> vec_byte;
+}
 #endif
 //-----------------------------------------------------------------------------
 

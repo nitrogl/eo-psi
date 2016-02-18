@@ -27,6 +27,9 @@
 #include <cstring>
 
 namespace NTL {
+  NTL_vector_decl(byte, vec_byte)
+  NTL_vector_impl(byte, vec_byte)
+  
   void TerminalError(const char *s)
   {
     // Commented out due to lack of message callback in NTL 5.5.2
