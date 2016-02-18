@@ -390,9 +390,9 @@ void EOPSIClient::blind(unsigned int nThreads) {
   
   // Blind evaluations
   for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
-    prf.setSecretKey(std::string((char *) keygen.next()));
+    prf.setSecretKey(std::string((char *) keygen[j]));
     for (size_t i = 0; i < 2*this->hashBuckets->getMaxLoad() + 1; i++) {
-      this->blindedData[j][i] = this->blindedData[j][i] + prf.next();
+      this->blindedData[j][i] = this->blindedData[j][i] + prf[i];
     }
   }
   
@@ -408,10 +408,7 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty) {
   size_t aIdx, omegaIdx, omegaOtherIdx;
   NTL::vec_ZZ_p unknowns;
   ByteKeyGenerator keygenOtherParty;
-  
-  // Initialise key generator
-  keygen.setHashAlgorithm(this->strHashAlgorithm);
-  keygen.setSecretKey(this->secret);
+  StringZZpKeyGenerator prfOtherParty;
   
   try {
     q = new NTL::ZZ_p *[this->hashBuckets->getLength()];
@@ -426,31 +423,36 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty) {
   // Not secret unknowns
   unknowns = generateUnknowns();
   
-  // Initialise key generator
+  // Initialise key generators
+  keygen.setSecretKey(this->secret);
   keygenOtherParty.setHashAlgorithm(this->strHashAlgorithm);
   keygenOtherParty.setSecretKey(secretOtherParty);
+  prfOtherParty.setHashAlgorithm(this->strHashAlgorithm);
+  prfOtherParty.setModulo(this->fieldsize);
   
   // Compute q
   aIdx = 0;
   omegaIdx = this->hashBuckets->getLength() * (2*this->hashBuckets->getMaxLoad() + 1);
   omegaOtherIdx = omegaIdx + this->hashBuckets->getLength() * (2*this->hashBuckets->getMaxLoad() + 1);
-  for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
-    for (size_t j = 0; j < 2*this->hashBuckets->getMaxLoad() + 1; j++) {
-      conv(q[i][j], NTL::ZZFromBytes(keygen.generate(aIdx++), keygen.getLength()));
-      if (j == 2*this->hashBuckets->getMaxLoad()) {
+  for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
+    this->prf.setSecretKey(std::string((char *) keygen[j]));
+    prfOtherParty.setSecretKey(std::string((char *) keygenOtherParty[j]));
+    for (size_t i = 0; i < 2*this->hashBuckets->getMaxLoad() + 1; i++) {
+      conv(q[j][i], NTL::ZZFromBytes(keygen.generate(aIdx++), keygen.getLength()));
+      if (i == 2*this->hashBuckets->getMaxLoad()) {
         conv(tmp, NTL::ZZFromBytes((const byte *) "\1", 1));
-        NTL::SetCoeff(omega, j, tmp);
-        NTL::SetCoeff(omegaOther, j, tmp);
+        NTL::SetCoeff(omega, i, tmp);
+        NTL::SetCoeff(omegaOther, i, tmp);
         omegaIdx++;
         omegaOtherIdx++;
       }
       conv(tmp, NTL::ZZFromBytes(keygen.generate(omegaIdx++), keygen.getLength()));
-      NTL::SetCoeff(omega, j, tmp);
+      NTL::SetCoeff(omega, i, tmp);
       conv(tmp, NTL::ZZFromBytes(keygen.generate(omegaOtherIdx++), keygen.getLength()));
-      NTL::SetCoeff(omegaOther, j, tmp);
+      NTL::SetCoeff(omegaOther, i, tmp);
       
       // Reuse of variable "q" to store q data
-      q[i][j] = q[i][j] + eval(omega, unknowns[j]) + eval(omegaOther, unknowns[j]);
+      q[j][i] = q[j][i] + prf[i]*eval(omega, unknowns[i]) + prfOtherParty[i]*eval(omegaOther, unknowns[i]);
     }
   }
   
