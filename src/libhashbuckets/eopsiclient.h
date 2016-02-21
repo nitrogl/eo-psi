@@ -12,12 +12,11 @@
 #include <NTL/ZZ.h>
 #include <NTL/vec_ZZ_p.h>
 #include <NTL/ZZ_pX.h>
-#include "eopsiparty.hpp"
+#include "eopsiparty.h"
 #include "eopsiserver.h"
 #include "hashbuckets.hpp"
 #include "zzprandgen.h"
 #include "strrandgen.h"
-#include "bytekeygen.h"
 //-----------------------------------------------------------------------------
 
 class EOPSIClient : public EOPSIParty {
@@ -26,14 +25,10 @@ protected:
   size_t rawDataSize;
   NTL::vec_ZZ_p *blindedData;
   std::string secret;
-  NTL::ZZ fieldsize;
   HashBuckets<NTL::ZZ_p> *hashBuckets;
-  RandomZZpGenerator *rndZZpgen;
   HashAlgorithm<std::string>* strHashAlgorithm;
-  ByteKeyGenerator keygen;
   RandomStringGenerator rndStrgen;
   
-  virtual NTL::vec_ZZ_p generateUnknowns();
   virtual void blind(unsigned int nThreads = 0);
   virtual NTL::ZZ_p ** delegationOutput(const std::string secretOtherParty);
   
@@ -45,7 +40,6 @@ public:
   virtual bool isAuthorised(const EOPSIMessage& msg) const;
   
   virtual void setFieldsize(const NTL::ZZ& fieldsize);
-  virtual NTL::ZZ getFieldsize() const;
   
   virtual void setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads = 0);
   virtual NTL::ZZ * getRawData() const;

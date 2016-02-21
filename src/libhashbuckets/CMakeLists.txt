@@ -19,6 +19,7 @@ add_library (${LIBRARY_NAME} SHARED
         bytekeygen.cpp
         strzzpkeygen.cpp
         eopsimsg.cpp
+        eopsiparty.cpp
         eopsiserver.cpp
         eopsiclient.cpp
         libhashbuckets.rc

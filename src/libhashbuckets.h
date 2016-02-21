@@ -15,7 +15,6 @@
 #include "libhashbuckets/randgen.hpp"
 #include "libhashbuckets/keygen.hpp"
 #include "libhashbuckets/sha.hpp"
-#include "libhashbuckets/eopsiparty.hpp"
 
 #include "libhashbuckets/byte.h"
 #include "libhashbuckets/ntlmiss.h"
@@ -33,6 +32,7 @@
 #include "libhashbuckets/bytekeygen.h"
 #include "libhashbuckets/strzzpkeygen.h"
 #include "libhashbuckets/eopsimsg.h"
+#include "libhashbuckets/eopsiparty.h"
 #include "libhashbuckets/eopsiserver.h"
 #include "libhashbuckets/eopsiclient.h"
 

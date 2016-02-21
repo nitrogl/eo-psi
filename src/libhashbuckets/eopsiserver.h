@@ -10,7 +10,7 @@
 
 #include <string>
 #include <map>
-#include "eopsiparty.hpp"
+#include "eopsiparty.h"
 #include "eopsiclient.h"
 //-----------------------------------------------------------------------------
 
@@ -19,6 +19,8 @@ class EOPSIClient;
 class EOPSIServer : public EOPSIParty {
 protected:
   std::map<std::string, EOPSIMessage*> storedData;
+  
+  virtual NTL::ZZ_p ** delegationOutput(const std::string id, const std::string idOther);
   
 public:
   EOPSIServer(const std::string& id = "");
