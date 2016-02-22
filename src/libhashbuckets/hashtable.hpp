@@ -12,6 +12,7 @@
 
 #include <cstdlib>
 #include "hashalgorithm.hpp"
+#include "outofboundex.h"
 
 /**
  * A generic hash table abstract class template with only the operations
@@ -73,8 +74,8 @@ public:
    * 
    * @param i the index of the bucket to get
    */
-  U* getBucket(size_t i) {
-    return (i >= 0 && i < k) ? (buckets + i) : nullptr;
+  U getBucket(size_t i) throw (OutOfBoundException) {
+    return (i >= 0 && i < k) ? buckets[i] : throw OutOfBoundException("getBucket(). Index out of bounds.", OutOfBoundException::FATAL);;
   }
   
   /**
@@ -84,6 +85,15 @@ public:
    */
   void setHashAlgorithm(const HashAlgorithm<T>& hashAlgorithm) {
     this->hashAlgorithm = hashAlgorithm;
+  }
+  
+  /**
+   * This operator gives back the bucket at the index embraced by the
+   * square brackets.
+   * @see getBucket
+   */
+  const U operator[](size_t index) {
+    return this->getBucket(index);
   }
 };
 

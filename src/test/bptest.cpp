@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
   std::cout.flush();
   benchmark.step();
   for (size_t i = 0; i < length; i++) {
-    polynomials[i] = NTL::BuildFromRoots(NTL::vector2VecZZp(*(hashBuckets->getBucket(i))));
+    polynomials[i] = NTL::BuildFromRoots(NTL::vector2VecZZp(hashBuckets->getBucket(i)));
   }
   benchmark.step();
   std::cout << "done. " << std::endl;

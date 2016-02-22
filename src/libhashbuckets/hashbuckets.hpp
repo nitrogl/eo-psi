@@ -14,7 +14,6 @@
 #include "markedvector.hpp"
 #include "randgen.hpp"
 #include "strint.h"
-#include "outofboundex.h"
 
 #define DEFAULT_NSHOW 30
 //-----------------------------------------------------------------------------
