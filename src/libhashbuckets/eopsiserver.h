@@ -20,7 +20,7 @@ class EOPSIServer : public EOPSIParty {
 protected:
   std::map<std::string, EOPSIMessage*> storedData;
   
-  virtual NTL::ZZ_p ** delegationOutput(const std::string id, const std::string idOther);
+  virtual NTL::ZZ_p ** delegationOutput(const std::string id, const std::string idOther, const std::string tmpKey);
   
 public:
   EOPSIServer(const std::string& id = "");

@@ -22,7 +22,10 @@ void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
   EOPSIParty *sender;
   std::string msgClaimedId;
   std::string partnerId;
+  std::string tmpKey;
   byte *data = nullptr;
+  EOPSIMessage msgToClient;
+  NTL::ZZ_p **t;
   
   if (msg.getPartyId() == this->id) {
     throw ProtocolException("Self-messaging is not allowed in EOPSI protocol");
@@ -50,6 +53,12 @@ void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
       partnerId = &((char *) msg.getData())[msgClaimedId.length() + 1];
       
       // Prepare message for the partner client
+      tmpKey = (&((char *) msg.getData())[msgClaimedId.length() + 1 + partnerId.length() + 1]);
+      t = delegationOutput(sender->getId(), partnerId, tmpKey);
+      msgToClient.setData((void *) t, 1);
+      msgToClient.setType(EOPSI_MESSAGE_OUTPUT_COMPUTATION);
+      msgToClient.setPartyId(this->getId());
+      this->send(*getPartyById(partnerId), msgToClient);
       
       std::cout << "not fully implemented. I, " << id << ", received \"" << (&((byte *) msg.getData())[msgClaimedId.length() + 1 + partnerId.length() + 1]) << "\" from " << sender->getId() << std::endl;
       break;
@@ -99,8 +108,7 @@ bool EOPSIServer::isAuthorised(const EOPSIMessage& msg) const {
 }
 //-----------------------------------------------------------------------------
 
-NTL::ZZ_p ** EOPSIServer::delegationOutput(const std::string id, const std::string idOther) {
-  std::string tmpKey;
+NTL::ZZ_p ** EOPSIServer::delegationOutput(const std::string id, const std::string idOther, const std::string tmpKey) {
   NTL::ZZ_p **t, tmp;
   NTL::ZZ_pX omega, omegaOther;
   size_t aIdx, omegaIdx, omegaOtherIdx;
@@ -126,6 +134,9 @@ NTL::ZZ_p ** EOPSIServer::delegationOutput(const std::string id, const std::stri
     
   // Not secret unknowns
   unknowns = generateUnknowns(2*hbParty->getMaxLoad() + 1);
+  
+  // Initialise key generators
+  keygen.setSecretKey(tmpKey);
   
   // Compute t
   aIdx = 0;
