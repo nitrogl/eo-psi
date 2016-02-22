@@ -127,7 +127,7 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       otherSecret = &((char *) msg.getData())[msgClaimedId.length() + 1];
       std::cout << id << ". Received \"" << otherSecret << "\" from " << sender->getId() << std::endl;
       
-      // Send the message
+      // Send the message to cloud
       try {
         std::cout << this->getId() << ". Sending cloud computation request with random string \"" << (&data[this->getId().length() + 1 + sender->getId().length() + 1]) << "\" to " << cloud->getId() << "." << std::endl;
         this->send(*cloud, msgToCloud);
@@ -139,7 +139,7 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       /*
        * 2. Send q to client
        */
-      q = delegationOutput(otherSecret);
+      q = delegationOutput(otherSecret, rndstr);
       msgToClient.setData((void *) q, 1);
       msgToClient.setType(EOPSI_MESSAGE_POLYNOMIAL);
       msgToClient.setPartyId(this->getId());
@@ -376,8 +376,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
 }
 //-----------------------------------------------------------------------------
 
-NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty) {
-  std::string tmpKey;
+NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, const std::string tmpKey) {
   NTL::ZZ_p **q, tmp;
   NTL::ZZ_pX omega, omegaOther;
   size_t aIdx, omegaIdx, omegaOtherIdx;
@@ -399,7 +398,7 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty) {
   unknowns = EOPSIParty::generateUnknowns(2*this->hashBuckets->getMaxLoad() + 1);
   
   // Initialise key generators
-  keygen.setSecretKey(this->secret);
+  keygen.setSecretKey(tmpKey);
   keygenOtherParty.setHashAlgorithm(this->strHashAlgorithm);
   keygenOtherParty.setSecretKey(secretOtherParty);
   prfOtherParty.setHashAlgorithm(this->strHashAlgorithm);

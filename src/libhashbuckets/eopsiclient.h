@@ -30,7 +30,7 @@ protected:
   RandomStringGenerator rndStrgen;
   
   virtual void blind(unsigned int nThreads = 0);
-  virtual NTL::ZZ_p ** delegationOutput(const std::string secretOtherParty);
+  virtual NTL::ZZ_p ** delegationOutput(const std::string secretOtherParty, const std::string tmpKey);
   
 public:
   EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const std::string& id = "", const std::string& secret = "Topsy Kretts");
