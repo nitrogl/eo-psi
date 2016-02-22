@@ -27,9 +27,11 @@ protected:
   std::string secret;
   HashBuckets<NTL::ZZ_p> *hashBuckets;
   RandomStringGenerator rndStrgen;
+  NTL::ZZ_p **q, **t;
   
   virtual void blind(unsigned int nThreads = 0);
   virtual NTL::ZZ_p ** delegationOutput(const std::string secretOtherParty, const std::string tmpKey);
+  virtual NTL::ZZ_p ** intersect(const size_t length, const size_t height);
   
 public:
   EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const std::string& id = "", const std::string& secret = "Topsy Kretts");

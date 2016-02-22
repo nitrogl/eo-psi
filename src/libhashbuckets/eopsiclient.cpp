@@ -33,6 +33,8 @@ EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fie
   this->hashBuckets = &hashBuckets;
   this->setFieldsize(fieldsize);
   this->setSecret(secret);
+  this->q = nullptr;
+  this->t = nullptr;
 }
 //-----------------------------------------------------------------------------
 
@@ -50,7 +52,6 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
   size_t dataLen, i;
   std::map<std::string, EOPSIParty*>::const_iterator mi;
   EOPSIMessage msgToCloud, msgToClient;
-  NTL::ZZ_p **q, **t;
   
   if (msg.getPartyId() == this->id) {
     throw ProtocolException("Self-messaging is not allowed in EO-PSI protocol");
@@ -112,7 +113,7 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       
       // Reception feedback
       otherSecret = &((char *) msg.getData())[msgClaimedId.length() + 1];
-      std::cout << id << ". Received \"" << otherSecret << "\" from " << sender->getId() << std::endl;
+      std::cout << id << ". Received \"" << otherSecret << "\" from " << sender->getId() << "." << std::endl;
       
       // Send the message to cloud
       try {
@@ -133,21 +134,19 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       this->send(*sender, msgToClient);
       break;
       
-    case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
-      break;
-      
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
       // Reception feedback
       t = (NTL::ZZ_p **) msg.getData();
-      std::cout << "not fully implemented. I, " << id << ", received \"" << t[0][0] << "\" from " << sender->getId() << std::endl;
+      std::cout << "not fully implemented. I, " << id << ", received \"" << t[0][0] << "\" from " << sender->getId() << "." << std::endl;
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
       // Reception feedback
       q = (NTL::ZZ_p **) msg.getData();
-      std::cout << "not fully implemented. I, " << id << ", received \"" << q[0][0] << "\" from " << sender->getId() << std::endl;
+      std::cout << "not fully implemented. I, " << id << ", received \"" << q[0][0] << "\" from " << sender->getId() << "." << std::endl;
       break;
       
+    case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
     case EOPSI_MESSAGE_OUTSOURCING_DATA:
       throw ProtocolException("The protocol forbids passing this type of message to clients.");
       
@@ -427,5 +426,32 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, c
   }
   
   return q;
+}
+//-----------------------------------------------------------------------------
+
+NTL::ZZ_p ** EOPSIClient::intersect(const size_t length, const size_t height) {
+  NTL::ZZ_p **setcap;
+  
+  if (this->q == nullptr || this->t == nullptr) {
+    return nullptr;
+  }
+  
+  try {
+    setcap = new NTL::ZZ_p *[length];
+    for (size_t i = 0; i < length; i++) {
+      setcap[i] = new NTL::ZZ_p[height];
+    }
+  } catch (std::bad_alloc &) {
+    std::cerr << "intersect(). Error allocating memory." << std::endl;
+    exit(2);
+  }
+  
+  for (size_t j = 0; j < length; j++) {
+    for (size_t i = 0; i < height; i++) {
+      setcap[j][i] = this->t[j][i] - this->q[j][i];
+    }
+  }
+  
+  return setcap;
 }
 //-----------------------------------------------------------------------------
