@@ -66,6 +66,8 @@ protected:
   
 public:
   SHA(HashFlavour flavour = SHA1_FLAVOUR) : HashAlgorithm<T>() {
+    this->sha = nullptr;
+    this->lastHash = nullptr;
     this->setFlavour(flavour);
   }
   
