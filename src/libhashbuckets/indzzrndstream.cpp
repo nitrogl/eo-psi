@@ -16,7 +16,6 @@ static inline unsigned long WordFromBytes(const unsigned char *buf, long n);
 byte* IndependentZZRandomStream::zzSeed2byte(const NTL::ZZ& seed) const {
   long nb = NumBytes(seed);
 
-//   NTL::vec_byte buf;
   NTL::vec_byte buf;
   buf.SetLength(nb);
 

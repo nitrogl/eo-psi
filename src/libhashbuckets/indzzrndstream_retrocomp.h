@@ -54,6 +54,8 @@ typedef unsigned long _ntl_uint32; // 32-bit word
 #define NTL_THREAD_LOCAL
 
 namespace NTL {
+  NTL_vector_decl(byte, vec_byte)
+  
   void DeriveKey(unsigned char *key, long klen,  
                const unsigned char *data, long dlen);
   
