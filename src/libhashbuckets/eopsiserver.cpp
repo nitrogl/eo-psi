@@ -8,7 +8,7 @@
 #include "eopsiserver.h"
 //-----------------------------------------------------------------------------
 
-EOPSIServer::EOPSIServer(const std::string& id) : EOPSIParty(EOPSI_PARTY_SERVER, id) {
+EOPSIServer::EOPSIServer(const NTL::ZZ& fieldsize, const std::string& id) : EOPSIParty(EOPSI_PARTY_SERVER, fieldsize, id) {
   
 }
 //-----------------------------------------------------------------------------
@@ -54,7 +54,7 @@ void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
       
       // Prepare message for the partner client
       tmpKey = (&((char *) msg.getData())[msgClaimedId.length() + 1 + partnerId.length() + 1]);
-      t = delegationOutput(sender->getId(), partnerId, tmpKey);
+      t = intersectionOutput(sender->getId(), partnerId, tmpKey);
       msgToClient.setData((void *) t, 1);
       msgToClient.setType(EOPSI_MESSAGE_OUTPUT_COMPUTATION);
       msgToClient.setPartyId(this->getId());
@@ -108,58 +108,61 @@ bool EOPSIServer::isAuthorised(const EOPSIMessage& msg) const {
 }
 //-----------------------------------------------------------------------------
 
-NTL::ZZ_p ** EOPSIServer::delegationOutput(const std::string id, const std::string idOther, const std::string tmpKey) {
+NTL::ZZ_p ** EOPSIServer::intersectionOutput(const std::string idA, const std::string idB, const std::string tmpKey) {
   NTL::ZZ_p **t, tmp;
-  NTL::ZZ_pX omega, omegaOther;
-  size_t aIdx, omegaIdx, omegaOtherIdx;
+  NTL::ZZ_pX omegaA, omegaB;
+  size_t aIdx, omegaAIdx, omegaBIdx;
   NTL::vec_ZZ_p unknowns;
-  EOPSIMessage msg, msgOther;
-  HashBuckets<NTL::ZZ_p>* hbParty = nullptr;
-  HashBuckets<NTL::ZZ_p>* hbOtherParty = nullptr;
+  EOPSIMessage *msgA, *msgB;
+  NTL::vec_ZZ_p* dataA = nullptr;
+  NTL::vec_ZZ_p* dataB = nullptr;
+  size_t length, height;
   
-  msg = this->storedData[id];
-  msgOther = this->storedData[idOther];
-  hbParty = (HashBuckets<NTL::ZZ_p> *) msg.getData();
-  hbOtherParty = (HashBuckets<NTL::ZZ_p> *) msgOther.getData();
+  msgA = this->storedData[idA];
+  msgB = this->storedData[idB];
+  dataA = (NTL::vec_ZZ_p *) msgA->getData();
+  dataB = (NTL::vec_ZZ_p *) msgB->getData();
+  height = dataA[0].length();
+  length = msgA->length() / height;
   
   try {
-    t = new NTL::ZZ_p *[hbParty->getLength()];
-    for (size_t i = 0; i < hbParty->getLength(); i++) {
-      t[i] = new NTL::ZZ_p[2*hbParty->getMaxLoad() + 1];
+    t = new NTL::ZZ_p *[length];
+    for (size_t i = 0; i < length; i++) {
+      t[i] = new NTL::ZZ_p[height];
     }
   } catch (std::bad_alloc &) {
-    std::cerr << "delegationOutput(). Error allocating memory." << std::endl;
+    std::cerr << "intersectionOutput(). Error allocating memory." << std::endl;
     exit(2);
   }
     
   // Not secret unknowns
-  unknowns = generateUnknowns(2*hbParty->getMaxLoad() + 1);
+  unknowns = generateUnknowns(height);
   
   // Initialise key generators
   keygen.setSecretKey(tmpKey);
   
   // Compute t
   aIdx = 0;
-  omegaIdx = hbParty->getLength() * (2*hbParty->getMaxLoad() + 1);
-  omegaOtherIdx = omegaIdx + hbParty->getLength() * (2*hbParty->getMaxLoad() + 1);
-  for (size_t j = 0; j < hbParty->getLength(); j++) {
-    for (size_t i = 0; i < 2*hbParty->getMaxLoad() + 1; i++) {
+  omegaAIdx = length * (height);
+  omegaBIdx = omegaAIdx + length * (height);
+  for (size_t j = 0; j < length; j++) {
+    for (size_t i = 0; i < height; i++) {
       conv(t[j][i], NTL::ZZFromBytes(keygen[aIdx++], keygen.getLength()));
-      if (i == 2*hbParty->getMaxLoad()) {
+      if (i == height - 1) {
         // Coefficient for highest degree is set to 1
         conv(tmp, 1);
-        NTL::SetCoeff(omega, i, tmp);
-        NTL::SetCoeff(omegaOther, i, tmp);
-        omegaIdx++;
-        omegaOtherIdx++;
+        NTL::SetCoeff(omegaA, i, tmp);
+        NTL::SetCoeff(omegaB, i, tmp);
+        omegaAIdx++;
+        omegaBIdx++;
       }
-      conv(tmp, NTL::ZZFromBytes(keygen[omegaIdx++], keygen.getLength()));
-      NTL::SetCoeff(omega, i, tmp);
-      conv(tmp, NTL::ZZFromBytes(keygen[omegaOtherIdx++], keygen.getLength()));
-      NTL::SetCoeff(omegaOther, i, tmp);
+      conv(tmp, NTL::ZZFromBytes(keygen[omegaAIdx++], keygen.getLength()));
+      NTL::SetCoeff(omegaA, i, tmp);
+      conv(tmp, NTL::ZZFromBytes(keygen[omegaBIdx++], keygen.getLength()));
+      NTL::SetCoeff(omegaB, i, tmp);
       
-      // Reuse of variable "t" to store t data
-      t[j][i] = t[j][i] + (*hbParty)[j][i]*eval(omega, unknowns[i]) + (*hbOtherParty)[j][i]*eval(omegaOther, unknowns[i]);
+      // Reuse of variable "t" to store t dataA
+      t[j][i] = t[j][i] + dataA[j][i]*eval(omegaA, unknowns[i]) + dataB[j][i]*eval(omegaB, unknowns[i]);
     }
   }
   

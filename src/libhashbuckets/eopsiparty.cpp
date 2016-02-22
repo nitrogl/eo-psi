@@ -5,6 +5,9 @@
  */
 
 #include "eopsiparty.h"
+#include "shastr.h"
+#include "bytekeygen.h"
+#include "strzzpkeygen.h"
 //-----------------------------------------------------------------------------
   
 EOPSIParty* EOPSIParty::getPartyById(const std::string& id) const {
@@ -25,19 +28,20 @@ NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
   unknowns.SetLength(n);
   this->rndZZpgen->setSeed(zero);
   for (size_t j = 0; j < n; j++) {
-    append(unknowns, this->rndZZpgen->next());
+    unknowns[j] = this->rndZZpgen->next();
   }
   
   return unknowns;
 }
 //-----------------------------------------------------------------------------
   
-EOPSIParty::EOPSIParty(const EOPSIPartyType type, const std::string& id) {
+EOPSIParty::EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const std::string& id) {
   this->setId(id);
   this->setType(type);
   
   try {
     this->rndZZpgen = new RandomZZpGenerator();
+    this->strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
   } catch (std::bad_alloc &) {
     std::cerr << "EOPSIParty(). Error allocating memory." << std::endl;
     exit(2);
@@ -45,6 +49,10 @@ EOPSIParty::EOPSIParty(const EOPSIPartyType type, const std::string& id) {
   
   // Set random generator modulo
   this->rndZZpgen->setModulo(fieldsize);
+  
+  // Initialise generators
+  this->keygen.setHashAlgorithm(this->strHashAlgorithm);
+  this->prf.setHashAlgorithm(this->strHashAlgorithm);
 }
 //-----------------------------------------------------------------------------
 

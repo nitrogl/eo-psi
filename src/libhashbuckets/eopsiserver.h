@@ -20,10 +20,10 @@ class EOPSIServer : public EOPSIParty {
 protected:
   std::map<std::string, EOPSIMessage*> storedData;
   
-  virtual NTL::ZZ_p ** delegationOutput(const std::string id, const std::string idOther, const std::string tmpKey);
+  virtual NTL::ZZ_p ** intersectionOutput(const std::string id, const std::string idOther, const std::string tmpKey);
   
 public:
-  EOPSIServer(const std::string& id = "");
+  EOPSIServer(const NTL::ZZ& fieldsize, const std::string& id = "");
   virtual ~EOPSIServer();
   
   virtual void receive(EOPSIMessage& msg) throw (ProtocolException);

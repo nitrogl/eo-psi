@@ -26,7 +26,6 @@ protected:
   NTL::vec_ZZ_p *blindedData;
   std::string secret;
   HashBuckets<NTL::ZZ_p> *hashBuckets;
-  HashAlgorithm<std::string>* strHashAlgorithm;
   RandomStringGenerator rndStrgen;
   
   virtual void blind(unsigned int nThreads = 0);
@@ -43,8 +42,8 @@ public:
   
   virtual void setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads = 0);
   virtual NTL::ZZ * getRawData() const;
-  virtual NTL::vec_ZZ_p * getBlindedData() const;
   virtual size_t getRawDataSize() const;
+  virtual NTL::vec_ZZ_p * getBlindedData() const;
   virtual size_t getBlindedDataSize() const;
   
   virtual void setSecret(const std::string& secret);

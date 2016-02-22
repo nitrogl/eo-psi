@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
     hashBucketsBob = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
     alice = new EOPSIClient(*hashBucketsAlice, fieldsize, "Alice", "23");
     bob = new EOPSIClient(*hashBucketsBob, fieldsize, "Bob", "Jim");
-    cloud = new EOPSIServer("Cloud");
+    cloud = new EOPSIServer(fieldsize, "Cloud");
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
     exit(1);

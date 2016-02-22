@@ -32,6 +32,7 @@ protected:
   EOPSIPartyType type;
   std::map<std::string, EOPSIParty*> parties;
   NTL::ZZ fieldsize;
+  HashAlgorithm<std::string>* strHashAlgorithm;
   ByteKeyGenerator keygen;
   RandomZZpGenerator *rndZZpgen;
   StringZZpKeyGenerator prf;
@@ -40,7 +41,7 @@ protected:
   virtual NTL::vec_ZZ_p generateUnknowns(const size_t n);
   
 public:
-  EOPSIParty(const EOPSIPartyType type, const std::string& id = "");
+  EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const std::string& id = "");
   virtual ~EOPSIParty();
   
   virtual void setId(const std::string& id);

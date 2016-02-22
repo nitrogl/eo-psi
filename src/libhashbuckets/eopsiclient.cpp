@@ -7,9 +7,6 @@
 #include <iostream>
 #include "eopsiclient.h"
 #include "ntlmiss.h"
-#include "shastr.h"
-#include "bytekeygen.h"
-#include "strzzpkeygen.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -29,23 +26,13 @@ static void polEval(NTL::vec_ZZ_p *evaluations, NTL::ZZ_pX *polynomials, NTL::ve
 }
 //-----------------------------------------------------------------------------
 
-EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const std::string& id, const std::string& secret) : EOPSIParty(EOPSI_PARTY_CLIENT, id) {
+EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const std::string& id, const std::string& secret) : EOPSIParty(EOPSI_PARTY_CLIENT, fieldsize, id) {
   this->rawData = nullptr;
   this->rawDataSize = 0;
   this->blindedData = nullptr;
   this->hashBuckets = &hashBuckets;
   this->setFieldsize(fieldsize);
   this->setSecret(secret);
-  
-  try {
-    this->strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
-  } catch (std::bad_alloc &) {
-    std::cerr << "EOPSIClient(). Error allocating memory." << std::endl;
-    exit(2);
-  }
-  
-  this->keygen.setHashAlgorithm(this->strHashAlgorithm);
-  this->prf.setHashAlgorithm(this->strHashAlgorithm);
 }
 //-----------------------------------------------------------------------------
 
@@ -63,7 +50,7 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
   size_t dataLen, i;
   std::map<std::string, EOPSIParty*>::const_iterator mi;
   EOPSIMessage msgToCloud, msgToClient;
-  NTL::ZZ_p **q;
+  NTL::ZZ_p **q, **t;
   
   if (msg.getPartyId() == this->id) {
     throw ProtocolException("Self-messaging is not allowed in EO-PSI protocol");
@@ -150,6 +137,9 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       break;
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
+      // Reception feedback
+      t = (NTL::ZZ_p **) msg.getData();
+      std::cout << "not fully implemented. I, " << id << ", received \"" << t[0][0] << "\" from " << sender->getId() << std::endl;
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
@@ -283,6 +273,11 @@ void EOPSIClient::blind(unsigned int nThreads) {
   } catch (std::bad_alloc &) {
     std::cerr << "blind(). Error allocating memory." << std::endl;
     exit(2);
+  }
+  
+  // Set blided data length of vectors:
+  for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
+    this->blindedData[j].SetLength(2*this->hashBuckets->getMaxLoad() + 1);
   }
   
   // FEEDBACK
