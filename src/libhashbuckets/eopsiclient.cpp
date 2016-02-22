@@ -38,22 +38,19 @@ EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fie
   this->setSecret(secret);
   
   try {
-    this->rndZZpgen = new RandomZZpGenerator();
-    this->rndZZpgen->setModulo(fieldsize);
     this->strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
-    this->keygen.setHashAlgorithm(this->strHashAlgorithm);
-    this->prf.setHashAlgorithm(this->strHashAlgorithm);
   } catch (std::bad_alloc &) {
     std::cerr << "EOPSIClient(). Error allocating memory." << std::endl;
     exit(2);
   }
+  
+  this->keygen.setHashAlgorithm(this->strHashAlgorithm);
+  this->prf.setHashAlgorithm(this->strHashAlgorithm);
 }
 //-----------------------------------------------------------------------------
 
 EOPSIClient::~EOPSIClient() {
-  delete this->rawData;
-  delete this->blindedData;
-  delete this->hashBuckets;
+  delete this->strHashAlgorithm;
 }
 //-----------------------------------------------------------------------------
 
@@ -242,30 +239,8 @@ std::string EOPSIClient::getSecret() const {
 //-----------------------------------------------------------------------------
 
 void EOPSIClient::setFieldsize(const NTL::ZZ& fieldsize) {
-  this->fieldsize = fieldsize;
-  NTL::ZZ_p::init(fieldsize);
-  this->prf.setModulo(this->fieldsize);
+  EOPSIParty::setFieldsize(fieldsize);
   this->keygen.setLength((NTL::bits(this->fieldsize) + sizeof(byte) - 1)/sizeof(byte));
-}
-//-----------------------------------------------------------------------------
-
-NTL::ZZ EOPSIClient::getFieldsize() const {
-  return this->fieldsize;
-}
-//-----------------------------------------------------------------------------
-
-NTL::vec_ZZ_p EOPSIClient::generateUnknowns() {
-  NTL::vec_ZZ_p unknowns;
-  NTL::ZZ_p zero;
-  
-  conv(zero, 0);
-  unknowns.SetLength(2*this->hashBuckets->getMaxLoad() + 1);
-  this->rndZZpgen->setSeed(zero);
-  for (size_t j = 0; j < 2*this->hashBuckets->getMaxLoad() + 1; j++) {
-    append(unknowns, this->rndZZpgen->next());
-  }
-  
-  return unknowns;
 }
 //-----------------------------------------------------------------------------
 
@@ -335,7 +310,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   
   // Generating polynomials
   for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
-    polynomials[i] = NTL::BuildFromRoots(NTL::vector2VecZZp(*(this->hashBuckets->getBucket(i))));
+    polynomials[i] = NTL::BuildFromRoots(NTL::vector2VecZZp((*this->hashBuckets)[i]));
   }
   
   // FEEDBACK
@@ -343,7 +318,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout.flush();
   
   // Generating random unknowns
-  unknowns = this->generateUnknowns();
+  unknowns = EOPSIParty::generateUnknowns(2*this->hashBuckets->getMaxLoad() + 1);
   
   // FEEDBACK
   std::cout << ".";
@@ -421,7 +396,7 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty) {
   }
     
   // Not secret unknowns
-  unknowns = generateUnknowns();
+  unknowns = EOPSIParty::generateUnknowns(2*this->hashBuckets->getMaxLoad() + 1);
   
   // Initialise key generators
   keygen.setSecretKey(this->secret);
@@ -438,17 +413,18 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty) {
     this->prf.setSecretKey(std::string((char *) keygen[j]));
     prfOtherParty.setSecretKey(std::string((char *) keygenOtherParty[j]));
     for (size_t i = 0; i < 2*this->hashBuckets->getMaxLoad() + 1; i++) {
-      conv(q[j][i], NTL::ZZFromBytes(keygen.generate(aIdx++), keygen.getLength()));
+      conv(q[j][i], NTL::ZZFromBytes(keygen[aIdx++], keygen.getLength()));
       if (i == 2*this->hashBuckets->getMaxLoad()) {
-        conv(tmp, NTL::ZZFromBytes((const byte *) "\1", 1));
+        // Coefficient for highest degree is set to 1
+        conv(tmp, 1);
         NTL::SetCoeff(omega, i, tmp);
         NTL::SetCoeff(omegaOther, i, tmp);
         omegaIdx++;
         omegaOtherIdx++;
       }
-      conv(tmp, NTL::ZZFromBytes(keygen.generate(omegaIdx++), keygen.getLength()));
+      conv(tmp, NTL::ZZFromBytes(keygen[omegaIdx++], keygen.getLength()));
       NTL::SetCoeff(omega, i, tmp);
-      conv(tmp, NTL::ZZFromBytes(keygen.generate(omegaOtherIdx++), keygen.getLength()));
+      conv(tmp, NTL::ZZFromBytes(keygen[omegaOtherIdx++], keygen.getLength()));
       NTL::SetCoeff(omegaOther, i, tmp);
       
       // Reuse of variable "q" to store q data

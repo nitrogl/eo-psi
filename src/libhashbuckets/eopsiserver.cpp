@@ -98,3 +98,60 @@ bool EOPSIServer::isAuthorised(const EOPSIMessage& msg) const {
   }
 }
 //-----------------------------------------------------------------------------
+
+NTL::ZZ_p ** EOPSIServer::delegationOutput(const std::string id, const std::string idOther) {
+  std::string tmpKey;
+  NTL::ZZ_p **t, tmp;
+  NTL::ZZ_pX omega, omegaOther;
+  size_t aIdx, omegaIdx, omegaOtherIdx;
+  NTL::vec_ZZ_p unknowns;
+  EOPSIMessage msg, msgOther;
+  HashBuckets<NTL::ZZ_p>* hbParty = nullptr;
+  HashBuckets<NTL::ZZ_p>* hbOtherParty = nullptr;
+  
+  msg = this->storedData[id];
+  msgOther = this->storedData[idOther];
+  hbParty = (HashBuckets<NTL::ZZ_p> *) msg.getData();
+  hbOtherParty = (HashBuckets<NTL::ZZ_p> *) msgOther.getData();
+  
+  try {
+    t = new NTL::ZZ_p *[hbParty->getLength()];
+    for (size_t i = 0; i < hbParty->getLength(); i++) {
+      t[i] = new NTL::ZZ_p[2*hbParty->getMaxLoad() + 1];
+    }
+  } catch (std::bad_alloc &) {
+    std::cerr << "delegationOutput(). Error allocating memory." << std::endl;
+    exit(2);
+  }
+    
+  // Not secret unknowns
+  unknowns = generateUnknowns(2*hbParty->getMaxLoad() + 1);
+  
+  // Compute t
+  aIdx = 0;
+  omegaIdx = hbParty->getLength() * (2*hbParty->getMaxLoad() + 1);
+  omegaOtherIdx = omegaIdx + hbParty->getLength() * (2*hbParty->getMaxLoad() + 1);
+  for (size_t j = 0; j < hbParty->getLength(); j++) {
+    for (size_t i = 0; i < 2*hbParty->getMaxLoad() + 1; i++) {
+      conv(t[j][i], NTL::ZZFromBytes(keygen[aIdx++], keygen.getLength()));
+      if (i == 2*hbParty->getMaxLoad()) {
+        // Coefficient for highest degree is set to 1
+        conv(tmp, 1);
+        NTL::SetCoeff(omega, i, tmp);
+        NTL::SetCoeff(omegaOther, i, tmp);
+        omegaIdx++;
+        omegaOtherIdx++;
+      }
+      conv(tmp, NTL::ZZFromBytes(keygen[omegaIdx++], keygen.getLength()));
+      NTL::SetCoeff(omega, i, tmp);
+      conv(tmp, NTL::ZZFromBytes(keygen[omegaOtherIdx++], keygen.getLength()));
+      NTL::SetCoeff(omegaOther, i, tmp);
+      
+      // Reuse of variable "t" to store t data
+      t[j][i] = t[j][i] + (*hbParty)[j][i]*eval(omega, unknowns[i]) + (*hbOtherParty)[j][i]*eval(omegaOther, unknowns[i]);
+    }
+  }
+  
+  return t;
+}
+//-----------------------------------------------------------------------------
