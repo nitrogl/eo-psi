@@ -5,6 +5,7 @@
  */
 
 #include <iostream>
+#include <NTL/ZZ_pXFactoring.h>
 #include "eopsiclient.h"
 #include "ntlmiss.h"
 //-----------------------------------------------------------------------------
@@ -52,6 +53,7 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
   size_t dataLen, i;
   std::map<std::string, EOPSIParty*>::const_iterator mi;
   EOPSIMessage msgToCloud, msgToClient;
+  NTL::vec_ZZ_p setcap;
   
   if (msg.getPartyId() == this->id) {
     throw ProtocolException("Self-messaging is not allowed in EO-PSI protocol");
@@ -137,13 +139,15 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
       // Reception feedback
       t = (NTL::ZZ_p **) msg.getData();
-      std::cout << "not fully implemented. I, " << id << ", received \"" << t[0][0] << "\" from " << sender->getId() << "." << std::endl;
+      setcap = intersect(this->hashBuckets->getLength(), 2*this->hashBuckets->getMaxLoad() + 1);
+      std::cout << "not fully implemented. I, " << id << ", received \"" << t[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
       // Reception feedback
       q = (NTL::ZZ_p **) msg.getData();
-      std::cout << "not fully implemented. I, " << id << ", received \"" << q[0][0] << "\" from " << sender->getId() << "." << std::endl;
+      setcap = intersect(this->hashBuckets->getLength(), 2*this->hashBuckets->getMaxLoad() + 1);
+      std::cout << "not fully implemented. I, " << id << ", received \"" << q[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
       break;
       
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
@@ -237,7 +241,6 @@ void EOPSIClient::blind(unsigned int nThreads) {
   size_t padsize;
   NTL::ZZ_p z;
   NTL::ZZ_pX *polynomials = nullptr;
-  NTL::vec_ZZ_p unknowns;
   unsigned int cores = 0;
   size_t nSplit;
   size_t *cumulSplit;
@@ -312,7 +315,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout.flush();
   
   // Generating random unknowns
-  unknowns = EOPSIParty::generateUnknowns(2*this->hashBuckets->getMaxLoad() + 1);
+  this->unknowns = this->getUnknowns(2*this->hashBuckets->getMaxLoad() + 1);
   
   // FEEDBACK
   std::cout << ".";
@@ -367,16 +370,27 @@ void EOPSIClient::blind(unsigned int nThreads) {
   
   // FEEDBACK
   std::cout << ". done." << std::endl;
+  
+  // Release memory
+  delete [] polynomials;
+  delete [] threads;
+  delete [] cumulSplit;
 }
 //-----------------------------------------------------------------------------
 
 NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, const std::string tmpKey) {
-  NTL::ZZ_p **q, tmp;
+  NTL::ZZ_p tmp;
   NTL::ZZ_pX omega, omegaOther;
   size_t aIdx, omegaIdx, omegaOtherIdx;
-  NTL::vec_ZZ_p unknowns;
   ByteKeyGenerator keygenOtherParty;
   StringZZpKeyGenerator prfOtherParty;
+  
+  if (this->q != nullptr) {
+    for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
+      delete [] (q[i]);
+    }
+    delete [] q;
+  }
   
   try {
     q = new NTL::ZZ_p *[this->hashBuckets->getLength()];
@@ -389,7 +403,7 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, c
   }
     
   // Not secret unknowns
-  unknowns = EOPSIParty::generateUnknowns(2*this->hashBuckets->getMaxLoad() + 1);
+  unknowns = this->getUnknowns(2*this->hashBuckets->getMaxLoad() + 1);
   
   // Initialise key generators
   keygen.setSecretKey(tmpKey);
@@ -429,28 +443,45 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, c
 }
 //-----------------------------------------------------------------------------
 
-NTL::ZZ_p ** EOPSIClient::intersect(const size_t length, const size_t height) {
-  NTL::ZZ_p **setcap;
+NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
+  NTL::vec_ZZ_p setcap;
+  NTL::ZZ_p **diff;
+  NTL::ZZ_pX *polynomials;
+  NTL::vec_pair_ZZ_pX_long factorPairs;
   
   if (this->q == nullptr || this->t == nullptr) {
-    return nullptr;
+    std::cerr << "intersect(). Either q or t not set." << std::endl;
+    return setcap;
   }
   
   try {
-    setcap = new NTL::ZZ_p *[length];
+    diff = new NTL::ZZ_p *[length];
     for (size_t i = 0; i < length; i++) {
-      setcap[i] = new NTL::ZZ_p[height];
+      diff[i] = new NTL::ZZ_p[height];
     }
+    polynomials = new NTL::ZZ_pX[length];
   } catch (std::bad_alloc &) {
     std::cerr << "intersect(). Error allocating memory." << std::endl;
     exit(2);
   }
   
+  // Remove random terms
   for (size_t j = 0; j < length; j++) {
     for (size_t i = 0; i < height; i++) {
-      setcap[j][i] = this->t[j][i] - this->q[j][i];
+      diff[j][i] = this->t[j][i] - this->q[j][i];
     }
   }
+    
+  // Not secret unknowns
+  unknowns = this->getUnknowns();
+  
+  // Interpolate polynomials
+  for (size_t j = 0; j < length; j++) {
+    polynomials[j] = NTL::interpolate(unknowns, NTL::array2VecZZp(diff[j], height));
+    factorPairs = NTL::berlekamp(polynomials[j]);
+    std::cout << "\n\n-->" << factorPairs << "\n<--\n\n" << std::endl;
+  }
+  
   
   return setcap;
 }
