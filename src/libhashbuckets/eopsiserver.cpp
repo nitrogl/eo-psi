@@ -23,7 +23,6 @@ void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
   std::string msgClaimedId;
   std::string partnerId;
   std::string tmpKey;
-  byte *data = nullptr;
   EOPSIMessage msgToClient;
   NTL::ZZ_p **t;
   
@@ -112,7 +111,6 @@ NTL::ZZ_p ** EOPSIServer::intersectionOutput(const std::string idA, const std::s
   NTL::ZZ_p **t, tmp;
   NTL::ZZ_pX omegaA, omegaB;
   size_t aIdx, omegaAIdx, omegaBIdx;
-  NTL::vec_ZZ_p unknowns;
   EOPSIMessage *msgA, *msgB;
   NTL::vec_ZZ_p* dataA = nullptr;
   NTL::vec_ZZ_p* dataB = nullptr;
@@ -123,6 +121,10 @@ NTL::ZZ_p ** EOPSIServer::intersectionOutput(const std::string idA, const std::s
   dataA = (NTL::vec_ZZ_p *) msgA->getData();
   dataB = (NTL::vec_ZZ_p *) msgB->getData();
   height = dataA[0].length();
+  if (height == 0) {
+    std::cerr << "intersectionOutput(). Fatal error: wrong data length in message from client." << std::endl;
+    exit(2);
+  }
   length = msgA->length() / height;
   
   try {
@@ -136,7 +138,7 @@ NTL::ZZ_p ** EOPSIServer::intersectionOutput(const std::string idA, const std::s
   }
     
   // Not secret unknowns
-  unknowns = generateUnknowns(height);
+  unknowns = this->getUnknowns(height);
   
   // Initialise key generators
   keygen.setSecretKey(tmpKey);

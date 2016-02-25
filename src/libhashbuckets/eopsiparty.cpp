@@ -10,31 +10,6 @@
 #include "strzzpkeygen.h"
 //-----------------------------------------------------------------------------
   
-EOPSIParty* EOPSIParty::getPartyById(const std::string& id) const {
-  std::map<std::string, EOPSIParty*>::const_iterator i = parties.find(id);
-  if (i != parties.end()) {
-    return i->second;
-  } else {
-    return nullptr;
-  }
-}
-//-----------------------------------------------------------------------------
-
-NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
-  NTL::vec_ZZ_p unknowns;
-  NTL::ZZ_p zero;
-    
-  conv(zero, 0);
-  unknowns.SetLength(n);
-  this->rndZZpgen->setSeed(zero);
-  for (size_t j = 0; j < n; j++) {
-    unknowns[j] = this->rndZZpgen->next();
-  }
-  
-  return unknowns;
-}
-//-----------------------------------------------------------------------------
-  
 EOPSIParty::EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const std::string& id) {
   this->setId(id);
   this->setType(type);
@@ -58,6 +33,43 @@ EOPSIParty::EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, cons
 
 EOPSIParty::~EOPSIParty() {
   delete this->rndZZpgen;
+}
+//-----------------------------------------------------------------------------
+  
+EOPSIParty* EOPSIParty::getPartyById(const std::string& id) const {
+  std::map<std::string, EOPSIParty*>::const_iterator i = parties.find(id);
+  if (i != parties.end()) {
+    return i->second;
+  } else {
+    return nullptr;
+  }
+}
+//-----------------------------------------------------------------------------
+
+NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
+  NTL::ZZ_p zero;
+  
+  conv(zero, 0);
+  unknowns.SetLength(n);
+  this->rndZZpgen->setSeed(zero);
+  for (size_t j = 0; j < n; j++) {
+    unknowns[j] = this->rndZZpgen->next();
+  }
+  
+  return unknowns;
+}
+//-----------------------------------------------------------------------------
+
+NTL::vec_ZZ_p EOPSIParty::getUnknowns(const size_t n) {
+  if (unknowns.length() == 0 && n > 0) {
+    unknowns = generateUnknowns(n);
+  }
+  
+  if (unknowns.length() == 0 && n == 0) {
+    std::cerr << "getUnknowns(). Warning: unknowns not generated." << std::endl;
+  }
+  
+  return unknowns;
 }
 //-----------------------------------------------------------------------------
 

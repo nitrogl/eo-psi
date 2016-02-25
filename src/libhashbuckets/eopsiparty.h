@@ -27,6 +27,9 @@ typedef enum EOPSIPartyType {
 //-----------------------------------------------------------------------------
 
 class EOPSIParty {
+private:
+  virtual NTL::vec_ZZ_p generateUnknowns(const size_t n);
+  
 protected:
   std::string id;
   EOPSIPartyType type;
@@ -36,9 +39,10 @@ protected:
   ByteKeyGenerator keygen;
   RandomZZpGenerator *rndZZpgen;
   StringZZpKeyGenerator prf;
+  NTL::vec_ZZ_p unknowns;
   
   virtual EOPSIParty* getPartyById(const std::string& id) const;
-  virtual NTL::vec_ZZ_p generateUnknowns(const size_t n);
+  virtual NTL::vec_ZZ_p getUnknowns(const size_t n = 0);
   
 public:
   EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const std::string& id = "");
