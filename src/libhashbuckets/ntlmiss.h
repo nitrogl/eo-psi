@@ -47,7 +47,7 @@ namespace NTL {
    * @param nv The NTL vector to fill in.
    * @param v The STL vector to read from.
    */
-  void vector2VecZZp(vec_ZZ_p &nv, const std::vector<ZZ_p> &v);
+  void vector2VecZZp(vec_ZZ_p &zp, const std::vector<ZZ_p> &v);
   
   /**
    * Convert STL vector of integers modulo p to its corresponding NTL vector.
@@ -55,6 +55,23 @@ namespace NTL {
    * @param v The STL vector to read from.
    */
   vec_ZZ_p vector2VecZZp(const std::vector<ZZ_p> &v);
+  
+  /**
+   * Convert C array of integers modulo p to its corresponding NTL vector.
+   * 
+   * @param nv The NTL vector to fill in.
+   * @param v The array to read from.
+   * @param dim The dimension of the array.
+   */
+  void array2VecZZp(vec_ZZ_p &zp, const ZZ_p *v, const size_t dim);
+  
+  /**
+   * Convert C array of integers modulo p to its corresponding NTL vector.
+   * 
+   * @param v The array to read from.
+   * @param dim The dimension of the array.
+   */
+  vec_ZZ_p array2VecZZp(const ZZ_p *v, const size_t dim);
   
   /**
    * This function adds a zero padding to a big integer up to a specific

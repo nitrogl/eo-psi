@@ -40,7 +40,7 @@ namespace NTL {
     zp.kill();
     zp.SetLength(v.size());
     for (size_t i = 0; i < v.size(); i++) {
-      append(zp, v[i]);
+      zp[i] = v[i];
     }
   }
   //---------------------------------------------------------------------------
@@ -50,7 +50,36 @@ namespace NTL {
     
     res.SetLength(v.size());
     for (size_t i = 0; i < v.size(); i++) {
-      append(res, v[i]);
+      res[i] = v[i];
+    }
+    
+    return res;
+  }
+  //---------------------------------------------------------------------------
+  
+  void array2VecZZp(vec_ZZ_p &zp, const ZZ_p *v, const size_t dim) {    
+    if (v == nullptr) {
+      return;
+    }
+    
+    zp.kill();
+    zp.SetLength(dim);
+    for (size_t i = 0; i < dim; i++) {
+      zp[i] = v[i];
+    }
+  }
+  //---------------------------------------------------------------------------
+  
+  vec_ZZ_p array2VecZZp(const ZZ_p *v, const size_t dim) {
+    vec_ZZ_p res;
+    
+    if (v == nullptr) {
+      return res;
+    }
+    
+    res.SetLength(dim);
+    for (size_t i = 0; i < dim; i++) {
+      res[i] = v[i];
     }
     
     return res;
