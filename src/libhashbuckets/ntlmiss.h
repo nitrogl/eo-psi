@@ -25,20 +25,37 @@ namespace NTL {
   unsigned long log2(const ZZ &z);
   
   /**
-   * Compute the number of base-2 cyphers (bits) needed to express the
+   * Compute the number of blocks of size given as (second) argument 
+   * needed to express a bit string of length given as (first) argument.
+   * 
+   * @param bits the number of bits
+   * @param bitsPerBlock the block size in bits
+   */
+  unsigned long blocks(const unsigned long bits, const unsigned long bitsPerBlock);
+  
+  /**
+   * Compute the number of bytes needed to express a bit string of
+   * length given as argument.
+   * 
+   * @param bits the number of bits
+   */
+  unsigned long bytes(const unsigned long bits);
+  
+  /**
+   * Compute the number of bytes needed to express the
    * number given as argument.
    * 
    * @param z the number in base-10
    */
-  unsigned long bits(const ZZ &z);
+  unsigned long bytes(const ZZ &z);
   
   /**
-   * Compute the number of base-2 cyphers (bits) needed to express the
+   * Compute the number of bytes needed to express the
    * number modulo p given as argument.
    * 
    * @param z the number modulo p in base-10
    */
-  unsigned long bits(const ZZ_p &zp);
+  unsigned long bytes(const ZZ_p &zp);
   
   /**
    * Convert STL vector of integers modulo p to its corresponding NTL vector.

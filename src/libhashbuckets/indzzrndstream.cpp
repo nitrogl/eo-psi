@@ -13,9 +13,16 @@
 static inline unsigned long WordFromBytes(const unsigned char *buf, long n);
 //-----------------------------------------------------------------------------
 
-byte* IndependentZZRandomStream::zzSeed2byte(const NTL::ZZ& seed) const {
+byte* IndependentZZRandomStream::zzSeed2byte(const NTL::ZZ& seed) {
   long nb = NumBytes(seed);
-
+  
+  try {
+    this->keyBytes = new byte[NTL_PRG_KEYLEN + 1];
+  } catch (std::bad_alloc &) {
+    std::cerr << "EOPSIParty(). Error allocating memory." << std::endl;
+    exit(2);
+  }
+    
   NTL::vec_byte buf;
   buf.SetLength(nb);
 
@@ -27,11 +34,19 @@ byte* IndependentZZRandomStream::zzSeed2byte(const NTL::ZZ& seed) const {
   key.SetLength(NTL_PRG_KEYLEN);
   NTL::DeriveKey(key.elts(), NTL_PRG_KEYLEN, buf.elts(), nb);
 
-  return key.elts();
+  for (long i = 0; i < NTL_PRG_KEYLEN; i++) {
+    this->keyBytes[i] = key.elts()[i];
+  }
+  this->keyBytes[NTL_PRG_KEYLEN] = '\0';
+  
+  std::cerr << "FB: " << seed << " [" << this->keyBytes << "]" << std::endl;
+  return this->keyBytes;
 }
 //-----------------------------------------------------------------------------
 
 IndependentZZRandomStream::IndependentZZRandomStream(const NTL::ZZ& seed) : RandomStream(zzSeed2byte(seed)) {
+  delete [] this->keyBytes;
+  this->keyBytes = nullptr;
 }
 //-----------------------------------------------------------------------------
 
@@ -57,7 +72,7 @@ NTL::ZZ IndependentZZRandomStream::randomBnd(const NTL::ZZ& bnd) {
   }
 
   long l = NumBits(bnd);
-  long nb = (l+7)/8;
+  long nb = bytes(l);
 
   if (nb <= 3) {
       long lbnd = 0;
@@ -77,8 +92,8 @@ NTL::ZZ IndependentZZRandomStream::randomBnd(const NTL::ZZ& bnd) {
   }
 
   // deal with possible alias
-  NTL_ZZRegister(tmp_store);
-  const ZZ& bnd_ref = ((&x == &bnd) ? (tmp_store = bnd) : bnd); 
+//   NTL_ZZRegister(tmp_store);
+  const ZZ& bnd_ref = bnd; 
 
   NTL_ZZRegister(hbnd);
   RightShift(hbnd, bnd_ref, (nb-2)*8);
@@ -87,16 +102,17 @@ NTL::ZZ IndependentZZRandomStream::randomBnd(const NTL::ZZ& bnd) {
 
   unsigned long mask = (1UL << (16 - nb*8 + l)) - 1UL;
 
-  NTL_THREAD_LOCAL static vec_byte buf_mem;
-#if NTL_MAJOR_VERSION >= 9 || (NTL_MAJOR_VERSION == 9 && NTL_MINOR_VERSION >= 4)
-  vec_byte::Watcher watch_buf_mem(buf_mem);
-#endif
+  vec_byte buf_mem;
+//   NTL_THREAD_LOCAL static vec_byte buf_mem;
+// #if NTL_MAJOR_VERSION >= 9 || (NTL_MAJOR_VERSION == 9 && NTL_MINOR_VERSION >= 4)
+//   vec_byte::Watcher watch_buf_mem(buf_mem);
+// #endif
   buf_mem.SetLength(nb);
   unsigned char *buf = buf_mem.elts();
 
   unsigned char hbuf[2];
 
-  x.SetSize((l + NTL_ZZ_NBITS - 1)/NTL_ZZ_NBITS);
+  x.SetSize(blocks(l, NTL_ZZ_NBITS));
   // pre-allocate to ensure strong ES
   for (;;) {
       this->get(hbuf, 2);

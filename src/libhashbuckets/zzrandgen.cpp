@@ -45,12 +45,8 @@ void RandomZZGenerator::setSeed(const NTL::ZZ &seed) {
     delete this->rndstream;
   }
   
-  this->rndstream = nullptr;
   try {
     this->rndstream = new IndependentZZRandomStream(seed);
-    if (this->rndstream == nullptr) {
-      std::cerr << "tuanonna" << std::endl;
-    }
   } catch (std::bad_alloc&) {
     std::cerr << "setSeed(). Unable to allocate memory." << std::endl;
     exit(2);

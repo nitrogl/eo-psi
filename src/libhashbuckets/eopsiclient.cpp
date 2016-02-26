@@ -80,6 +80,7 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
        */
       // Prepare message for the Cloud
       rndstr = rndStrgen.next(4);
+      rndstr = "puss"; // TODO: [[REMOVE ME]] - just useful to get always the same result
       dataLen = this->getId().length() + 1 + sender->getId().length() + 1 + rndstr.length() + 1;
       
       try {
@@ -233,7 +234,7 @@ std::string EOPSIClient::getSecret() const {
 
 void EOPSIClient::setFieldsize(const NTL::ZZ& fieldsize) {
   EOPSIParty::setFieldsize(fieldsize);
-  this->keygen.setLength((NTL::bits(this->fieldsize) + sizeof(byte) - 1)/sizeof(byte));
+  this->keygen.setLength((NTL::NumBits(this->fieldsize) + sizeof(byte) - 1)/sizeof(byte));
 }
 //-----------------------------------------------------------------------------
 
@@ -287,7 +288,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout.flush();
   
   // Pad and populate the hash table
-  padsize = NTL::bits(this->fieldsize);
+  padsize = NTL::NumBits(this->fieldsize);
   for (size_t i = 0; i < this->rawDataSize; i++) {
     this->rawData[i] = NTL::zeroPad(this->rawData[i], padsize);
     conv(z, this->rawData[i]);
@@ -478,8 +479,9 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   // Interpolate polynomials
   for (size_t j = 0; j < length; j++) {
     polynomials[j] = NTL::interpolate(unknowns, NTL::array2VecZZp(diff[j], height));
-    factorPairs = NTL::berlekamp(polynomials[j]);
-    std::cout << "\n\n-->" << factorPairs << "\n<--\n\n" << std::endl;
+    std::cout << "\n\n-->" << polynomials[j] << "\n<--\n\n" << std::endl;
+    setcap = NTL::FindRoots(polynomials[j]);
+    std::cout << "\n\n-->" << setcap << "\n<--\n\n" << std::endl;
   }
   
   

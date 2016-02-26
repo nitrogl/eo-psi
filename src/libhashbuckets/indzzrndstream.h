@@ -26,7 +26,8 @@ private:
   /**
    * Interpret a big integer as a seed for the random stream
    */
-  byte* zzSeed2byte(const NTL::ZZ& seed) const;
+  byte* zzSeed2byte(const NTL::ZZ& seed);
+  byte* keyBytes;
   
 public:
   /**

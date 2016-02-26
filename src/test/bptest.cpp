@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
   // Initialise numbers modulo p
   p = NTL::to_ZZ(pstr.c_str());
   NTL::ZZ_p::init(p);
-  padsize = NTL::bits(p);
+  padsize = NTL::NumBits(p);
   
   // Number of threads
   if (nThreads == 0) {
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
     std::cerr << argv[0] << ". WARNING: too many numbers for the hashtable." << std::endl;
   }
   
-  std::cout << "Reading " << n << " " << NTL::bits(tmpZ) << "-bit numbers and padding to " << padsize << " bits... ";
+  std::cout << "Reading " << n << " " << NTL::NumBits(tmpZ) << "-bit numbers and padding to " << padsize << " bits... ";
   std::cout.flush();
   try {
     z = new NTL::ZZ_p[n];

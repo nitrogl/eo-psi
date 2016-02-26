@@ -25,14 +25,24 @@ namespace NTL {
   }
   //---------------------------------------------------------------------------
 
-  unsigned long bits(const ZZ &z) {
-    return log2(z) + 1L;
+  unsigned long blocks(const unsigned long bits, const unsigned long bitsPerBlock) {
+    return (bits + bitsPerBlock - 1)/bitsPerBlock;
   }
   //---------------------------------------------------------------------------
 
-  unsigned long bits(const ZZ_p &zp) {
+  unsigned long bytes(const unsigned long bits) {
+    return blocks(bits, 8);
+  }
+  //---------------------------------------------------------------------------
+
+  unsigned long bytes(const ZZ &z) {
+    return (NTL::NumBits(z) + 7)/8;
+  }
+  //---------------------------------------------------------------------------
+
+  unsigned long bytes(const ZZ_p &zp) {
     ZZ z = rep(zp);
-    return log2(z) + 1L;
+    return bytes(z);
   }
   //---------------------------------------------------------------------------
   
@@ -91,12 +101,12 @@ namespace NTL {
     NTL::ZZ pz;
     
     pz = z;
-    bs = NTL::bits(z);
+    bs = NTL::NumBits(z);
     topad = (padsize > bs ? padsize - bs : 0L);
     if (topad > 0L) {
-  //       std::cout << "Padding: " << NTL::bits(pz) << " -> ";
+  //       std::cout << "Padding: " << NTL::NumBits(pz) << " -> ";
       pz = pz << topad - 1;
-  //       std::cout << NTL::bits(pz) << std::endl;
+  //       std::cout << NTL::NumBits(pz) << std::endl;
     }
     
     return pz;

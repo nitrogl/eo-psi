@@ -55,6 +55,7 @@ NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
   for (size_t j = 0; j < n; j++) {
     unknowns[j] = this->rndZZpgen->next();
   }
+  std::cout << "First unknown: " << unknowns[0] << std::endl;
   
   return unknowns;
 }
