@@ -64,6 +64,7 @@ byte * ByteKeyGenerator::generate(size_t index) {
   
   derived = (byte *) &(this->secret[0]);
   kStrInt.set(index);
+  k = 0;
   do {
     derived = hashAlgorithm->hash(kStrInt.toString() + (char *) derived);
     for (i = 0; i < hashAlgorithm->hashSize() && k < this->length; i++) {
