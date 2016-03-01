@@ -7,6 +7,7 @@ add_library (${LIBRARY_NAME} SHARED
         exception.cpp
         outofboundex.cpp
         murmurhash3.cpp
+        shabyte.cpp
         shastr.cpp
         shazzp.cpp
         simplebm.cpp
