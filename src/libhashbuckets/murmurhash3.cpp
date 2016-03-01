@@ -357,11 +357,15 @@ size_t MurmurHash3::hashSize() const {
 }
 //-----------------------------------------------------------------------------
 
-byte* MurmurHash3::hash(const NTL::ZZ_p n) {
+byte* MurmurHash3::hash(const NTL::ZZ_p n, const size_t len) {
+  size_t truncLen;
+  
   zzStreamString.str(std::string()); // Clear stream string
   zzStreamString << n;
   zzString = zzStreamString.str();
-  murmurHash3_x64_128((const void *) zzString.c_str(), zzString.length(), (void *) this->hash128);
+  truncLen = len > 0 && len < zzString.length() ? len : zzString.length();
+  
+  murmurHash3_x64_128((const void *) zzString.c_str(), truncLen, (void *) this->hash128);
   return this->hash128;
 }
 //-----------------------------------------------------------------------------

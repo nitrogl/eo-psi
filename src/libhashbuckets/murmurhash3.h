@@ -71,7 +71,7 @@ public:
   MurmurHash3(uint32_t seed);
   virtual ~MurmurHash3();
   
-  unsigned char* hash(const NTL::ZZ_p n);
+  unsigned char* hash(const NTL::ZZ_p n, const size_t len = 0);
   size_t hashSize() const;
   std::string name() const;
 };

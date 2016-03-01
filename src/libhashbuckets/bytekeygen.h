@@ -40,7 +40,7 @@ public:
    */
   void setLength(const size_t length);
   
-  virtual byte* generate(size_t index);
+  virtual byte* generate(const size_t index);
 };
 //-----------------------------------------------------------------------------
 

@@ -44,11 +44,10 @@ void ByteKeyGenerator::setLength(const size_t length) {
 }
 //-----------------------------------------------------------------------------
 
-byte * ByteKeyGenerator::generate(size_t index) {
-  byte* key;
-  byte* derived;
-  size_t i, k;
-  StrInt kStrInt(sizeof(size_t));
+byte * ByteKeyGenerator::generate(const size_t index) {
+  byte *key, *digest;
+  std::string derived;
+  size_t i, k, idx;
   
   if (hashAlgorithm == nullptr) {
     std::cerr << "generate(). Warning: a hash algorithm must be set first." << std::endl;
@@ -62,15 +61,17 @@ byte * ByteKeyGenerator::generate(size_t index) {
     exit(2);
   }
   
-  derived = (byte *) &(this->secret[0]);
-  kStrInt.set(index);
+  derived = this->secret;
+  idx = index;
   k = 0;
   do {
-    derived = hashAlgorithm->hash(kStrInt.toString() + (char *) derived);
+    derived = std::to_string(idx) + derived;
+    digest = hashAlgorithm->hash(derived);
     for (i = 0; i < hashAlgorithm->hashSize() && k < this->length; i++) {
       key[k++] = derived[i];
-      kStrInt.inc();
+      idx++;
     }
+    derived = HashAlgorithm<std::string>::readableDigest(digest, hashAlgorithm->hashSize());
   } while (k < this->length);
     
   return key;

@@ -11,12 +11,14 @@ SHAZZp::SHAZZp(HashFlavour flavour) : SHA<NTL::ZZ_p>(flavour) {}
 SHAZZp::~SHAZZp() {}
 //-----------------------------------------------------------------------------
 
-byte* SHAZZp::hash(const NTL::ZZ_p n) {
+byte* SHAZZp::hash(const NTL::ZZ_p n, const size_t len) {
+  size_t truncLen;
   zzStreamString.str(std::string()); // Clear stream string
   zzStreamString << n;
   zzString = zzStreamString.str();
+  truncLen = len > 0 && len < zzString.length() ? len : zzString.length();
   
-  this->sha->CalculateDigest(lastHash, (byte *) zzString.c_str(), zzString.length());
+  this->sha->CalculateDigest(lastHash, (byte *) zzString.c_str(), truncLen);
   return this->lastHash;
 }
 //-----------------------------------------------------------------------------

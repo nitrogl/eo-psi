@@ -19,7 +19,7 @@ byte* IndependentZZRandomStream::zzSeed2byte(const NTL::ZZ& seed) {
   try {
     this->keyBytes = new byte[NTL_PRG_KEYLEN + 1];
   } catch (std::bad_alloc &) {
-    std::cerr << "EOPSIParty(). Error allocating memory." << std::endl;
+    std::cerr << "zzSeed2byte(). Error allocating memory." << std::endl;
     exit(2);
   }
     
@@ -39,7 +39,7 @@ byte* IndependentZZRandomStream::zzSeed2byte(const NTL::ZZ& seed) {
   }
   this->keyBytes[NTL_PRG_KEYLEN] = '\0';
   
-  std::cerr << "FB: " << seed << " [" << this->keyBytes << "]" << std::endl;
+//   std::cerr << "FB: " << seed << " [" << this->keyBytes << "]" << std::endl;
   return this->keyBytes;
 }
 //-----------------------------------------------------------------------------

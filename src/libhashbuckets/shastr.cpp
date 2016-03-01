@@ -15,8 +15,9 @@ SHAString::~SHAString() {
 }
 //-----------------------------------------------------------------------------
 
-byte* SHAString::hash(const std::string str) {
-  this->sha->CalculateDigest(lastHash, (byte *) str.c_str(), str.length());
+byte* SHAString::hash(const std::string str, const size_t len) {
+  size_t truncLen = len > 0 && len < str.length() ? len : str.length();
+  this->sha->CalculateDigest(lastHash, (byte *) str.c_str(), truncLen);
   return this->lastHash;
 }
 //-----------------------------------------------------------------------------

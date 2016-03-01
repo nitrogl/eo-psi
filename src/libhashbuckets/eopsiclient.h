@@ -40,8 +40,6 @@ public:
   virtual void receive(EOPSIMessage& msg) throw (ProtocolException);
   virtual bool isAuthorised(const EOPSIMessage& msg) const;
   
-  virtual void setFieldsize(const NTL::ZZ& fieldsize);
-  
   virtual void setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads = 0);
   virtual NTL::ZZ * getRawData() const;
   virtual size_t getRawDataSize() const;

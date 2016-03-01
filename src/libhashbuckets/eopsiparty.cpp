@@ -22,8 +22,8 @@ EOPSIParty::EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, cons
     exit(2);
   }
   
-  // Set random generator modulo
-  this->rndZZpgen->setModulo(fieldsize);
+  // Field size
+  this->setFieldsize(fieldsize);
   
   // Initialise generators
   this->keygen.setHashAlgorithm(this->strHashAlgorithm);
@@ -47,7 +47,8 @@ EOPSIParty* EOPSIParty::getPartyById(const std::string& id) const {
 //-----------------------------------------------------------------------------
 
 NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
-  NTL::ZZ_p zero;
+  NTL::ZZ_p zero, p;
+  NTL::ZZ t;
   
   conv(zero, 0);
   unknowns.SetLength(n);
@@ -55,7 +56,14 @@ NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
   for (size_t j = 0; j < n; j++) {
     unknowns[j] = this->rndZZpgen->next();
   }
-  std::cout << "First unknown: " << unknowns[0] << std::endl;
+
+  // Runtime check for deterministic randomness
+  conv(t, "303536903025168149016591632359424814147629973075772519411406887");
+  conv(p, t);
+  if (unknowns[0] != p) {
+    std::cout << "generateUnknowns(). Wrong randomness: Unexpected " << unknowns[0] << std::endl;
+    exit(3);
+  }
   
   return unknowns;
 }
@@ -86,8 +94,9 @@ std::string EOPSIParty::getId() const {
 
 void EOPSIParty::setFieldsize(const NTL::ZZ& fieldsize) {
   this->fieldsize = fieldsize;
-  NTL::ZZ_p::init(fieldsize);
-  this->prf.setModulo(this->fieldsize);
+  this->rndZZpgen->setModulo(fieldsize);
+  this->prf.setModulo(fieldsize);
+  this->keygen.setLength(NTL::bytes(NTL::NumBits(fieldsize)));
 }
 //-----------------------------------------------------------------------------
 

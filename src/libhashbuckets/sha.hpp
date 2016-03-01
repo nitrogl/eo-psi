@@ -47,21 +47,26 @@ protected:
       delete this->lastHash;
     }
     
-    switch (this->flavour) {
-      case SHA256_FLAVOUR:
-        this->sha = new CryptoPP::SHA256();
-        this->size = CryptoPP::SHA256::DIGESTSIZE; // bytes
-        break;
+    try {
+      switch (this->flavour) {
+        case SHA256_FLAVOUR:
+          this->sha = new CryptoPP::SHA256();
+          this->size = CryptoPP::SHA256::DIGESTSIZE; // bytes
+          break;
+        
+        default:
+          std::cerr << "setFlavour(). The given flavour either is not a SHA-compatbile one or is not (yet) implemented." << std::endl;
+        case SHA1_FLAVOUR:
+          this->sha = new CryptoPP::SHA1();
+          this->size = CryptoPP::SHA1::DIGESTSIZE; // bytes
+          break;
+      }
       
-      default:
-        std::cerr << "setFlavour(). The given flavour either is not a SHA-compatbile one or is not (yet) implemented." << std::endl;
-      case SHA1_FLAVOUR:
-        this->sha = new CryptoPP::SHA1();
-        this->size = CryptoPP::SHA1::DIGESTSIZE; // bytes
-        break;
+      lastHash = new byte[this->size];
+    } catch(std::bad_alloc&) {
+      std::cerr << "setFlavour(). Error allocating memory." << std::endl;
+      exit(2);
     }
-    
-    lastHash = new byte[this->size];
   }
   
 public:

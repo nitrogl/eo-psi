@@ -41,7 +41,7 @@ public:
    */
   void setModulo(const NTL::ZZ &p);
   
-  virtual NTL::ZZ_p generate(size_t index);
+  virtual NTL::ZZ_p generate(const size_t index);
 };
 //-----------------------------------------------------------------------------
 

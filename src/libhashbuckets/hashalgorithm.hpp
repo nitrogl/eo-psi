@@ -8,7 +8,10 @@
 #define HASHALGORITHM_TEMPLATE
 //-----------------------------------------------------------------------------
 
+#include <iostream>
 #include <string>
+#include <cryptopp/filters.h>
+#include <cryptopp/hex.h>
 #include "byte.h"
 //-----------------------------------------------------------------------------
 
@@ -24,9 +27,10 @@ public:
   /**
    * Hash a specific value.
    * 
-   * @param n The value to be hashed.
+   * @param n The value to hash.
+   * @param len The length of the value to hash.
    */
-  virtual byte* hash(const T n) = 0;
+  virtual byte* hash(const T n, const size_t len = 0) = 0;
   
   /**
    * Get the hash size in bytes.
@@ -37,6 +41,30 @@ public:
    * Get the name of the algorithm which extends this class.
    */
   virtual std::string name() const = 0;
+  
+  static std::string readableDigest(const byte* digest, const size_t digestSize) {
+    CryptoPP::HexEncoder encoder;
+    std::string output;
+    CryptoPP::StringSink *stringSink;
+    
+    try {
+      stringSink = new CryptoPP::StringSink(output);
+    } catch(std::bad_alloc&) {
+      std::cerr << "readableHash(). Unable to allocate memory." << std::endl;
+    }
+    
+    encoder.Attach(stringSink);
+    encoder.Put(digest, digestSize);
+    encoder.MessageEnd();
+    
+    if(encoder.MaxRetrievable())
+    {
+        output.resize(encoder.MaxRetrievable());
+        encoder.Get((byte*) output.data(), output.size());
+    }
+    
+    return output;
+  }
 };
 //-----------------------------------------------------------------------------
 
