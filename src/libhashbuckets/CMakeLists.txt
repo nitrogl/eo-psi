@@ -12,8 +12,6 @@ add_library (${LIBRARY_NAME} SHARED
         shazzp.cpp
         simplebm.cpp
         strint.cpp
-        indzzrndstream_retrocomp.cpp
-        indzzrndstream.cpp
         zzrandgen.cpp
         zzprandgen.cpp
         strrandgen.cpp
