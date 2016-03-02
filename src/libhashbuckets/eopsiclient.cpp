@@ -137,15 +137,15 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       break;
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
-      // Reception feedback
       t = (NTL::ZZ_p **) msg.getData();
-      setcap = intersect(this->hashBuckets->getLength(), 2*this->hashBuckets->getMaxLoad() + 1);
+      // Reception feedback
       std::cout << "not fully implemented. I, " << id << ", received \"" << t[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
+      setcap = intersect(this->hashBuckets->getLength(), 2*this->hashBuckets->getMaxLoad() + 1);
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
-      // Reception feedback
       q = (NTL::ZZ_p **) msg.getData();
+      // Reception feedback
       std::cout << "not fully implemented. I, " << id << ", received \"" << q[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
       setcap = intersect(this->hashBuckets->getLength(), 2*this->hashBuckets->getMaxLoad() + 1);
       break;
@@ -356,7 +356,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   
   // Blind evaluations
   for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
-    prf.setSecretKey(std::string((char *) keygen[j]));
+    prf.setSecretKey((char *) keygen[j]);
     for (size_t i = 0; i < 2*this->hashBuckets->getMaxLoad() + 1; i++) {
       this->blindedData[j][i] = this->blindedData[j][i] + prf[i];
     }
@@ -405,6 +405,18 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, c
   keygenOtherParty.setSecretKey(secretOtherParty);
   prfOtherParty.setHashAlgorithm(this->strHashAlgorithm);
   prfOtherParty.setModulo(this->fieldsize);
+//   std::cerr << "tmpKey = " << tmpKey << std::endl;
+//   std::cerr << "secretOtherParty = " << secretOtherParty << std::endl;
+  
+  NTL::ZZ_p p;
+  NTL::ZZ t;
+  this->prf.setSecretKey((char *) keygen[0]);
+  conv(t, "12414253167056538805540298899677726815262421059586687136732923");
+  conv(p, t);
+  if (prf[14] != p) {
+    std::cout << "Client::delegationOutput(). Wrong randomness: Unexpected " << prf[14] << std::endl;
+    exit(3);
+  }
   
   // Compute q
   aIdx = 0;
@@ -429,7 +441,8 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, c
       NTL::SetCoeff(omegaOther, i, tmp);
       
       // Reuse of variable "q" to store q data
-//       q[j][i] = q[j][i] + prf[i]*eval(omega, unknowns[i]) + prfOtherParty[i]*eval(omegaOther, unknowns[i]);
+      q[j][i] = q[j][i] + prf[i]*eval(omega, unknowns[i]) + prfOtherParty[i]*eval(omegaOther, unknowns[i]);
+      q[j][i] = q[j][i] + prf[i] + prfOtherParty[i];
     }
   }
   
@@ -472,9 +485,9 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   
   // Interpolate polynomials
   for (size_t j = 0; j < length; j++) {
-//     polynomials[j] = NTL::interpolate(unknowns, NTL::array2VecZZp(diff[j], height));
-//     std::cout << "\n\n-->" << polynomials[j] << "\n<--\n\n" << std::endl;
-//     setcap = NTL::FindRoots(polynomials[j]);
+    polynomials[j] = NTL::interpolate(unknowns, NTL::array2VecZZp(diff[j], height));
+    std::cout << "\n\n-->" << polynomials[j] << "\n<--\n\n" << std::endl;
+    setcap = NTL::FindRoots(polynomials[j]);
 //     std::cout << "\n\n-->" << setcap << "\n<--\n\n" << std::endl;
   }
   

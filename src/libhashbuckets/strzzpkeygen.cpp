@@ -19,12 +19,13 @@ void StringZZpKeyGenerator::setHashAlgorithm(const HashAlgorithm<std::string>* h
     return;
   }
   
-  KeyGenerator<std::string, NTL::ZZ_p>::setHashAlgorithm(hashAlgorithm);
+  this->byteKeyGenerator.setHashAlgorithm(hashAlgorithm);
 }
 //-----------------------------------------------------------------------------
 
-void StringZZpKeyGenerator::setSecretKey(const std::string& secret) {
+void StringZZpKeyGenerator::setSecretKey(const std::string secret) {
   this->secret = secret;
+  this->byteKeyGenerator.setSecretKey(secret);
 }
 //-----------------------------------------------------------------------------
 
@@ -35,33 +36,14 @@ NTL::ZZ StringZZpKeyGenerator::getModulo() const {
 
 void StringZZpKeyGenerator::setModulo(const NTL::ZZ &p) {
   this->p = p;
+  this->byteKeyGenerator.setLength(NTL::NumBits(p));
 }
 //-----------------------------------------------------------------------------
 
 
 NTL::ZZ_p StringZZpKeyGenerator::generate(const size_t index) {
-  std::string derived;
   NTL::ZZ_p z;
-  NTL::ZZ_pContext zzpContext;
-  
-  if (hashAlgorithm != nullptr) {
-    derived = secret + std::to_string(index);
-    byte *hash = hashAlgorithm->hash(derived, derived.length());
-    
-    zzpContext.save();
-    NTL::ZZ_p::init(this->p);
-    conv(z, NTL::ZZFromBytes(hash, hashAlgorithm->hashSize()));
-    static int i;
-//     std::cerr << hashAlgorithm->readableHash(secret, secret.length()) << "(" << secret.length() << ") -> " << z << std::endl;
-    if (++i % 10 == 0) {
-//       exit(2);
-    }
-    zzpContext.restore();
-    
-  } else {
-    std::cerr << "generate(). Warning: a hash algorithm must be set first." << std::endl;
-  }
-  
+  conv(z, NTL::ZZFromBytes(this->byteKeyGenerator[index], this->byteKeyGenerator.getLength()));
   return z;
 }
 //-----------------------------------------------------------------------------

@@ -165,6 +165,7 @@ NTL::ZZ_p ** EOPSIServer::intersectionOutput(const std::string idA, const std::s
       
       // Reuse of variable "t" to store t dataA
 //       t[j][i] = t[j][i] + dataA[j][i]*eval(omegaA, unknowns[i]) + dataB[j][i]*eval(omegaB, unknowns[i]);
+      t[j][i] = t[j][i] + dataA[j][i] + dataB[j][i];
     }
   }
   

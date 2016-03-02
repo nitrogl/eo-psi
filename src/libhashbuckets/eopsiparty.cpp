@@ -47,7 +47,8 @@ EOPSIParty* EOPSIParty::getPartyById(const std::string& id) const {
 //-----------------------------------------------------------------------------
 
 NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
-  NTL::ZZ_p zero, p;
+  NTL::ZZ_p zero;
+  NTL::ZZ_p p;
   NTL::ZZ t;
   
   conv(zero, 0);

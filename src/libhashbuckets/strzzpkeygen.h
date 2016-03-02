@@ -12,6 +12,7 @@
 #include <NTL/ZZ_p.h>
 #include "zzprandgen.h"
 #include "keygen.hpp"
+#include "bytekeygen.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -21,13 +22,14 @@ class StringZZpKeyGenerator : public KeyGenerator<std::string, NTL::ZZ_p>
 {
 protected:
   NTL::ZZ p;
+  ByteKeyGenerator byteKeyGenerator;
   
 public:
   StringZZpKeyGenerator();
   virtual ~StringZZpKeyGenerator() {}
   
   virtual void setHashAlgorithm(const HashAlgorithm<std::string>* hashAlgorithm);
-  virtual void setSecretKey(const std::string& secret);
+  virtual void setSecretKey(const std::string secret);
   
   /**
    * Get the modulo p used for the generation.
