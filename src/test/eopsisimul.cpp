@@ -166,7 +166,6 @@ int main(int argc, char **argv) {
   NTL::ZZ supremum, fieldsize;
   NTL::ZZ *dataAlice, *dataBob, *minCommonData;
   NTL::ZZ *setcap;
-  std::string rndstr;
   size_t setcapCard;
   std::string supremumStr = DEFAULT_SUPREMUM;
   std::string fieldsizeStr = DEFAULT_P;
@@ -222,6 +221,42 @@ int main(int argc, char **argv) {
     }
   }
   
+  NTL::ZZ z, g;
+  conv(z, "431658129569832");
+  ZZPRF zzPRF;
+  
+  for (int i = 0; i < 10000; i++) {
+    g = zzPRF.generate(z, i, 208);
+    // std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
+    if (NTL::NumBits(g) > 208) {
+      std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
+      
+    }
+  }
+  std::cout << std::endl;
+  
+  conv(z, "235829");
+  for (int i = 0; i < 10; i++) {
+    g = zzPRF.generate(z, i, 208);
+    std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
+  }
+  std::cout << std::endl;
+  
+  conv(z, "431658129569832");
+  for (int i = 0; i < 10; i++) {
+    g = zzPRF.generate(z, i, 208);
+    std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
+  }
+  std::cout << std::endl;
+  
+  conv(z, "235829");
+  for (int i = 0; i < 10; i++) {
+    g = zzPRF.generate(z, i, 208);
+    std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
+  }
+  
+  exit(33);
+  
   // Initialise random seed
   srand(time(NULL));
   
@@ -263,6 +298,7 @@ int main(int argc, char **argv) {
   msgStoreDataBob.setPartyId(bob->getId());
   alice->setRawData(dataAlice, n, nThreads);
   bob->setRawData(dataBob, n, nThreads);
+  
   msgStoreDataAlice.setData(alice->getBlindedData(), alice->getBlindedDataSize());
   msgStoreDataBob.setData(bob->getBlindedData(), bob->getBlindedDataSize());
   try {

@@ -372,6 +372,11 @@ void EOPSIClient::blind(unsigned int nThreads) {
 }
 //-----------------------------------------------------------------------------
 
+// void EOPSIClient::test_blinded() {
+//   this->blindedData
+// }
+//-----------------------------------------------------------------------------
+
 NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, const std::string tmpKey) {
   NTL::ZZ_p tmp;
   NTL::ZZ_pX omega, omegaOther;

@@ -51,7 +51,7 @@ NTL::ZZ RandomZZGenerator::next() {
   
   do {
     NTL::ZZFromBytes(gen, this->byteKeyGenerator.next(), this->byteKeyGenerator.getLength());
-  } while (gen > this->sup);
+  } while (gen >= this->sup);
   
   return gen;
 }
