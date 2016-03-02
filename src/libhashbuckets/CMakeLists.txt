@@ -12,6 +12,7 @@ add_library (${LIBRARY_NAME} SHARED
         shazzp.cpp
         simplebm.cpp
         strint.cpp
+        zzprf.cpp
         zzrandgen.cpp
         zzprandgen.cpp
         strrandgen.cpp
