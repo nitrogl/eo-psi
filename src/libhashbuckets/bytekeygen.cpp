@@ -29,11 +29,6 @@ void ByteKeyGenerator::setHashAlgorithm(const HashAlgorithm<std::string>* hashAl
 }
 //-----------------------------------------------------------------------------
 
-void ByteKeyGenerator::setSecretKey(const std::string& secret) {
-  this->secret = secret;
-}
-//-----------------------------------------------------------------------------
-
 size_t ByteKeyGenerator::getLength() const {
   return this->length;
 }
@@ -65,11 +60,10 @@ byte * ByteKeyGenerator::generate(const size_t index) {
   idx = index;
   k = 0;
   do {
-    derived = std::to_string(idx) + derived;
+    derived = std::to_string(idx++) + derived;
     digest = hashAlgorithm->hash(derived);
     for (i = 0; i < hashAlgorithm->hashSize() && k < this->length; i++) {
-      key[k++] = derived[i];
-      idx++;
+      key[k++] = digest[i];
     }
     derived = HashAlgorithm<std::string>::readableDigest(digest, hashAlgorithm->hashSize());
   } while (k < this->length);

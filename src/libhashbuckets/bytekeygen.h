@@ -9,7 +9,7 @@
 //-----------------------------------------------------------------------------
 
 #include <string>
-#include "zzprandgen.h"
+#include "byte.h"
 #include "keygen.hpp"
 //-----------------------------------------------------------------------------
 
@@ -26,7 +26,6 @@ public:
   virtual ~ByteKeyGenerator();
   
   virtual void setHashAlgorithm(const HashAlgorithm<std::string>* hashAlgorithm);
-  virtual void setSecretKey(const std::string& secret);
   
   /**
    * Get the length of the generation.
