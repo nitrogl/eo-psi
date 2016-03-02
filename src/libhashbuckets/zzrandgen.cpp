@@ -4,11 +4,13 @@
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
+#include <sstream>
+#include "ntlmiss.h"
 #include "zzrandgen.h"
 //-----------------------------------------------------------------------------
 
 RandomZZGenerator::RandomZZGenerator() {
-  this->rndstream = nullptr;
+  this->byteKeyGenerator.setHashAlgorithm(&this->shaString);
 }
 //-----------------------------------------------------------------------------
 
@@ -23,10 +25,6 @@ RandomZZGenerator::RandomZZGenerator(const NTL::ZZ &sup, const NTL::ZZ &seed) : 
 //-----------------------------------------------------------------------------
 
 RandomZZGenerator::~RandomZZGenerator() {
-  if (this->rndstream != nullptr) {
-    delete this->rndstream;
-    this->rndstream = nullptr;
-  }
 }
 //-----------------------------------------------------------------------------
 
@@ -37,30 +35,24 @@ NTL::ZZ RandomZZGenerator::getSupremum() const {
 
 void RandomZZGenerator::setSupremum(const NTL::ZZ &sup) {
   this->sup = sup;
+  this->byteKeyGenerator.setLength(NTL::bytes(this->sup));
 }
 //-----------------------------------------------------------------------------
 
 void RandomZZGenerator::setSeed(const NTL::ZZ &seed) {
-  if (this->rndstream != nullptr) {
-    delete this->rndstream;
-  }
-  
-  try {
-    this->rndstream = new IndependentZZRandomStream(seed);
-  } catch (std::bad_alloc&) {
-    std::cerr << "setSeed(). Unable to allocate memory." << std::endl;
-    exit(2);
-  }
+  std::stringstream ss;
+  ss << seed;
+  this->byteKeyGenerator.setSecretKey(ss.str());
 }
 //-----------------------------------------------------------------------------
 
 NTL::ZZ RandomZZGenerator::next() {
-  if (this->rndstream == nullptr) {
-    NTL::ZZ zero;
-    zero = 0;
-    this->setSeed(zero);
-  }
+  NTL::ZZ gen;
   
-  return this->rndstream->randomBnd(sup);
+  do {
+    NTL::ZZFromBytes(gen, this->byteKeyGenerator.next(), this->byteKeyGenerator.getLength());
+  } while (gen > this->sup);
+  
+  return gen;
 }
 //-----------------------------------------------------------------------------
