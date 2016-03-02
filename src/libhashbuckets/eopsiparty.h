@@ -10,6 +10,8 @@
 
 #include <string>
 #include <map>
+#include <NTL/vec_ZZ_p.h>
+#include "ntlmiss.h"
 #include "eopsimsg.h"
 #include "protocolex.h"
 #include "strzzpkeygen.h"

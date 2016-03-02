@@ -150,9 +150,6 @@ NTL::ZZ_p ** EOPSIServer::intersectionOutput(const std::string idA, const std::s
   for (size_t j = 0; j < length; j++) {
     for (size_t i = 0; i < height; i++) {
       conv(t[j][i], NTL::ZZFromBytes(keygen[aIdx++], keygen.getLength()));
-      if (j == 0 && i == 0) {
-        std::cerr << "secret: " << tmpKey << " -> keygen[" << j << "] (" << keygen.getLength() << "): " << keygen[j] << " t[" << j << "][" << i << "] = " << t[j][i] << std::endl;
-      }
       if (i == height - 1) {
         // Coefficient for highest degree is set to 1
         conv(tmp, 1);

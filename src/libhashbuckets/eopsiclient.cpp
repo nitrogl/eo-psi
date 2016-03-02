@@ -357,9 +357,6 @@ void EOPSIClient::blind(unsigned int nThreads) {
   // Blind evaluations
   for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
     prf.setSecretKey(std::string((char *) keygen[j]));
-    if (j == 0 || j == 7) {
-      std::cerr << "secret: " << this->secret << ", k = " << keygen[j] <<  " -> prf[0] = " << prf[0] << std::endl;
-    }
     for (size_t i = 0; i < 2*this->hashBuckets->getMaxLoad() + 1; i++) {
       this->blindedData[j][i] = this->blindedData[j][i] + prf[i];
     }
@@ -415,15 +412,9 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, c
   omegaOtherIdx = omegaIdx + this->hashBuckets->getLength() * (2*this->hashBuckets->getMaxLoad() + 1);
   for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
     this->prf.setSecretKey((char *) keygen[j]);
-//     if (j == 0 || j == 7) {
-//       std::cerr << "secret: " << tmpKey << ", k = " << keygen[j] <<  " -> prf[0] = " << prf[0] << std::endl;
-//     }
     prfOtherParty.setSecretKey((char *) keygenOtherParty[j]);
     for (size_t i = 0; i < 2*this->hashBuckets->getMaxLoad() + 1; i++) {
       conv(q[j][i], NTL::ZZFromBytes(keygen[aIdx++], keygen.getLength()));
-      if (j == 0 && i == 0) {
-        std::cerr << "secret: " << tmpKey << " -> keygen[" << j << "] (" << keygen.getLength() << "): " << keygen[j] << " q[" << j << "][" << i << "] = " << q[j][i] << std::endl;
-      }
       if (i == 2*this->hashBuckets->getMaxLoad()) {
         // Coefficient for highest degree is set to 1
         conv(tmp, 1);
@@ -441,9 +432,6 @@ NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, c
 //       q[j][i] = q[j][i] + prf[i]*eval(omega, unknowns[i]) + prfOtherParty[i]*eval(omegaOther, unknowns[i]);
     }
   }
-  
-  
-  std::cerr << "Key 364 with secret \"" << tmpKey << "\" -> " << ((int) (keygen[364][0])) << "(" << keygen.getLength() << ")" << std::endl;
   
   return q;
 }
@@ -475,11 +463,9 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   for (size_t j = 0; j < length; j++) {
     for (size_t i = 0; i < height; i++) {
       diff[j][i] = this->t[j][i] - this->q[j][i];
-//       std::cout << t[j][i] << " = " << q[j][i] << "\n";
     }
-//     std::cout << "\n";
   }
-//   std::cout << std::endl;
+  std::cout << std::endl;
     
   // Not secret unknowns
   unknowns = this->getUnknowns();
