@@ -54,8 +54,15 @@ public:
    * 
    * @param secret the secret key of the generator
    */
-  virtual void setSecretKey(const S& secret) {
+  virtual void setSecretKey(const S secret) {
     this->secret = secret;
+    this->index = 0;
+  }
+  
+  /**
+   * Reset the internal index
+   */
+  virtual void reset() {
     this->index = 0;
   }
   
