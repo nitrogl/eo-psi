@@ -14,6 +14,7 @@
 #include "markedvector.hpp"
 #include "randgen.hpp"
 #include "strint.h"
+#include "prf.hpp"
 
 #define DEFAULT_NSHOW 30
 //-----------------------------------------------------------------------------
@@ -60,9 +61,9 @@ public:
    * Fill all the not-full buckets with random elements,
    * <i>concealing</i> the originally added elements.
    * 
-   * @param rndgen The generator of random elements.
+   * @param prf The generator of random elements.
    */
-  void conceal(RandomGenerator<T>& rndgen);
+  void conceal(PseudoRandom<T, T>& prf);
   
   /**
    * Do some introspective statistics on its state.
@@ -150,7 +151,7 @@ template <class T> void HashBuckets<T>::addToBucket(const T& element, const size
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::conceal(RandomGenerator<T> &rndgen) {
+template <class T> void HashBuckets<T>::conceal(PseudoRandom<T, T>& pr) {
   size_t i, j;
   
   // Mark buckets (this tracks empty buckets)
@@ -161,7 +162,7 @@ template <class T> void HashBuckets<T>::conceal(RandomGenerator<T> &rndgen) {
     
     // Fill empty cells
     for (j = this->buckets[i].size(); j < maxLoad; j++) {
-      this->buckets[i].push_back(rndgen.next());
+      conv(this->buckets[i][j], pr.generate(j));
     }
   }
 }
