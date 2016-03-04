@@ -15,8 +15,7 @@
 #include "eopsiparty.h"
 #include "eopsiserver.h"
 #include "hashbuckets.hpp"
-#include "zzprandgen.h"
-#include "strrandgen.h"
+#include "zzprf.h"
 //-----------------------------------------------------------------------------
 
 class EOPSIClient : public EOPSIParty {
@@ -24,17 +23,17 @@ protected:
   NTL::ZZ *rawData;
   size_t rawDataSize;
   NTL::vec_ZZ_p *blindedData;
-  std::string secret;
+  NTL::ZZ secret;
   HashBuckets<NTL::ZZ_p> *hashBuckets;
-  RandomStringGenerator rndStrgen;
-  NTL::ZZ_p **q, **t;
+  NTL::vec_ZZ_p *q, *t;
+  ZZpPRF *zzpprf;
   
   virtual void blind(unsigned int nThreads = 0);
-  virtual NTL::ZZ_p ** delegationOutput(const std::string secretOtherParty, const std::string tmpKey);
+  virtual NTL::vec_ZZ_p * delegationOutput(const NTL::ZZ& secretOtherParty, const NTL::ZZ& tmpKey);
   virtual NTL::vec_ZZ_p intersect(const size_t length, const size_t height);
   
 public:
-  EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const std::string& id = "", const std::string& secret = "Topsy Kretts");
+  EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id = "", const NTL::ZZ secret = NTL::ZZFromBytes((byte *)"Topsy Kretts", 12L));
   virtual ~EOPSIClient();
   
   virtual void receive(EOPSIMessage& msg) throw (ProtocolException);
@@ -46,8 +45,8 @@ public:
   virtual NTL::vec_ZZ_p * getBlindedData() const;
   virtual size_t getBlindedDataSize() const;
   
-  virtual void setSecret(const std::string& secret);
-  virtual std::string getSecret() const;
+  virtual void setSecret(const NTL::ZZ& secret);
+  virtual NTL::ZZ getSecret() const;
 };
 //-----------------------------------------------------------------------------
 

@@ -8,6 +8,7 @@
 #include <NTL/ZZ_pXFactoring.h>
 #include "eopsiclient.h"
 #include "ntlmiss.h"
+#include "zzpprf.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -27,7 +28,7 @@ static void polEval(NTL::vec_ZZ_p *evaluations, NTL::ZZ_pX *polynomials, NTL::ve
 }
 //-----------------------------------------------------------------------------
 
-EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const std::string& id, const std::string& secret) : EOPSIParty(EOPSI_PARTY_CLIENT, fieldsize, id) {
+EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id, const NTL::ZZ secret) : EOPSIParty(EOPSI_PARTY_CLIENT, fieldsize, length, height, degree, id) {
   this->rawData = nullptr;
   this->rawDataSize = 0;
   this->blindedData = nullptr;
@@ -39,15 +40,16 @@ EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fie
 //-----------------------------------------------------------------------------
 
 EOPSIClient::~EOPSIClient() {
-  delete this->strHashAlgorithm;
 }
 //-----------------------------------------------------------------------------
 
 void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
   EOPSIParty *sender, *cloud;
   std::string msgClaimedId;
-  std::string otherSecret;
-  std::string rndstr;
+  NTL::ZZ otherSecret;
+  byte *otherSecretBytes;
+  NTL::ZZ tmpKey;
+  byte *tmpKeyBytes;
   byte *data = nullptr;
   size_t dataLen, i;
   std::map<std::string, EOPSIParty*>::const_iterator mi;
@@ -78,9 +80,12 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
        * 1. Send outsourcing request to the cloud
        */
       // Prepare message for the Cloud
-      rndstr = rndStrgen.next(4);
-      rndstr = "puss"; // TODO: [[REMOVE ME]] - just useful to get always the same result
-      dataLen = this->getId().length() + 1 + sender->getId().length() + 1 + rndstr.length() + 1;
+      do {
+        tmpKey = NTL::RandomBits_ZZ(DEFAULT_KEY_BITSIZE);
+      } while (NTL::NumBits(tmpKey) < DEFAULT_KEY_BITSIZE);
+      tmpKey = NTL::ZZFromBytes((byte*) "1281529826382193", 16L); // TODO: [[REMOVE ME]] - just useful to get always the same result
+      std::cerr << "tmpKey: " << tmpKey << std::endl;
+      dataLen = this->getId().length() + 1 + sender->getId().length() + 1 + NTL::bytes(DEFAULT_KEY_BITSIZE) + 1;
       
       try {
         data = new byte[dataLen];
@@ -91,8 +96,9 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       
       strcpy((char *) data, &this->getId()[0]);
       strcpy((char *) (data + this->getId().length() + 1), &sender->getId()[0]);
-      for (i = 0; i < rndstr.length(); i++) {
-        data[this->getId().length() + 1 + sender->getId().length() + 1 + i] = rndstr[i];
+      NTL::BytesFromZZ(tmpKeyBytes, tmpKey, NTL::bytes(DEFAULT_KEY_BITSIZE));
+      for (i = 0; i < NTL::bytes(DEFAULT_KEY_BITSIZE); i++) {
+        data[this->getId().length() + 1 + sender->getId().length() + 1 + i] = tmpKeyBytes[i];
       }
       data[dataLen - 1] = '\0'; // Correctly end data
       msgToCloud.setData(data, dataLen);
@@ -114,12 +120,13 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       }
       
       // Reception feedback
-      otherSecret = &((char *) msg.getData())[msgClaimedId.length() + 1];
+      otherSecretBytes = &((byte *) msg.getData())[msgClaimedId.length() + 1];
+      otherSecret = NTL::ZZFromBytes(otherSecretBytes, 3);
       std::cout << id << ". Received \"" << otherSecret << "\" from " << sender->getId() << "." << std::endl;
       
       // Send the message to cloud
       try {
-        std::cout << this->getId() << ". Sending cloud computation request with random string \"" << (&data[this->getId().length() + 1 + sender->getId().length() + 1]) << "\" to " << cloud->getId() << "." << std::endl;
+        std::cout << this->getId() << ". Sending cloud computation request with key \"" << (&data[this->getId().length() + 1 + sender->getId().length() + 1]) << "\" to " << cloud->getId() << "." << std::endl;
         this->send(*cloud, msgToCloud);
       } catch (ProtocolException &e) {
         std::cerr << "receive(). " << e.what() << std::endl;
@@ -129,7 +136,7 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       /*
        * 2. Send q to client
        */
-      q = delegationOutput(otherSecret, rndstr);
+      q = delegationOutput(otherSecret, tmpKey);
       msgToClient.setData((void *) q, 1);
       msgToClient.setType(EOPSI_MESSAGE_POLYNOMIAL);
       msgToClient.setPartyId(this->getId());
@@ -137,17 +144,17 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       break;
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
-      t = (NTL::ZZ_p **) msg.getData();
+      t = (NTL::vec_ZZ_p *) msg.getData();
       // Reception feedback
       std::cout << "not fully implemented. I, " << id << ", received \"" << t[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
-      setcap = intersect(this->hashBuckets->getLength(), 2*this->hashBuckets->getMaxLoad() + 1);
+      setcap = intersect(this->length, this->height);
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
-      q = (NTL::ZZ_p **) msg.getData();
+      q = (NTL::vec_ZZ_p *) msg.getData();
       // Reception feedback
       std::cout << "not fully implemented. I, " << id << ", received \"" << q[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
-      setcap = intersect(this->hashBuckets->getLength(), 2*this->hashBuckets->getMaxLoad() + 1);
+      setcap = intersect(this->length, this->height);
       break;
       
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
@@ -212,7 +219,7 @@ size_t EOPSIClient::getRawDataSize() const {
 
 size_t EOPSIClient::getBlindedDataSize() const {
   if (this->hashBuckets != nullptr) {
-    return (2*this->hashBuckets->getMaxLoad() + 1)*this->hashBuckets->getLength();
+    return (this->height)*this->length;
   } else {
     std::cerr << "getBlindedDataSize(). WARNING: Internal data structure hash buckets is not instantiated" << std::endl;
     return 0;
@@ -220,20 +227,19 @@ size_t EOPSIClient::getBlindedDataSize() const {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIClient::setSecret(const std::string& secret) {
+void EOPSIClient::setSecret(const NTL::ZZ& secret) {
   this->secret = secret;
-  this->keygen.setSecretKey(this->secret);
 }
 //-----------------------------------------------------------------------------
 
-std::string EOPSIClient::getSecret() const {
+NTL::ZZ EOPSIClient::getSecret() const {
   return this->secret;
 }
 //-----------------------------------------------------------------------------
 
 void EOPSIClient::blind(unsigned int nThreads) {
-  size_t padsize;
-  NTL::ZZ_p z;
+  size_t index, padsize;
+  NTL::ZZ_p zzpSeed, z;
   NTL::ZZ_pX *polynomials = nullptr;
   unsigned int cores = 0;
   size_t nSplit;
@@ -262,18 +268,19 @@ void EOPSIClient::blind(unsigned int nThreads) {
   
   // Allocate memory
   try {
-    polynomials = new NTL::ZZ_pX[this->hashBuckets->getLength()];
-    this->blindedData = new NTL::vec_ZZ_p[this->hashBuckets->getLength()];
+    polynomials = new NTL::ZZ_pX[this->length];
+    this->blindedData = new NTL::vec_ZZ_p[this->length];
     threads = new std::thread[nThreads];
     cumulSplit = new size_t[nThreads + 1];
+    zzpprf = new ZZpPRF(this->fieldsize, &this->zzprf);
   } catch (std::bad_alloc &) {
     std::cerr << "blind(). Error allocating memory." << std::endl;
     exit(2);
   }
   
   // Set blided data length of vectors:
-  for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
-    this->blindedData[j].SetLength(2*this->hashBuckets->getMaxLoad() + 1);
+  for (size_t j = 0; j < this->length; j++) {
+    this->blindedData[j].SetLength(this->height);
   }
   
   // FEEDBACK
@@ -293,14 +300,14 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout.flush();
   
   // Fill the hash table with random elements
-  this->hashBuckets->conceal(*this->rndZZpgen);
+  this->hashBuckets->conceal(*zzpprf);
   
   // FEEDBACK
   std::cout << ".";
   std::cout.flush();
   
   // Generating polynomials
-  for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
+  for (size_t i = 0; i < this->length; i++) {
     polynomials[i] = NTL::BuildFromRoots(NTL::vector2VecZZp((*this->hashBuckets)[i]));
   }
   
@@ -309,7 +316,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout.flush();
   
   // Generating random unknowns
-  this->unknowns = this->getUnknowns(2*this->hashBuckets->getMaxLoad() + 1);
+  this->unknowns = this->getUnknowns(this->height);
   
   // FEEDBACK
   std::cout << ".";
@@ -318,14 +325,14 @@ void EOPSIClient::blind(unsigned int nThreads) {
   // Evaluating polynomials
   if (nThreads > 1) {
     // Compute the loop boundaries
-    nSplit = (this->hashBuckets->getLength() + 1) / nThreads;
+    nSplit = (this->length + 1) / nThreads;
     cumulSplit[0] = 0;
     for (size_t i = 1; i <= nThreads; i++) {
       cumulSplit[i] = cumulSplit[i - 1] + nSplit;
     }
     // Do not exceed
-    if (cumulSplit[nThreads] > this->hashBuckets->getLength()) {
-      cumulSplit[nThreads] = this->hashBuckets->getLength();
+    if (cumulSplit[nThreads] > this->length) {
+      cumulSplit[nThreads] = this->length;
     }
     
     // Run threads
@@ -342,7 +349,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
     }
   } else {
     // Evaluating polynomials (single core)
-    for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
+    for (size_t j = 0; j < this->length; j++) {
       eval(this->blindedData[j], polynomials[j], unknowns);
     }
   }
@@ -351,14 +358,12 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout << ".";
   std::cout.flush();
   
-  // Initialise key generator
-  keygen.setSecretKey(this->secret);
-  
   // Blind evaluations
-  for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
-    prf.setSecretKey((char *) keygen[j]);
-    for (size_t i = 0; i < 2*this->hashBuckets->getMaxLoad() + 1; i++) {
-      this->blindedData[j][i] = this->blindedData[j][i] + prf[i];
+  conv(zzpSeed, this->secret);
+  index = 0;
+  for (size_t j = 0; j < this->length; j++) {
+    for (size_t i = 0; i < this->height; i++) {
+      this->blindedData[j][i] = this->blindedData[j][i] + zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
     }
   }
   
@@ -369,6 +374,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   delete [] polynomials;
   delete [] threads;
   delete [] cumulSplit;
+  delete zzpprf;
 }
 //-----------------------------------------------------------------------------
 
@@ -377,87 +383,38 @@ void EOPSIClient::blind(unsigned int nThreads) {
 // }
 //-----------------------------------------------------------------------------
 
-NTL::ZZ_p ** EOPSIClient::delegationOutput(const std::string secretOtherParty, const std::string tmpKey) {
+NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ& secretOtherParty, const NTL::ZZ& tmpKey) {
   NTL::ZZ_p tmp;
-  NTL::ZZ_pX omega, omegaOther;
-  size_t aIdx, omegaIdx, omegaOtherIdx;
-  ByteKeyGenerator keygenOtherParty;
-  StringZZpKeyGenerator prfOtherParty;
-  
-  if (this->q != nullptr) {
-    for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
-      delete [] (q[i]);
-    }
-    delete [] q;
-  }
+  NTL::vec_ZZ_p *dataA, *dataB;
+  size_t index;
   
   try {
-    q = new NTL::ZZ_p *[this->hashBuckets->getLength()];
-    for (size_t i = 0; i < this->hashBuckets->getLength(); i++) {
-      q[i] = new NTL::ZZ_p[2*this->hashBuckets->getMaxLoad() + 1];
+    dataA = new NTL::vec_ZZ_p[this->length];
+    dataB = new NTL::vec_ZZ_p[this->length];
+    for (size_t i = 0; i < this->length; i++) {
+      dataA[i].SetLength(this->height);
+      dataB[i].SetLength(this->height);
     }
   } catch (std::bad_alloc &) {
     std::cerr << "delegationOutput(). Error allocating memory." << std::endl;
     exit(2);
   }
-    
-  // Not secret unknowns
-  unknowns = this->getUnknowns(2*this->hashBuckets->getMaxLoad() + 1);
   
-  // Initialise key generators
-  keygen.setSecretKey(tmpKey);
-  keygenOtherParty.setHashAlgorithm(this->strHashAlgorithm);
-  keygenOtherParty.setSecretKey(secretOtherParty);
-  prfOtherParty.setHashAlgorithm(this->strHashAlgorithm);
-  prfOtherParty.setModulo(this->fieldsize);
-//   std::cerr << "tmpKey = " << tmpKey << std::endl;
-//   std::cerr << "secretOtherParty = " << secretOtherParty << std::endl;
-  
-  NTL::ZZ_p p;
-  NTL::ZZ t;
-  this->prf.setSecretKey((char *) keygen[0]);
-  conv(t, "12414253167056538805540298899677726815262421059586687136732923");
-  conv(p, t);
-  if (prf[14] != p) {
-    std::cout << "Client::delegationOutput(). Wrong randomness: Unexpected " << prf[14] << std::endl;
-    exit(3);
-  }
-  
-  // Compute q
-  aIdx = 0;
-  omegaIdx = this->hashBuckets->getLength() * (2*this->hashBuckets->getMaxLoad() + 1);
-  omegaOtherIdx = omegaIdx + this->hashBuckets->getLength() * (2*this->hashBuckets->getMaxLoad() + 1);
-  for (size_t j = 0; j < this->hashBuckets->getLength(); j++) {
-    this->prf.setSecretKey((char *) keygen[j]);
-    prfOtherParty.setSecretKey((char *) keygenOtherParty[j]);
-    for (size_t i = 0; i < 2*this->hashBuckets->getMaxLoad() + 1; i++) {
-      conv(q[j][i], NTL::ZZFromBytes(keygen[aIdx++], keygen.getLength()));
-      if (i == 2*this->hashBuckets->getMaxLoad()) {
-        // Coefficient for highest degree is set to 1
-        conv(tmp, 1);
-        NTL::SetCoeff(omega, i, tmp);
-        NTL::SetCoeff(omegaOther, i, tmp);
-        omegaIdx++;
-        omegaOtherIdx++;
-      }
-      conv(tmp, NTL::ZZFromBytes(keygen[omegaIdx++], keygen.getLength()));
-      NTL::SetCoeff(omega, i, tmp);
-      conv(tmp, NTL::ZZFromBytes(keygen[omegaOtherIdx++], keygen.getLength()));
-      NTL::SetCoeff(omegaOther, i, tmp);
-      
-      // Reuse of variable "q" to store q data
-      q[j][i] = q[j][i] + prf[i]*eval(omega, unknowns[i]) + prfOtherParty[i]*eval(omegaOther, unknowns[i]);
-      q[j][i] = q[j][i] + prf[i] + prfOtherParty[i];
+  index = 0;
+  for (size_t j = 0; j < this->length; j++) {
+    for (size_t i = 0; i < this->height; i++) {
+      dataA[j][i] = zzprf.generate(this->secret, index++, this->fieldbitsize);
+      dataB[j][i] = zzprf.generate(secretOtherParty, index++, this->fieldbitsize);
     }
   }
   
-  return q;
+  return computeTOrQ(tmpKey, dataA, dataB);
 }
 //-----------------------------------------------------------------------------
 
 NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   NTL::vec_ZZ_p setcap;
-  NTL::ZZ_p **diff;
+  NTL::vec_ZZ_p *diff;
   NTL::ZZ_pX *polynomials;
   NTL::vec_pair_ZZ_pX_long factorPairs;
   
@@ -490,9 +447,9 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   
   // Interpolate polynomials
   for (size_t j = 0; j < length; j++) {
-    polynomials[j] = NTL::interpolate(unknowns, NTL::array2VecZZp(diff[j], height));
+    polynomials[j] = NTL::interpolate(unknowns, diff[j], this->height);
     std::cout << "\n\n-->" << polynomials[j] << "\n<--\n\n" << std::endl;
-    setcap = NTL::FindRoots(polynomials[j]);
+    setcap = (polynomials[j]);
 //     std::cout << "\n\n-->" << setcap << "\n<--\n\n" << std::endl;
   }
   

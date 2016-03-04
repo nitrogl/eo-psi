@@ -11,7 +11,6 @@
 #include <string>
 #include <map>
 #include "eopsiparty.h"
-#include "eopsiclient.h"
 //-----------------------------------------------------------------------------
 
 class EOPSIClient;
@@ -20,10 +19,10 @@ class EOPSIServer : public EOPSIParty {
 protected:
   std::map<std::string, EOPSIMessage*> storedData;
   
-  virtual NTL::ZZ_p ** intersectionOutput(const std::string id, const std::string idOther, const std::string tmpKey);
+  virtual NTL::vec_ZZ_p * intersectionOutput(const std::string id, const std::string idOther, const NTL::ZZ tmpKey);
   
 public:
-  EOPSIServer(const NTL::ZZ& fieldsize, const std::string& id = "");
+  EOPSIServer(const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id = "");
   virtual ~EOPSIServer();
   
   virtual void receive(EOPSIMessage& msg) throw (ProtocolException);

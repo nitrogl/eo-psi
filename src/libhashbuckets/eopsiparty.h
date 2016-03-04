@@ -10,13 +10,15 @@
 
 #include <string>
 #include <map>
+#include <NTL/ZZ_pX.h>
 #include <NTL/vec_ZZ_p.h>
 #include "ntlmiss.h"
 #include "eopsimsg.h"
 #include "protocolex.h"
-#include "strzzpkeygen.h"
-#include "zzprandgen.h"
-#include "bytekeygen.h"
+#include "zzprf.h"
+//-----------------------------------------------------------------------------
+
+#define DEFAULT_KEY_BITSIZE 128
 //-----------------------------------------------------------------------------
 
 /**
@@ -37,17 +39,20 @@ protected:
   EOPSIPartyType type;
   std::map<std::string, EOPSIParty*> parties;
   NTL::ZZ fieldsize;
-  HashAlgorithm<std::string>* strHashAlgorithm;
-  ByteKeyGenerator keygen;
-  RandomZZpGenerator *rndZZpgen;
-  StringZZpKeyGenerator prf;
+  size_t fieldbitsize;
+  ZZPRF zzprf;
   NTL::vec_ZZ_p unknowns;
+  size_t degree;
+  size_t length;
+  size_t height;
   
   virtual EOPSIParty* getPartyById(const std::string& id) const;
   virtual NTL::vec_ZZ_p getUnknowns(const size_t n = 0);
+  virtual void genOmega(NTL::ZZ_pX& omega, const size_t degree, const NTL::ZZ seed, const size_t index);
+  virtual NTL::vec_ZZ_p * computeTOrQ(const NTL::ZZ& tmpKey, NTL::vec_ZZ_p *matrixA, NTL::vec_ZZ_p *matrixB);
   
 public:
-  EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const std::string& id = "");
+  EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id = "");
   virtual ~EOPSIParty();
   
   virtual void setId(const std::string& id);
@@ -55,6 +60,9 @@ public:
   
   void setFieldsize(const NTL::ZZ& fieldsize);
   virtual NTL::ZZ getFieldsize() const;
+  
+  void setDegree(const size_t degree);
+  virtual size_t getDegree() const;
   
   virtual void setType(const EOPSIPartyType type);
   virtual EOPSIPartyType getType() const;

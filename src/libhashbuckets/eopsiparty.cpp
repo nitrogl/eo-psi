@@ -6,33 +6,20 @@
 
 #include "eopsiparty.h"
 #include "shastr.h"
-#include "bytekeygen.h"
-#include "strzzpkeygen.h"
 //-----------------------------------------------------------------------------
   
-EOPSIParty::EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const std::string& id) {
+EOPSIParty::EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id) {
   this->setId(id);
   this->setType(type);
-  
-  try {
-    this->rndZZpgen = new RandomZZpGenerator();
-    this->strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
-  } catch (std::bad_alloc &) {
-    std::cerr << "EOPSIParty(). Error allocating memory." << std::endl;
-    exit(2);
-  }
-  
-  // Field size
   this->setFieldsize(fieldsize);
-  
-  // Initialise generators
-  this->keygen.setHashAlgorithm(this->strHashAlgorithm);
-  this->prf.setHashAlgorithm(this->strHashAlgorithm);
+  this->setDegree(degree);
+  this->length = length;
+  this->height = height;
+  this->degree = degree;
 }
 //-----------------------------------------------------------------------------
 
 EOPSIParty::~EOPSIParty() {
-  delete this->rndZZpgen;
 }
 //-----------------------------------------------------------------------------
   
@@ -47,15 +34,16 @@ EOPSIParty* EOPSIParty::getPartyById(const std::string& id) const {
 //-----------------------------------------------------------------------------
 
 NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
-  NTL::ZZ_p zero;
+  NTL::ZZ zero;
   NTL::ZZ_p p;
   NTL::ZZ t;
+  size_t len;
   
-  conv(zero, 0);
+  len = NTL::NumBits(this->fieldsize);
+  zero = 0;
   unknowns.SetLength(n);
-  this->rndZZpgen->setSeed(zero);
   for (size_t j = 0; j < n; j++) {
-    unknowns[j] = this->rndZZpgen->next();
+    conv(unknowns[j], this->zzprf.generate(zero, j, len));
   }
 
   // Runtime check for deterministic randomness
@@ -83,6 +71,56 @@ NTL::vec_ZZ_p EOPSIParty::getUnknowns(const size_t n) {
 }
 //-----------------------------------------------------------------------------
 
+void EOPSIParty::genOmega(NTL::ZZ_pX& omega, const size_t degree, const NTL::ZZ seed, const size_t index) {
+  NTL::ZZ_p tmp;
+  
+  // Coefficient for highest degree is set to 1
+  conv(tmp, 1);
+  NTL::SetCoeff(omega, degree, tmp);
+  for (size_t i = 0; i < degree; i++) {
+    conv(tmp, this->zzprf.generate(seed, index + i, this->fieldbitsize));
+    NTL::SetCoeff(omega, i, tmp);
+  }
+}
+//-----------------------------------------------------------------------------
+
+NTL::vec_ZZ_p * EOPSIParty::computeTOrQ(const NTL::ZZ& tmpKey, NTL::vec_ZZ_p *matrixA, NTL::vec_ZZ_p *matrixB) {
+  size_t aIdx, omegaAIdx, omegaBIdx;
+  NTL::ZZ_pX omegaA, omegaB;
+  NTL::vec_ZZ_p * tq;
+  NTL::ZZ a;
+  
+  try {
+    tq = new NTL::vec_ZZ_p[this->length];
+    for (size_t i = 0; i < this->length; i++) {
+      tq[i].SetLength(this->height);
+    }
+  } catch (std::bad_alloc &) {
+    std::cerr << "computeTOrQ(). Error allocating memory." << std::endl;
+    exit(2);
+  }
+  
+  // Not secret unknowns
+  this->getUnknowns(this->height);
+  
+  aIdx = 0;
+  omegaAIdx = this->length * this->height;
+  omegaBIdx = omegaAIdx + this->length * this->degree;
+  for (size_t j = 0; j < this->length; j++) {
+    //gen omegas with degree
+    genOmega(omegaA, this->degree, tmpKey, omegaAIdx + this->degree*j);
+    genOmega(omegaB, this->degree, tmpKey, omegaBIdx + this->degree*j);
+    for (size_t i = 0; i < this->height; i++) {
+      conv(tq[j][i], this->zzprf.generate(tmpKey, aIdx++, this->fieldbitsize));
+      
+      tq[j][i] = tq[j][i] + matrixA[j][i]*eval(omegaA, this->unknowns[i]) + matrixB[j][i]*eval(omegaB, this->unknowns[i]);
+    }
+  }
+  
+  return tq;
+}
+//-----------------------------------------------------------------------------
+
 void EOPSIParty::setId(const std::string& id) {
   this->id = id;
 }
@@ -95,14 +133,22 @@ std::string EOPSIParty::getId() const {
 
 void EOPSIParty::setFieldsize(const NTL::ZZ& fieldsize) {
   this->fieldsize = fieldsize;
-  this->rndZZpgen->setModulo(fieldsize);
-  this->prf.setModulo(fieldsize);
-  this->keygen.setLength(NTL::bytes(NTL::NumBits(fieldsize)));
+  this->fieldbitsize = NTL::NumBits(this->fieldsize);
 }
 //-----------------------------------------------------------------------------
 
 NTL::ZZ EOPSIParty::getFieldsize() const {
   return this->fieldsize;
+}
+//-----------------------------------------------------------------------------
+
+void EOPSIParty::setDegree(const size_t degree) {
+  this->degree = degree;
+}
+//-----------------------------------------------------------------------------
+
+size_t EOPSIParty::getDegree() const {
+  return this->degree;
 }
 //-----------------------------------------------------------------------------
 
