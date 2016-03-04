@@ -1,45 +1,39 @@
 /*
- * A key generator
+ * A class for pseudo-random big integers using NTL
  * 
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
-#ifndef ZZPRF_H
-#define ZZPRF_H
+#ifndef ZZ_PRF_H
+#define ZZ_PRF_H
 //-----------------------------------------------------------------------------
 
 #include <NTL/ZZ.h>
 #include "ntlmiss.h"
 #include "hashalgorithm.hpp"
 #include "shabyte.h"
+#include "prf.hpp"
 //-----------------------------------------------------------------------------
 
 /**
- * This class acts as a key generator.
- * The secret key of type S of this generator changes the seed is supposed to
- * work together with some index to generate the key corresponding to the
- * index.
+ * A class for pseudo-random big integers using NTL
  */
-class ZZPRF
+class ZZPRF: public PseudoRandom<NTL::ZZ, NTL::ZZ>
 {
 protected:
   SHAByteArray hashAlgorithm; ///< Hash algorithm
-  byte *gen;
-  byte *hashInput;
-  size_t hashInputLength;
-  size_t genLength;
+  byte *gen;                  ///< Generated value buffer
+  size_t genLength;           ///< Generated value buffer length
+  byte *hashInput;            ///< Hash input buffer
+  size_t hashInputLength;     ///< Hash input buffer length
   
 public:
   ZZPRF();
   virtual ~ZZPRF();
   
-  /**
-   * Generate a key with a specific index
-   * 
-   * @param index the index-th key
-   */
-  virtual NTL::ZZ generate(const NTL::ZZ seed, const size_t index, const size_t bits);
+  virtual NTL::ZZ generate(const NTL::ZZ seed, const size_t index, const size_t bits = 0);
+  virtual NTL::ZZ randomSeed();
 };
 //-----------------------------------------------------------------------------
 
-#endif // ZZPRF_H
+#endif // ZZ_PRF_H

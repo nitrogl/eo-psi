@@ -13,7 +13,7 @@
 #include "zzprf.h"
 //-----------------------------------------------------------------------------
 
-ZZPRF::ZZPRF() {
+ZZPRF::ZZPRF() : PseudoRandom() {
   hashInputLength = 0;
   genLength = 0;
   gen = nullptr;
@@ -36,12 +36,28 @@ ZZPRF::~ZZPRF() {
  * 
  * @param index the index-th key
  */
+NTL::ZZ ZZPRF::randomSeed() {
+  return NTL::RandomBits_ZZ(rand());
+}
+//-----------------------------------------------------------------------------
+  
+/**
+ * Generate a key with a specific index
+ * 
+ * @param index the index-th key
+ */
 NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bits) {
   NTL::ZZ z;
   byte *digest;
   size_t k, n, r, len;
   
-  n = NTL::bytes(bits);
+  if (bits == 0) {
+    int rnd;
+    while ((rnd = rand()) == 0);
+    n = NTL::bytes(rnd);
+  } else {
+    n = NTL::bytes(bits);
+  }
   len = NTL::bytes(seed) + sizeof(size_t);
   if (n > genLength) {
     delete [] gen;

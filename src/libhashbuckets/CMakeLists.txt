@@ -13,11 +13,7 @@ add_library (${LIBRARY_NAME} SHARED
         simplebm.cpp
         strint.cpp
         zzprf.cpp
-        zzrandgen.cpp
-        zzprandgen.cpp
-        strrandgen.cpp
-        bytekeygen.cpp
-        strzzpkeygen.cpp
+        zzpprf.cpp
         eopsimsg.cpp
         eopsiparty.cpp
         eopsiserver.cpp
