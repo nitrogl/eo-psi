@@ -17,7 +17,7 @@
 /**
  * This class gives pseudo-random facilities.
  */
-template <class T, class U> class PseudoRandom
+template <typename T, typename U> class PseudoRandom
 {
 protected:
   SHAByteArray hashAlgorithm; ///< Hash algorithm
@@ -42,14 +42,19 @@ public:
   virtual T randomSeed() = 0;
   
   /**
+   * This method should give a default constant seed.
+   */
+  virtual T defaultSeed() = 0;
+  
+  /**
    * Generate a random element with seed, index of maximum length in bits.
    * With automatic seed.
    * 
    * @param index the index-th key
    * @param bits the (maximum?) length of generation in bits
    */
-  virtual U generate(const size_t index, const size_t bits = 0) {
-    return generate(randomSeed(), index, bits);
+  virtual U generate(const size_t& index, const size_t& bits = 0) {
+    return generate(defaultSeed(), index, bits);
   }
 };
 //-----------------------------------------------------------------------------

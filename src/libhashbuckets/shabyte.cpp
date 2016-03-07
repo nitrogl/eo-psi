@@ -7,12 +7,14 @@
 #include "shabyte.h"
 //-----------------------------------------------------------------------------
 
-// SHAByteArray::SHAByteArray(HashFlavour flavour) : SHA<byte *>(flavour) {
-// }
+SHAByteArray::SHAByteArray(HashFlavour flavour) : SHA<byte *>(flavour) {
+  
+}
 // //-----------------------------------------------------------------------------
 // 
-// SHAByteArray::~SHAByteArray() {
-// }
+SHAByteArray::~SHAByteArray() {
+  
+}
 // //-----------------------------------------------------------------------------
 
 byte* SHAByteArray::hash(const byte * str, const size_t len) {

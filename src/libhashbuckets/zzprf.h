@@ -1,7 +1,8 @@
 /*
  * A class for pseudo-random big integers using NTL
  * 
- * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
+ * Copyright (C) 2016  Changyu Dong, Glasgow <changyu.dong@strath.ac.uk>
+ * Copyright (C) 2016  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
 #ifndef ZZ_PRF_H
@@ -32,7 +33,9 @@ public:
   virtual ~ZZPRF();
   
   virtual NTL::ZZ generate(const NTL::ZZ seed, const size_t index, const size_t bits = 0);
+  virtual NTL::ZZ generate(const size_t index, const size_t bits = 0);
   virtual NTL::ZZ randomSeed();
+  virtual NTL::ZZ defaultSeed();
 };
 //-----------------------------------------------------------------------------
 

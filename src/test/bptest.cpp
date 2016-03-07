@@ -56,10 +56,11 @@ int main(int argc, char **argv) {
   std::ifstream infile;
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
-  size_t n;
+  size_t n, index;
   std::string pstr = DEFAULT_P;
   unsigned int padsize;
-  RandomZZpGenerator *rndZZpgen;
+  ZZpPRF *zzpprf;
+  NTL::ZZ_p zzpSeed;
   NTL::ZZ_p *z = nullptr;
   NTL::ZZ p, tmpZ;
   NTL::ZZ_pX *polynomials = nullptr;
@@ -67,8 +68,6 @@ int main(int argc, char **argv) {
   NTL::vec_ZZ_p *evaluations;
   NTL::vec_ZZ_p vzzp;
   HashAlgorithm<std::string>* strHashAlgorithm = nullptr;
-  StringZZpKeyGenerator prf;
-  ByteKeyGenerator keygen;
   SimpleBenchmark benchmark;
   unsigned int cores = 0, nThreads = 0;
   size_t nSplit;
@@ -157,7 +156,7 @@ int main(int argc, char **argv) {
     polynomials = new NTL::ZZ_pX[length];
     evaluations = new NTL::vec_ZZ_p[length];
     strHashAlgorithm = new SHAString(SHA1_FLAVOUR);
-    rndZZpgen = new RandomZZpGenerator();
+    zzpprf = new ZZpPRF(p);
     threads = new std::thread[nThreads];
     cumulSplit = new size_t[nThreads + 1];
   } catch (std::bad_alloc &) {
@@ -206,9 +205,9 @@ int main(int argc, char **argv) {
   // Fill empty cells of the hash table
   std::cout << "Concealing the hash table (filling empty cells)... ";
   std::cout.flush();
-  rndZZpgen->setModulo(p);
+  conv(zzpSeed, 0);
   benchmark.step();
-  hashBuckets->conceal(*rndZZpgen);
+  hashBuckets->conceal(*zzpprf);
   benchmark.step();
   std::cout << "done. " << std::endl;
   
@@ -228,7 +227,7 @@ int main(int argc, char **argv) {
   unknowns.SetLength(2*maxLoad + 1);
   benchmark.step();
   for (size_t j = 0; j < 2*maxLoad + 1; j++) {
-    append(unknowns, rndZZpgen->next());
+    append(unknowns, zzpprf->generate(zzpSeed, j));
   }
   benchmark.step();
   std::cout << "done. " << std::endl;
@@ -278,20 +277,15 @@ int main(int argc, char **argv) {
   benchmark.step();
   std::cout << "done. " << std::endl;
   
-  // Initialise key generator and pseudo-random function
-  keygen.setHashAlgorithm(strHashAlgorithm);
-  keygen.setSecretKey("Topsy Kretts");
-  prf.setHashAlgorithm(strHashAlgorithm);
-  prf.setModulo(p);
-  
   // Blind evaluations
   std::cout << "Blinding evaluations... ";
   std::cout.flush();
   benchmark.step();
+  conv(zzpSeed, NTL::ZZFromBytes((byte *) "Topsy Kretts", 12));
+  index = 0;
   for (size_t j = 0; j < length; j++) {
-    prf.setSecretKey(std::string((char *) keygen.next()));
     for (size_t i = 0; i < 2*maxLoad + 1; i++) {
-      evaluations[j][i] = evaluations[j][i] + prf.next();
+      evaluations[j][i] = evaluations[j][i] + zzpprf->generate(zzpSeed, index++);
     }
   }
   benchmark.stop();
@@ -346,7 +340,7 @@ int main(int argc, char **argv) {
   delete hashBuckets;
   delete cumulSplit;
   delete strHashAlgorithm;
-  delete rndZZpgen;
+  delete zzpprf;
   return 0;
 }
 //-----------------------------------------------------------------------------

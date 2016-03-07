@@ -1,6 +1,7 @@
 /*
  * The secure computation server of the EO-PSI protocol.
  * 
+ * Copyright (C) 2016  Changyu Dong, Glasgow <changyu.dong@strath.ac.uk>
  * Copyright (C) 2016  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
@@ -8,7 +9,6 @@
 #include <NTL/ZZ_pXFactoring.h>
 #include "eopsiclient.h"
 #include "ntlmiss.h"
-#include "zzpprf.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -39,6 +39,10 @@ EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fie
 }
 //-----------------------------------------------------------------------------
 
+EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id, const byte *secret, const size_t secretLen) : EOPSIClient(hashBuckets, fieldsize, length, height, degree, id, NTL::ZZFromBytes(secret, secretLen)) {
+}
+//-----------------------------------------------------------------------------
+
 EOPSIClient::~EOPSIClient() {
 }
 //-----------------------------------------------------------------------------
@@ -49,7 +53,7 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
   NTL::ZZ otherSecret;
   byte *otherSecretBytes;
   NTL::ZZ tmpKey;
-  byte *tmpKeyBytes;
+  byte *tmpKeyBytes = nullptr;
   byte *data = nullptr;
   size_t dataLen, i;
   std::map<std::string, EOPSIParty*>::const_iterator mi;
@@ -387,6 +391,7 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ& secretOtherParty, c
   NTL::ZZ_p tmp;
   NTL::vec_ZZ_p *dataA, *dataB;
   size_t index;
+  NTL::ZZ_p zzpSeed, zzpSeedOther;
   
   try {
     dataA = new NTL::vec_ZZ_p[this->length];
@@ -400,11 +405,13 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ& secretOtherParty, c
     exit(2);
   }
   
+  conv(zzpSeed, this->secret);
+  conv(zzpSeedOther, secretOtherParty);
   index = 0;
   for (size_t j = 0; j < this->length; j++) {
     for (size_t i = 0; i < this->height; i++) {
-      dataA[j][i] = zzprf.generate(this->secret, index++, this->fieldbitsize);
-      dataB[j][i] = zzprf.generate(secretOtherParty, index++, this->fieldbitsize);
+      dataA[j][i] = zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
+      dataB[j][i] = zzpprf->generate(zzpSeedOther, index++, this->fieldbitsize);
     }
   }
   
@@ -424,9 +431,9 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   }
   
   try {
-    diff = new NTL::ZZ_p *[length];
+    diff = new NTL::vec_ZZ_p[length];
     for (size_t i = 0; i < length; i++) {
-      diff[i] = new NTL::ZZ_p[height];
+      diff[i].SetLength(this->height);
     }
     polynomials = new NTL::ZZ_pX[length];
   } catch (std::bad_alloc &) {
@@ -447,9 +454,9 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   
   // Interpolate polynomials
   for (size_t j = 0; j < length; j++) {
-    polynomials[j] = NTL::interpolate(unknowns, diff[j], this->height);
+    polynomials[j] = NTL::interpolate(unknowns, diff[j]);
     std::cout << "\n\n-->" << polynomials[j] << "\n<--\n\n" << std::endl;
-    setcap = (polynomials[j]);
+//     setcap = (polynomials[j]);
 //     std::cout << "\n\n-->" << setcap << "\n<--\n\n" << std::endl;
   }
   

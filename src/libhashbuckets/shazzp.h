@@ -27,7 +27,6 @@ private:
   std::string zzString;
   
 public:
-  SHAZZp();
   SHAZZp(HashFlavour flavour = SHA1_FLAVOUR);
   virtual ~SHAZZp();
   

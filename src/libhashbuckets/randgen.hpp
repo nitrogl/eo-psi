@@ -11,7 +11,7 @@
 /**
  * Random generator is an abstract template class for generic types.
  */
-template <class T> class RandomGenerator
+template <typename T> class RandomGenerator
 {
 protected:
   T seed; ///< The seed of generation.

@@ -14,7 +14,7 @@
 /**
  * A bucket is the standard vector container which can be marked.
  */
-template <class T> class MarkedVector: public std::vector<T>
+template <typename T> class MarkedVector: public std::vector<T>
 {
 protected:
   bool marked;
@@ -28,22 +28,22 @@ public:
 };
 //-----------------------------------------------------------------------------
 
-template <class T> MarkedVector<T>::MarkedVector() : std::vector<T>() {
+template <typename T> MarkedVector<T>::MarkedVector() : std::vector<T>() {
   this->marked = false;
 }
 //-----------------------------------------------------------------------------
 
-template <class T> bool MarkedVector<T>::isMarked() {
+template <typename T> bool MarkedVector<T>::isMarked() {
   return this->marked;
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void MarkedVector<T>::mark(bool value) {
+template <typename T> void MarkedVector<T>::mark(bool value) {
   this->marked = value;
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void MarkedVector<T>::unmark() {
+template <typename T> void MarkedVector<T>::unmark() {
   this->marked = false;
 }
 //-----------------------------------------------------------------------------

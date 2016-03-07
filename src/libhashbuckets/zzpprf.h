@@ -32,6 +32,7 @@ public:
   
   virtual NTL::ZZ_p generate(const NTL::ZZ_p seed, const size_t index, const size_t bits = 0);
   virtual NTL::ZZ_p randomSeed();
+  virtual NTL::ZZ_p defaultSeed();
 };
 //-----------------------------------------------------------------------------
 

@@ -26,7 +26,7 @@
  * Also a conceal method is given to fill all the not-full buckets, <i>concealing</i>
  * the original added elements.
  */
-template <class T> class HashBuckets: public HashTable<T, MarkedVector<T>>
+template <typename T> class HashBuckets: public HashTable<T, MarkedVector<T>>
 {
 protected:
   StrInt *hashStrInt; ///< This is basically used to get the remainder of a string.
@@ -75,7 +75,7 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad, const HashAlgorithm<T>* hashAlgorithm) {
+template <typename T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad, const HashAlgorithm<T>* hashAlgorithm) {
   this->k = length;
   this->maxLoad = maxLoad;
   this->hashStrInt = nullptr;
@@ -96,7 +96,7 @@ template <class T> HashBuckets<T>::HashBuckets(size_t length, size_t maxLoad, co
 }
 //-----------------------------------------------------------------------------
 
-template <class T> HashBuckets<T>::~HashBuckets() {
+template <typename T> HashBuckets<T>::~HashBuckets() {
   delete [] this->buckets;
   if (this->hashStrInt != nullptr) {
     delete this->hashStrInt;
@@ -104,7 +104,7 @@ template <class T> HashBuckets<T>::~HashBuckets() {
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::setHashAlgorithm(const HashAlgorithm<T>* hashAlgorithm) {
+template <typename T> void HashBuckets<T>::setHashAlgorithm(const HashAlgorithm<T>* hashAlgorithm) {
   if (hashAlgorithm == nullptr) {
     std::cerr << "setHashAlgorithm(). WARNING: null pointer given as algorithm, nothing to do." << std::endl;
     return;
@@ -120,7 +120,7 @@ template <class T> void HashBuckets<T>::setHashAlgorithm(const HashAlgorithm<T>*
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::add(const T& element) throw (OutOfBoundException) {
+template <typename T> void HashBuckets<T>::add(const T& element) throw (OutOfBoundException) {
   size_t index;
   
   if (this->hashStrInt != nullptr) {
@@ -141,7 +141,7 @@ template <class T> void HashBuckets<T>::add(const T& element) throw (OutOfBoundE
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::addToBucket(const T& element, const size_t i) throw (OutOfBoundException) {
+template <typename T> void HashBuckets<T>::addToBucket(const T& element, const size_t i) throw (OutOfBoundException) {
   size_t index = i;
   if (index < this->k) {
     this->buckets[index].push_back(element);
@@ -151,7 +151,7 @@ template <class T> void HashBuckets<T>::addToBucket(const T& element, const size
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::conceal(PseudoRandom<T, T>& pr) {
+template <typename T> void HashBuckets<T>::conceal(PseudoRandom<T, T>& pr) {
   size_t i, j;
   
   // Mark buckets (this tracks empty buckets)
@@ -162,23 +162,23 @@ template <class T> void HashBuckets<T>::conceal(PseudoRandom<T, T>& pr) {
     
     // Fill empty cells
     for (j = this->buckets[i].size(); j < maxLoad; j++) {
-      conv(this->buckets[i][j], pr.generate(j));
+      this->buckets[i][j] = pr.generate(j);
     }
   }
 }
 //-----------------------------------------------------------------------------
 
-template <class T> size_t HashBuckets<T>::getLength() const {
+template <typename T> size_t HashBuckets<T>::getLength() const {
   return this->k;
 }
 //-----------------------------------------------------------------------------
 
-template <class T> size_t HashBuckets<T>::getMaxLoad() const {
+template <typename T> size_t HashBuckets<T>::getMaxLoad() const {
   return this->maxLoad;
 }
 //-----------------------------------------------------------------------------
 
-template <class T> void HashBuckets<T>::printStats(bool full) const {
+template <typename T> void HashBuckets<T>::printStats(bool full) const {
   size_t minSize, minBucket, maxSize, maxBucket, total, diff, nshow;
   double avgSize, varSize;
   

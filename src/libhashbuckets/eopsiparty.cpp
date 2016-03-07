@@ -1,6 +1,7 @@
 /*
  * The secure computation server of the EO-PSI protocol.
  * 
+ * Copyright (C) 2016  Changyu Dong, Glasgow <changyu.dong@strath.ac.uk>
  * Copyright (C) 2016  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 

@@ -1,11 +1,9 @@
 /*
- * A key generator
+ * A class for pseudo-random big integers using NTL
  * 
- * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
+ * Copyright (C) 2016  Changyu Dong, Glasgow <changyu.dong@strath.ac.uk>
+ * Copyright (C) 2016  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
-
-// #ifndef KEYGEN_TEMPLATE
-// #define KEYGEN_TEMPLATE
 //-----------------------------------------------------------------------------
 
 #include <iostream>
@@ -30,22 +28,19 @@ ZZPRF::~ZZPRF() {
   }
 }
 //-----------------------------------------------------------------------------
-  
-/**
- * Generate a key with a specific index
- * 
- * @param index the index-th key
- */
+
 NTL::ZZ ZZPRF::randomSeed() {
   return NTL::RandomBits_ZZ(rand());
 }
 //-----------------------------------------------------------------------------
-  
-/**
- * Generate a key with a specific index
- * 
- * @param index the index-th key
- */
+
+NTL::ZZ ZZPRF::defaultSeed() {
+  NTL::ZZ defSeed;
+  conv(defSeed, 0);
+  return defSeed;
+}
+//-----------------------------------------------------------------------------
+
 NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bits) {
   NTL::ZZ z;
   byte *digest;
@@ -104,5 +99,10 @@ NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bit
   NTL::ZZFromBytes(z, gen, n);
   
   return z;
+}
+//-----------------------------------------------------------------------------
+
+NTL::ZZ ZZPRF::generate(const size_t index, const size_t bits) { 
+  return PseudoRandom::generate(index, bits);
 }
 //-----------------------------------------------------------------------------

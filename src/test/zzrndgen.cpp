@@ -13,8 +13,8 @@
  * @param prgnam the name of the program/binary called
  */
 static void printUsage(const char *prgnam) {
-  std::cout << "Syntax: " << prgnam << " -h -p <modulo> -n <number> -o <outfile>\n"
-            << " -s : set s generating numbers up to the supremum s (big integer)\n"
+  std::cout << "Syntax: " << prgnam << " -h -p <modulo> -n <number> -b <bits> -o <outfile>\n"
+            << " -b : maximum number of bits for generated numbers\n"
             << " -n : amount of random numbers to generate\n"
             << " -o : file name to store generated numbers\n"
             << " -h : show this message and exit\n"
@@ -26,26 +26,25 @@ int main(int argc, char **argv) {
   NTL::ZZ supremum;
   std::ofstream outfile;
   size_t n = DEFAULT_N;
-  std::string supremumStr = DEFAULT_SUPREMUM;
+  std::string plainSetBitsStr = DEFAULT_PLAIN_SET_BITS;
   std::string outfilename = DEFAULT_FILENAME;
-  RandomStringGenerator rndStrgen;
-  RandomZZGenerator rndZZgen;
-  size_t len;
+  size_t plainSetBits;
+  ZZPRF zzprf;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
-  while ((op = getopt(argc, argv, "hn:o:s:")) != -1) {
+  while ((op = getopt(argc, argv, "b:hn:o:")) != -1) {
     switch (op) {
+      case 'b':
+        plainSetBitsStr = optarg;
+        break;
+        
       case 'n':
         n = atol(optarg); 
         break;
         
       case 'o':
         outfilename = optarg; 
-        break;
-        
-      case 's':
-        supremumStr = optarg;
         break;
         
       case '?':
@@ -59,12 +58,8 @@ int main(int argc, char **argv) {
   // Initialise random seed
   srand(time(NULL));
   
-  // Initialise random ZZ generator
-  supremum = NTL::to_ZZ(supremumStr.c_str());
-  NTL::ZZ_p::init(supremum);
-  len = rand() % SEED_MAX_LENGTH + 1;
-  rndZZgen.setSupremum(supremum);
-  rndZZgen.setSeed(NTL::ZZFromBytes((const byte*) rndStrgen.next(len).c_str(), len));
+  // Number of bits of generated numbers
+  plainSetBits = atol(plainSetBitsStr.c_str());
   
   // Open file
   if (outfilename == DEFAULT_FILENAME) {
@@ -76,13 +71,13 @@ int main(int argc, char **argv) {
     exit(1);
   }
   
-  outfile << supremum << "\n";
+  outfile << plainSetBits << "\n";
   outfile << n << "\n";
   // Generate stuff
   std::cout << "Generating numbers. This may take a while ...";
   std::cout.flush();
   for (size_t i = 0; i < n; i++) {
-    outfile << rndZZgen.next() << "\n";
+    outfile << zzprf.generate(i, plainSetBits) << "\n";
     if (i % (n / 10) == 0) {
       std::cout << ".";
       std::cout.flush();
@@ -93,7 +88,7 @@ int main(int argc, char **argv) {
   outfile.close();
   
   // Finish feedback
-  std::cout << n << " pseudo-random numbers modulo " << supremum << " have been successfully written to file \"" << outfilename << "\"" << std::endl;
+  std::cout << n << " pseudo-random numbers of maximum " << plainSetBits << " have been successfully written to file \"" << outfilename << "\"" << std::endl;
   
   return 0;
 }

@@ -19,7 +19,7 @@
  * Abstract template class to inherit in order to act as a hash algorithm.
  * The type of the elements which can be hashed is a generic type.
  */
-template <class T> class HashAlgorithm
+template <typename T> class HashAlgorithm
 {
 public:
   virtual ~HashAlgorithm() {}

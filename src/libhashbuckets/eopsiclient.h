@@ -1,6 +1,7 @@
 /*
  * The secure computation client of the EO-PSI protocol.
  * 
+ * Copyright (C) 2016  Changyu Dong, Glasgow <changyu.dong@strath.ac.uk>
  * Copyright (C) 2016  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
 
@@ -15,7 +16,7 @@
 #include "eopsiparty.h"
 #include "eopsiserver.h"
 #include "hashbuckets.hpp"
-#include "zzprf.h"
+#include "zzpprf.h"
 //-----------------------------------------------------------------------------
 
 class EOPSIClient : public EOPSIParty {
@@ -34,6 +35,7 @@ protected:
   
 public:
   EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id = "", const NTL::ZZ secret = NTL::ZZFromBytes((byte *)"Topsy Kretts", 12L));
+  EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id = "", const byte *secret = nullptr, const size_t secretLen = 0);
   virtual ~EOPSIClient();
   
   virtual void receive(EOPSIMessage& msg) throw (ProtocolException);

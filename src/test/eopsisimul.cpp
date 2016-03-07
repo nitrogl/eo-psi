@@ -14,12 +14,12 @@
  * @param prgnam the name of the program/binary called
  */
 static void printUsage(const char *prgnam) {
-  std::cout << "Syntax: " << prgnam << " -h -s <supremum-generation> -p <field-size> -n <number> -r <number>\n"
+  std::cout << "Syntax: " << prgnam << " -h -b <bits-in-plain-sets> -p <field-size> -n <number> -r <number>\n"
 //             << " -j : force number of threads for evaluation\n"
             << " -k : number of keys of the hash table\n"
             << " -l : size of buckets of the hash table\n"
             << " -p : set the padding up to numbers modulo p\n"
-            << " -s : set s generating numbers up to the supremum s (big integer)\n"
+            << " -b : number of bits in plain sets\n"
             << " -n : amount of random numbers to generate\n"
             << " -r : amount of minimum common data for clients (less or equal to n)\n"
             << " -h : show this message and exit\n"
@@ -137,10 +137,10 @@ static NTL::ZZ* intersect(const NTL::ZZ *set1, const size_t card1, const NTL::ZZ
  * the cloud.
  * 
  * @param n the amount of data to generate
- * @param rndZZgen the generator
+ * @param bitsize maximum bit size of generation
  * @return A pointer to the data which should be manually deleted.
  */
-NTL::ZZ * randomData(const size_t n, RandomZZGenerator& rndZZgen) {
+NTL::ZZ * randomData(const size_t n, size_t bitsize) {
   NTL::ZZ *data;
   
   try {
@@ -151,7 +151,7 @@ NTL::ZZ * randomData(const size_t n, RandomZZGenerator& rndZZgen) {
   }
   
   for (size_t i = 0; i < n; i++) {
-    data[i] = rndZZgen.next();
+    data[i] = NTL::RandomBits_ZZ(bitsize);
   }
   
   return data;
@@ -163,30 +163,34 @@ int main(int argc, char **argv) {
   EOPSIServer *cloud;
   EOPSIMessage msgStoreDataAlice, msgStoreDataBob;
   EOPSIMessage msgBobAlice, msgAliceBob, msgAliceCloud, msgCloudBob;
-  NTL::ZZ supremum, fieldsize;
+  NTL::ZZ fieldsize;
   NTL::ZZ *dataAlice, *dataBob, *minCommonData;
   NTL::ZZ *setcap;
   size_t setcapCard;
-  std::string supremumStr = DEFAULT_SUPREMUM;
+  std::string plainSetBitsStr = DEFAULT_PLAIN_SET_BITS;
   std::string fieldsizeStr = DEFAULT_P;
-  size_t len;
+  size_t plainSetBits;
   size_t n = DEFAULT_N;
   size_t r = DEFAULT_MIN_COMMON_DATA_RATIO;
-  RandomStringGenerator rndStrgen;
-  RandomZZGenerator rndZZgen;
+  ZZPRF rndZZgen;
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
+  size_t degree;
   HashAlgorithm<NTL::ZZ_p>* hashAlgorithm = nullptr;
   HashBuckets<NTL::ZZ_p>* hashBucketsAlice = nullptr;
   HashBuckets<NTL::ZZ_p>* hashBucketsBob = nullptr;
   int nThreads = 1;
   byte *data = nullptr;
-  size_t i, dataLen;
+  size_t dataLen;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
-  while ((op = getopt(argc, argv, "hj:n:o:p:r:s:")) != -1) {
+  while ((op = getopt(argc, argv, "b:hj:n:o:p:r:")) != -1) {
     switch (op) {
+      case 'b':
+        plainSetBitsStr = optarg;
+        break;
+        
       case 'j':
         std::cerr << argv[0] << ". Ignoring option -j (not yet implemented)" << std::endl;
         nThreads = 1;
@@ -208,10 +212,6 @@ int main(int argc, char **argv) {
         r = atol(optarg);
         break;
         
-      case 's':
-        supremumStr = optarg;
-        break;
-        
       case '?':
         std::cerr << "Unrecognised option " << argv[op] << std::endl;
       case 'h':
@@ -221,63 +221,25 @@ int main(int argc, char **argv) {
     }
   }
   
-  NTL::ZZ z, g;
-  conv(z, "431658129569832");
-  ZZPRF zzPRF;
-  
-  for (int i = 0; i < 10000; i++) {
-    g = zzPRF.generate(z, i, 208);
-    // std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
-    if (NTL::NumBits(g) > 208) {
-      std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
-      
-    }
-  }
-  std::cout << std::endl;
-  
-  conv(z, "235829");
-  for (int i = 0; i < 10; i++) {
-    g = zzPRF.generate(z, i, 208);
-    std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
-  }
-  std::cout << std::endl;
-  
-  conv(z, "431658129569832");
-  for (int i = 0; i < 10; i++) {
-    g = zzPRF.generate(z, i, 208);
-    std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
-  }
-  std::cout << std::endl;
-  
-  conv(z, "235829");
-  for (int i = 0; i < 10; i++) {
-    g = zzPRF.generate(z, i, 208);
-    std::cout << "[" << g << " (" << NTL::NumBits(g) << ")]" << std::endl;
-  }
-  
-  exit(33);
-  
   // Initialise random seed
   srand(time(NULL));
   
-  // Initialise random ZZ generator
-  supremum = NTL::to_ZZ(&supremumStr[0]);
-  len = rand() % SEED_MAX_LENGTH + 1;
-  rndZZgen.setSupremum(supremum);
-  rndZZgen.setSeed(NTL::ZZFromBytes((const byte*) rndStrgen.next(len).c_str(), len));
+  // Number of bits of generated numbers
+  plainSetBits = atol(plainSetBitsStr.c_str());
   
   // Initialise modulo operations in NTL
   fieldsize = NTL::to_ZZ(fieldsizeStr.c_str());
   NTL::ZZ_p::init(fieldsize);
   
   // Create parties
+  degree = (maxLoad - 1) / 2;
   try {
     hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
     hashBucketsAlice = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
     hashBucketsBob = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
-    alice = new EOPSIClient(*hashBucketsAlice, fieldsize, "Alice", "23");
-    bob = new EOPSIClient(*hashBucketsBob, fieldsize, "Bob", "Jim");
-    cloud = new EOPSIServer(fieldsize, "Cloud");
+    alice = new EOPSIClient(*hashBucketsAlice, fieldsize, length, maxLoad, degree, "Alice", (byte *) "23", 2);
+    bob = new EOPSIClient(*hashBucketsBob, fieldsize, length, maxLoad, degree, "Bob", (byte *) "Jim", 3);
+    cloud = new EOPSIServer(fieldsize, length, maxLoad, degree, "Cloud");
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
     exit(1);
@@ -289,9 +251,9 @@ int main(int argc, char **argv) {
   /*
    * 0. Alice and Bob stores blinded values into the cloud.
    */
-  minCommonData = randomData(r, rndZZgen);
-  dataAlice = join(minCommonData, r, randomData(n - r, rndZZgen), n - r);
-  dataBob = join(minCommonData, r, randomData(n - r, rndZZgen), n - r);
+  minCommonData = randomData(r, plainSetBits);
+  dataAlice = join(minCommonData, r, randomData(n - r, plainSetBits), n - r);
+  dataBob = join(minCommonData, r, randomData(n - r, plainSetBits), n - r);
   msgStoreDataAlice.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataBob.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataAlice.setPartyId(alice->getId());
@@ -324,12 +286,10 @@ int main(int argc, char **argv) {
   msgBobAlice.setPartyId(bob->getId());
   try {
     // Prepare message
-    dataLen = bob->getSecret().length() + 1 + bob->getId().length() + 1;
+    dataLen = NTL::bytes(bob->getSecret()) + 1 + bob->getId().length() + 1;
     data = new byte[dataLen];
     strcpy((char *) data, &bob->getId()[0]);
-    for (i = 0; i < bob->getSecret().length(); i++) {
-      data[bob->getId().length() + 1 + i] = bob->getSecret()[i];
-    }
+    NTL::BytesFromZZ(data + bob->getId().length() + 1, bob->getSecret(), NTL::bytes(bob->getSecret()));
     data[dataLen - 1] = '\0'; // Correctly end data
     msgBobAlice.setData(data, dataLen);
     

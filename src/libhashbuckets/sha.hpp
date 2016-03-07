@@ -20,7 +20,7 @@
  * SHA hash algorithm of a generic type.
  * It relies on the correctness of the library CryptoPP.
  */
-template <class T> class SHA: public HashAlgorithm<T>
+template <typename T> class SHA: public HashAlgorithm<T>
 {
 private:
   size_t size;                       ///< The hash size in bytes.
@@ -36,7 +36,7 @@ protected:
    * 
    * @param flavour The SHA flavour to set (SHA1, SHA-256, and so forth).
    */
-  void setFlavour(HashFlavour flavour) {
+  virtual void setFlavour(HashFlavour flavour) {
     this->flavour = flavour;
     
     // Delete previous sha and lastHash
@@ -70,7 +70,7 @@ protected:
   }
   
 public:
-  SHA(HashFlavour flavour = SHA1_FLAVOUR) : HashAlgorithm<T>() {
+  SHA(HashFlavour flavour = SHA1_FLAVOUR) {
     this->sha = nullptr;
     this->lastHash = nullptr;
     this->setFlavour(flavour);
@@ -79,9 +79,11 @@ public:
   ~SHA() {
     if (this->sha != nullptr) {
       delete this->sha;
+      this->sha = nullptr;
     }
     if (this->lastHash != nullptr) {
       delete this->lastHash;
+      this->lastHash = nullptr;
     }
   }
   
@@ -90,7 +92,7 @@ public:
    * @warning This is the digest size, not the size of its string representation.
    * For example, SHA1 use a size of 20 bytes, but its common string representation makes use of 40 bytes, because the digest uses only 4 bits for the alphanumeric characters.
    */
-  size_t hashSize() const {
+  virtual size_t hashSize() const {
     return this->size;
   }
 };

@@ -34,24 +34,21 @@ NTL::ZZ ZZpPRF::getModulo() const {
   return this->modulo;
 }
 //-----------------------------------------------------------------------------
-  
-/**
- * Generate a key with a specific index
- * 
- * @param index the index-th key
- */
+
 NTL::ZZ_p ZZpPRF::randomSeed() {
   NTL::ZZ_p p;
   conv(p, prf.randomSeed());
   return p;
 }
 //-----------------------------------------------------------------------------
-  
-/**
- * Generate a key with a specific index
- * 
- * @param index the index-th key
- */
+
+NTL::ZZ_p ZZpPRF::defaultSeed() {
+  NTL::ZZ_p p;
+  conv(p, 1);
+  return p;
+}
+//-----------------------------------------------------------------------------
+
 NTL::ZZ_p ZZpPRF::generate(const NTL::ZZ_p seed, const size_t index, const size_t bits) {
   NTL::ZZ_p p;
   NTL::ZZ g;

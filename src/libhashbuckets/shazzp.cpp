@@ -7,8 +7,9 @@
 #include "shazzp.h"
 //-----------------------------------------------------------------------------
 
-SHAZZp::SHAZZp(HashFlavour flavour) : SHA<NTL::ZZ_p>(flavour) {}
-SHAZZp::~SHAZZp() {}
+SHAZZp::SHAZZp(HashFlavour flavour) : SHA<NTL::ZZ_p>(flavour) {
+  
+}
 //-----------------------------------------------------------------------------
 
 byte* SHAZZp::hash(const NTL::ZZ_p n, const size_t len) {
