@@ -44,7 +44,8 @@ NTL::ZZ ZZPRF::defaultSeed() {
 NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bits) {
   NTL::ZZ z;
   byte *digest;
-  size_t k, n, r, len;
+  size_t k, n, r, rbits, len;
+  byte *digerible;
   
   if (bits == 0) {
     int rnd;
@@ -84,17 +85,25 @@ NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bit
   
   r = n;
   k = 0;
-  digest = hashInput;
+  digerible = hashInput;
   do {
-    digest = this->hashAlgorithm.hash(hashInput, len);
+    digest = this->hashAlgorithm.hash(digerible, len);
     
     k = (r < this->hashAlgorithm.hashSize()) ? r : this->hashAlgorithm.hashSize();
     std::memcpy(gen + n - r, digest, k);
     r -= k;
     
-    hashInput = digest;
+    digerible = digest;
     len = this->hashAlgorithm.hashSize();
   } while (r > 0);
+  
+  // Cut bits
+  rbits = n*8 - bits;
+//   std::cerr << (int) (gen[0]) << " -> ";
+//   gen[0] = (gen[0] << rbits) >> rbits; // This does not work --- bug?
+  gen[0] = gen[0] << rbits;
+  gen[0] = gen[0] >> rbits;
+//   std::cerr << (int) (gen[0]) << std::endl;
   
   NTL::ZZFromBytes(z, gen, n);
   
