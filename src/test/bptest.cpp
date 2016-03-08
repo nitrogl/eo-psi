@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   std::string pstr = DEFAULT_P;
   unsigned int padsize;
   ZZpPRF *zzpprf;
-  NTL::ZZ_p zzpSeed;
+  NTL::ZZ_p *zzpSeed = nullptr;
   NTL::ZZ_p *z = nullptr;
   NTL::ZZ p, tmpZ;
   NTL::ZZ_pX *polynomials = nullptr;
@@ -159,6 +159,7 @@ int main(int argc, char **argv) {
     zzpprf = new ZZpPRF(p);
     threads = new std::thread[nThreads];
     cumulSplit = new size_t[nThreads + 1];
+    zzpSeed = new NTL::ZZ_p();
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
     exit(2);
@@ -205,7 +206,7 @@ int main(int argc, char **argv) {
   // Fill empty cells of the hash table
   std::cout << "Concealing the hash table (filling empty cells)... ";
   std::cout.flush();
-  conv(zzpSeed, 0);
+  conv(*zzpSeed, 0);
   benchmark.step();
   hashBuckets->conceal(*zzpprf);
   benchmark.step();
@@ -227,7 +228,7 @@ int main(int argc, char **argv) {
   unknowns.SetLength(2*maxLoad + 1);
   benchmark.step();
   for (size_t j = 0; j < 2*maxLoad + 1; j++) {
-    append(unknowns, zzpprf->generate(zzpSeed, j));
+    append(unknowns, zzpprf->generate(*zzpSeed, j));
   }
   benchmark.step();
   std::cout << "done. " << std::endl;
@@ -281,11 +282,11 @@ int main(int argc, char **argv) {
   std::cout << "Blinding evaluations... ";
   std::cout.flush();
   benchmark.step();
-  conv(zzpSeed, NTL::ZZFromBytes((byte *) "Topsy Kretts", 12));
+  conv(*zzpSeed, NTL::ZZFromBytes((byte *) "Topsy Kretts", 12));
   index = 0;
   for (size_t j = 0; j < length; j++) {
     for (size_t i = 0; i < 2*maxLoad + 1; i++) {
-      evaluations[j][i] = evaluations[j][i] + zzpprf->generate(zzpSeed, index++);
+      evaluations[j][i] = evaluations[j][i] + zzpprf->generate(*zzpSeed, index++);
     }
   }
   benchmark.stop();
