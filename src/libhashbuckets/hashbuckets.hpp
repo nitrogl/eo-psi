@@ -12,7 +12,6 @@
 #include "hashtable.hpp"
 
 #include "markedvector.hpp"
-#include "randgen.hpp"
 #include "strint.h"
 #include "prf.hpp"
 
@@ -126,6 +125,7 @@ template <typename T> void HashBuckets<T>::add(const T& element) throw (OutOfBou
   if (this->hashStrInt != nullptr) {
     this->hashStrInt->set(this->hashAlgorithm->hash(element), this->hashAlgorithm->hashSize());
     index = this->hashStrInt->rem(this->k);
+//     std::cerr << *this->hashStrInt << " mod " << this->k << " = " << index << std::endl;
     
     if (this->buckets[index].size() == this->maxLoad) {
       throw OutOfBoundException("HashBuckets<T>::addToBucket(). MarkedVector full.", OutOfBoundException::FATAL);
@@ -135,8 +135,8 @@ template <typename T> void HashBuckets<T>::add(const T& element) throw (OutOfBou
     std::cerr << "HashBuckets<T>::add()" << ". Element index completely invented (you did not set a hash algorithm)." << std::endl;
   }
     
-  //   if (index == 0)
-  //   std::cerr << "HashBuckets<T>::add()" << ". Index of " << element << " is " << index << "." << std::endl; // Debug purposes
+//     if (index == 0)
+//     std::cerr << "HashBuckets<T>::add()" << ". Index of " << element << " is " << index << "." << std::endl; // Debug purposes
     this->buckets[index].push_back(element);
 }
 //-----------------------------------------------------------------------------

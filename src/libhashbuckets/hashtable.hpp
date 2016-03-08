@@ -20,7 +20,8 @@
  *  - search (getBucket)
  * Deletion is not covered.
  */
-template <typename T, typename U> class HashTable
+template <typename T, typename U>
+class HashTable
 {
 protected:
   size_t n = 0;                              ///< The number of entries (size)
