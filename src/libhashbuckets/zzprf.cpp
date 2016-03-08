@@ -30,7 +30,9 @@ ZZPRF::~ZZPRF() {
 //-----------------------------------------------------------------------------
 
 NTL::ZZ ZZPRF::randomSeed() {
-  return NTL::RandomBits_ZZ(rand());
+  NTL::ZZ z;
+  conv(z, rand());
+  return z;
 }
 //-----------------------------------------------------------------------------
 
@@ -100,9 +102,10 @@ NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bit
   // Cut bits
   rbits = n*8 - bits;
 //   std::cerr << (int) (gen[0]) << " -> ";
-//   gen[0] = (gen[0] << rbits) >> rbits; // This does not work --- bug?
-  gen[0] = gen[0] << rbits;
-  gen[0] = gen[0] >> rbits;
+//   gen[n - 1] = (gen[n - 1] << rbits) >> rbits; // This does not work --- bug?
+  // [[]] the right order of these might be endian dependend
+  gen[n - 1] <<= rbits;
+  gen[n - 1] >>= rbits;
 //   std::cerr << (int) (gen[0]) << std::endl;
   
   NTL::ZZFromBytes(z, gen, n);
