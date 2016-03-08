@@ -19,7 +19,8 @@
  * Abstract template class to inherit in order to act as a hash algorithm.
  * The type of the elements which can be hashed is a generic type.
  */
-template <typename T> class HashAlgorithm
+template <typename T>
+class HashAlgorithm
 {
 public:
   virtual ~HashAlgorithm() {}
@@ -30,7 +31,7 @@ public:
    * @param n The value to hash.
    * @param len The length of the value to hash.
    */
-  virtual byte* hash(const T n, const size_t len = 0) = 0;
+  virtual byte* hash(T n, const size_t len = 0) = 0;
   
   /**
    * Get the hash size in bytes.

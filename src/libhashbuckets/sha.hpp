@@ -20,7 +20,8 @@
  * SHA hash algorithm of a generic type.
  * It relies on the correctness of the library CryptoPP.
  */
-template <typename T> class SHA: public HashAlgorithm<T>
+template <typename T>
+class SHA: public HashAlgorithm<T>
 {
 private:
   size_t size;                       ///< The hash size in bytes.
@@ -44,7 +45,7 @@ protected:
       delete this->sha;
     }
     if (this->lastHash != nullptr) {
-      delete this->lastHash;
+      delete [] this->lastHash;
     }
     
     try {
@@ -82,7 +83,7 @@ public:
       this->sha = nullptr;
     }
     if (this->lastHash != nullptr) {
-      delete this->lastHash;
+      delete [] this->lastHash;
       this->lastHash = nullptr;
     }
   }
@@ -94,6 +95,10 @@ public:
    */
   virtual size_t hashSize() const {
     return this->size;
+  }
+  
+  virtual std::string name() const {
+    return "SHA" + this->flavour;
   }
 };
 //-----------------------------------------------------------------------------

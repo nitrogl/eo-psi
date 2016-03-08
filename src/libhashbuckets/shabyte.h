@@ -14,14 +14,13 @@
 /**
  * SHA algorithm hashing strings
  */
-class SHAByteArray: public SHA<byte*>
+class SHAByteArray : public SHA<byte *>
 {
 public:
   SHAByteArray(HashFlavour flavour = SHA1_FLAVOUR);
   virtual ~SHAByteArray();
   
-  virtual byte* hash(const byte * str, const size_t len = 0);
-  virtual std::string name() const;
+  virtual byte* hash(byte * str, const size_t len = 0);
 };
 //-----------------------------------------------------------------------------
 

@@ -24,8 +24,7 @@ public:
   SHAString(HashFlavour flavour = SHA1_FLAVOUR);
   virtual ~SHAString();
   
-  virtual byte* hash(const std::string str, const size_t len = 0);
-  virtual std::string name() const;
+  virtual byte* hash(std::string str, const size_t len = 0);
 };
 //-----------------------------------------------------------------------------
 

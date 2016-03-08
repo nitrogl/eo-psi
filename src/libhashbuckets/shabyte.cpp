@@ -7,23 +7,16 @@
 #include "shabyte.h"
 //-----------------------------------------------------------------------------
 
-SHAByteArray::SHAByteArray(HashFlavour flavour) : SHA<byte *>(flavour) {
-  
-}
-// //-----------------------------------------------------------------------------
-// 
-SHAByteArray::~SHAByteArray() {
-  
-}
-// //-----------------------------------------------------------------------------
-
-byte* SHAByteArray::hash(const byte * str, const size_t len) {
-  this->sha->CalculateDigest(lastHash, str, len);
-  return this->lastHash;
+SHAByteArray::SHAByteArray(HashFlavour flavour) : SHA(flavour) {
 }
 //-----------------------------------------------------------------------------
 
-std::string SHAByteArray::name() const {
-  return "SHA" + this->flavour;
+SHAByteArray::~SHAByteArray() {
+}
+//-----------------------------------------------------------------------------
+
+byte* SHAByteArray::hash(byte * str, const size_t len) {
+  this->sha->CalculateDigest(this->lastHash, &(*str), len);
+  return this->lastHash;
 }
 //-----------------------------------------------------------------------------

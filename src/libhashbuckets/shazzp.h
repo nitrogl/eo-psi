@@ -30,8 +30,8 @@ public:
   SHAZZp(HashFlavour flavour = SHA1_FLAVOUR);
   virtual ~SHAZZp();
   
-  byte* hash(const NTL::ZZ_p str, const size_t len = 0);
-  std::string name() const;
+  virtual byte* hash(NTL::ZZ_p n, const size_t len = 0);
+  virtual std::string name() const;
 };
 //-----------------------------------------------------------------------------
 
