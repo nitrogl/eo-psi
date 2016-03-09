@@ -134,6 +134,7 @@ int main(int argc, char **argv) {
   if (nThreads == 0) {
     cores = std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1;
     nThreads = cores;
+    nThreads = 1; // [[REM]] Default to 1, due to old NTL being not thread safe
   }
   
   // Open file with numbers
