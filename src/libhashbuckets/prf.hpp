@@ -17,21 +17,31 @@
 /**
  * This class gives pseudo-random facilities.
  */
-template <typename T, typename U> class PseudoRandom
+template <typename T, typename U>
+class PseudoRandom
 {
 protected:
   SHAByteArray hashAlgorithm; ///< Hash algorithm
+  size_t autoIndex;
+  T *autoSeedPtr;
+  T autoSeed;
   
 public:
-  PseudoRandom() {};
-  virtual ~PseudoRandom() {};
+  PseudoRandom() {
+    this->autoIndex = 0;
+    this->autoSeedPtr = nullptr;
+  };
+  
+  virtual ~PseudoRandom() {
+    
+  };
   
   /**
-   * Generate a random element with seed, index of maximum length in bits
+   * Generate a random element with seed, index and maximum length in bits
    * 
    * @param seed the seed of the generation
    * @param index the index-th key
-   * @param bits the (maximum?) length of generation in bits
+   * @param bits (optional) the length of generation in bits
    */
   virtual U generate(const T seed, const size_t index, const size_t bits = 0) = 0;
   
@@ -47,14 +57,26 @@ public:
   virtual T defaultSeed() = 0;
   
   /**
-   * Generate a random element with seed, index of maximum length in bits.
+   * Generate a random element with index and maximum length in bits.
    * With automatic seed.
    * 
    * @param index the index-th key
-   * @param bits the (maximum?) length of generation in bits
+   * @param bits (optional) the length of generation in bits
    */
-  virtual U generate(const size_t& index, const size_t& bits = 0) {
-    return generate(defaultSeed(), index, bits);
+  virtual U generate(const size_t index, const size_t bits = 0) {
+    if (this->autoSeedPtr == nullptr) {
+      this->autoSeed = this->randomSeed();
+      this->autoSeedPtr = &this->autoSeed;
+    }
+    return generate(this->autoSeed, index, bits);
+  }
+  
+  
+  /**
+   * Generate a random element careless of seed, and other things.
+   */
+  virtual U generate() {
+    return generate(this->autoIndex++, 0);
   }
 };
 //-----------------------------------------------------------------------------

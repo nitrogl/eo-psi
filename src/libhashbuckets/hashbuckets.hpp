@@ -162,7 +162,7 @@ template <typename T> void HashBuckets<T>::conceal(PseudoRandom<T, T>& pr) {
     
     // Fill empty cells
     for (j = this->buckets[i].size(); j < maxLoad; j++) {
-      this->buckets[i].push_back(pr.generate(j));
+      this->buckets[i].push_back(pr.generate());
     }
   }
 }

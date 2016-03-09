@@ -26,7 +26,7 @@ protected:
   byte *gen;                  ///< Generated value buffer
   size_t genLength;           ///< Generated value buffer length
   byte *hashInput;            ///< Hash input buffer
-  size_t hashInputLength;     ///< Hash input buffer length
+  size_t hashInputSize;       ///< Hash input buffer (allocated) size
   
 public:
   ZZPRF();

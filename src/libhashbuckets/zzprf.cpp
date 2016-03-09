@@ -12,7 +12,7 @@
 //-----------------------------------------------------------------------------
 
 ZZPRF::ZZPRF() : PseudoRandom() {
-  hashInputLength = 0;
+  hashInputSize = 0;
   genLength = 0;
   gen = nullptr;
   hashInput = nullptr;
@@ -57,6 +57,7 @@ NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bit
     n = NTL::bytes(bits);
   }
   len = NTL::bytes(seed) + sizeof(size_t);
+  
   if (n > genLength) {
     delete [] gen;
     
@@ -69,17 +70,17 @@ NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bit
     
     genLength = n;
   }
-  if (len > hashInputLength) {
+  if (len > hashInputSize) {
     delete [] hashInput;
+    hashInputSize = len < this->hashAlgorithm.hashSize() ? this->hashAlgorithm.hashSize() : len;
     
     try {
-      hashInput = new byte[len];
+      hashInput = new byte[hashInputSize];
     } catch (std::bad_alloc&) {
       std::cerr << "generate(). Error allocating space." << std::endl;
       exit(2);
     }
     
-    hashInputLength = len;
   }
   
   NTL::BytesFromZZ(hashInput, seed, NTL::bytes(seed));
@@ -89,7 +90,9 @@ NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bit
   k = 0;
   digerible = hashInput;
   do {
+//     std::cerr << "-- digerible [" << *((size_t *) (digerible)) << "] of len " << len << std::endl;
     digest = this->hashAlgorithm.hash(digerible, len);
+//     std::cerr << "-- digest [" << *((size_t *) (digest)) << "]" << std::endl;
     
     k = (r < this->hashAlgorithm.hashSize()) ? r : this->hashAlgorithm.hashSize();
     std::memcpy(gen + n - r, digest, k);

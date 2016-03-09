@@ -16,7 +16,7 @@ SHAByteArray::~SHAByteArray() {
 //-----------------------------------------------------------------------------
 
 byte* SHAByteArray::hash(byte * str, const size_t len) {
-  this->sha->CalculateDigest(this->lastHash, &(*str), len);
+  this->sha->CalculateDigest(this->lastHash, str, len);
   return this->lastHash;
 }
 //-----------------------------------------------------------------------------
