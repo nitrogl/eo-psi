@@ -24,10 +24,10 @@ protected:
   NTL::ZZ modulo;
   
 public:
-  ZZpPRF(NTL::ZZ& modulo, ZZPRF* prf = nullptr);
+  ZZpPRF(NTL::ZZ modulo, ZZPRF* prf = nullptr);
   virtual ~ZZpPRF();
   
-  virtual void setModulo(NTL::ZZ& modulo);
+  virtual void setModulo(NTL::ZZ modulo);
   virtual NTL::ZZ getModulo() const;
   
   virtual NTL::ZZ_p generate(const NTL::ZZ_p seed, const size_t index, const size_t bits = 0);

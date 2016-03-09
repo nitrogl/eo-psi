@@ -48,7 +48,7 @@ NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
   }
 
   // Runtime check for deterministic randomness
-  conv(t, "12414253167056538805540298899677726815262421059586687136732923");
+  conv(t, "7817413366800309065086246963308251115099918315902103984340276");
   conv(p, t);
   if (unknowns[0] != p) {
     std::cout << "generateUnknowns(). Wrong randomness: Unexpected " << unknowns[0] << std::endl;

@@ -13,7 +13,7 @@
 #include "zzpprf.h"
 //-----------------------------------------------------------------------------
 
-ZZpPRF::ZZpPRF(NTL::ZZ& modulo, ZZPRF* prf) : PseudoRandom() {
+ZZpPRF::ZZpPRF(NTL::ZZ modulo, ZZPRF* prf) : PseudoRandom() {
   this->setModulo(modulo);
   if (prf != nullptr) {
     this->prf = *prf;
@@ -25,7 +25,7 @@ ZZpPRF::~ZZpPRF() {
 }
 //-----------------------------------------------------------------------------
 
-void ZZpPRF::setModulo(NTL::ZZ& modulo) {
+void ZZpPRF::setModulo(NTL::ZZ modulo) {
   this->modulo = modulo;
 }
 //-----------------------------------------------------------------------------
@@ -54,12 +54,13 @@ NTL::ZZ_p ZZpPRF::generate(const NTL::ZZ_p seed, const size_t index, const size_
   NTL::ZZ g;
   size_t genBits;
   
-  genBits = ((size_t) NTL::NumBits(this->modulo) < bits) ? NTL::NumBits(this->modulo) : bits;
+  genBits = ((size_t) NTL::NumBits(this->modulo) < bits || bits == 0) ? NTL::NumBits(this->modulo) : bits;
   if (genBits < bits) {
     std::cout << "generate(). Warning: the number of bits you need is beyond the field size capabilities." << std::endl;
   }
   
-  while ((g = prf.generate(rep(seed), index, genBits)) >= this->modulo);
+//   while ((g = prf.generate(rep(seed), index, genBits)) >= this->modulo);
+  g = prf.generate(rep(seed), index, genBits);
   conv(p, g);
   return p;
 }
