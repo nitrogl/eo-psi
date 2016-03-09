@@ -19,15 +19,16 @@ class EOPSIClient;
 class EOPSIServer : public EOPSIParty {
 protected:
   std::map<std::string, EOPSIMessage*> storedData;
+  EOPSIMessage msgToClient;
   
   virtual NTL::vec_ZZ_p * intersectionOutput(const std::string id, const std::string idOther, const NTL::ZZ tmpKey);
   
 public:
-  EOPSIServer(const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id = "");
+  EOPSIServer(const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id = "");
   virtual ~EOPSIServer();
   
-  virtual void receive(EOPSIMessage& msg) throw (ProtocolException);
-  virtual bool isAuthorised(const EOPSIMessage& msg) const;
+  virtual void receive(EOPSIMessage* msg) throw (ProtocolException);
+  virtual bool isAuthorised(const EOPSIMessage* msg) const;
 };
 //-----------------------------------------------------------------------------
 

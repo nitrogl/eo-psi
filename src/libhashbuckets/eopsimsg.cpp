@@ -17,7 +17,7 @@ EOPSIMessage::~EOPSIMessage() {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIMessage::setPartyId(const std::string& id) {
+void EOPSIMessage::setPartyId(const std::string id) {
   this->partyId = id;
 }
 //-----------------------------------------------------------------------------

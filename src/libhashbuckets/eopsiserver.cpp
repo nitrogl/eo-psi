@@ -10,7 +10,7 @@
 #include "eopsiserver.h"
 //-----------------------------------------------------------------------------
 
-EOPSIServer::EOPSIServer(const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id) : EOPSIParty(EOPSI_PARTY_SERVER, fieldsize, length, height, degree, id) {
+EOPSIServer::EOPSIServer(const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id) : EOPSIParty(EOPSI_PARTY_SERVER, fieldsize, length, height, degree, id) {
   
 }
 //-----------------------------------------------------------------------------
@@ -20,58 +20,58 @@ EOPSIServer::~EOPSIServer() {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
+void EOPSIServer::receive(EOPSIMessage* msg) throw (ProtocolException) {
   EOPSIParty *sender;
   std::string msgClaimedId;
   std::string partnerId;
   NTL::ZZ tmpKey;
   byte *tmpKeyBytes;
-  EOPSIMessage msgToClient;
   NTL::vec_ZZ_p *t;
   
-  if (msg.getPartyId() == this->id) {
+  if (msg->getPartyId() == this->id) {
     throw ProtocolException("Self-messaging is not allowed in EOPSI protocol");
   }
   
   // Is the sender authorised?
   if (!isAuthorised(msg)) {
-    throw ProtocolException("Party \"" + msg.getPartyId() + "\" is not authorised by " + this->getId() + ".");
+    throw ProtocolException("Party \"" + msg->getPartyId() + "\" is not authorised by " + this->getId() + ".");
   }
   
   // Get the sender
-  sender = getPartyById(msg.getPartyId());
+  sender = getPartyById(msg->getPartyId());
   
-  switch(msg.getType()) {
+  switch(msg->getType()) {
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
       if (sender->getType() == EOPSI_PARTY_SERVER) {
         throw ProtocolException("Outsourcing computation requests between servers is not (yet) supported");
       }
       
       // Check sender and message content
-      msgClaimedId = (char *) msg.getData();
+      msgClaimedId = (char *) msg->getData();
       if (msgClaimedId != sender->getId()) {
         throw ProtocolException("Id mismatch between sender and message data");
       }
-      partnerId = &((char *) msg.getData())[msgClaimedId.length() + 1];
+      partnerId = &((char *) msg->getData())[msgClaimedId.length() + 1];
       
       // Prepare message for the partner client
-      tmpKeyBytes = (&((byte *) msg.getData())[msgClaimedId.length() + 1 + partnerId.length() + 1]);
+      tmpKeyBytes = (&((byte *) msg->getData())[msgClaimedId.length() + 1 + partnerId.length() + 1]);
       tmpKey = NTL::ZZFromBytes(tmpKeyBytes, NTL::bytes(DEFAULT_KEY_BITSIZE));
+      std::cout << "not fully implemented. I, " << id << ", received key \"" << tmpKey << "\" from " << sender->getId() << std::endl;
+      
       t = intersectionOutput(sender->getId(), partnerId, tmpKey);
       msgToClient.setData((void *) t, 1);
       msgToClient.setType(EOPSI_MESSAGE_OUTPUT_COMPUTATION);
       msgToClient.setPartyId(this->getId());
-      this->send(*getPartyById(partnerId), msgToClient);
       
-      std::cout << "not fully implemented. I, " << id << ", received key \"" << tmpKey << "\" from " << sender->getId() << std::endl;
+      this->send(*getPartyById(partnerId), &msgToClient);
       break;
       
     case EOPSI_MESSAGE_OUTSOURCING_DATA:
       if (sender->getType() == EOPSI_PARTY_SERVER) {
         throw ProtocolException("Outsourcing data between servers is not (yet) supported");
       }
-      storedData[sender->getId()] = &msg;
-      std::cout << id << ". Data from " << sender->getId() << " stored (size " << msg.length() << ")." << std::endl;
+      this->storedData[sender->getId()] = msg;
+      std::cout << id << ". Data from " << sender->getId() << " stored (size " << msg->length() << ")." << std::endl;
       break;
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
@@ -87,15 +87,20 @@ void EOPSIServer::receive(EOPSIMessage& msg) throw (ProtocolException) {
 }
 //-----------------------------------------------------------------------------
 
-bool EOPSIServer::isAuthorised(const EOPSIMessage& msg) const {
+bool EOPSIServer::isAuthorised(const EOPSIMessage* msg) const {
   EOPSIParty *sender;
   
-  sender = getPartyById(msg.getPartyId());
+  if (msg == nullptr) {
+    std::cerr << "isAuthorised(). WARNING: Null pointer as message has passed." << std::endl;
+    return false;
+  }
+  
+  sender = getPartyById(msg->getPartyId());
   if (sender == nullptr || !hasAuthenticated(*sender)) {
     return false;
   }
   
-  switch(msg.getType()) {
+  switch(msg->getType()) {
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
     case EOPSI_MESSAGE_OUTSOURCING_DATA:
       return (sender->getType() == EOPSI_PARTY_SERVER) || (sender->getType() == EOPSI_PARTY_CLIENT);

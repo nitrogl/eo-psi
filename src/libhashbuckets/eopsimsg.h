@@ -40,7 +40,7 @@ public:
   EOPSIMessage(void* data = nullptr, const size_t length = 0, const EOPSIMessageType type = EOPSI_MESSAGE_UNKNOWN);
   virtual ~EOPSIMessage();
   
-  virtual void setPartyId(const std::string& id);
+  virtual void setPartyId(const std::string id);
   virtual std::string getPartyId() const;
   virtual void setType(const EOPSIMessageType type);
   virtual EOPSIMessageType getType() const;

@@ -47,19 +47,19 @@ protected:
   size_t length;
   size_t height;
   
-  virtual EOPSIParty* getPartyById(const std::string& id) const;
+  virtual EOPSIParty* getPartyById(const std::string id) const;
   virtual NTL::vec_ZZ_p getUnknowns(const size_t n = 0);
   virtual void genOmega(NTL::ZZ_pX& omega, const size_t degree, const NTL::ZZ seed, const size_t index);
-  virtual NTL::vec_ZZ_p * computeTOrQ(const NTL::ZZ& tmpKey, NTL::vec_ZZ_p *matrixA, NTL::vec_ZZ_p *matrixB);
+  virtual NTL::vec_ZZ_p * computeTOrQ(const NTL::ZZ tmpKey, NTL::vec_ZZ_p *matrixA, NTL::vec_ZZ_p *matrixB);
   
 public:
-  EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id = "");
+  EOPSIParty(const EOPSIPartyType type, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id = "");
   virtual ~EOPSIParty();
   
-  virtual void setId(const std::string& id);
+  virtual void setId(const std::string id);
   virtual std::string getId() const;
   
-  void setFieldsize(const NTL::ZZ& fieldsize);
+  void setFieldsize(const NTL::ZZ fieldsize);
   virtual NTL::ZZ getFieldsize() const;
   
   void setDegree(const size_t degree);
@@ -68,13 +68,13 @@ public:
   virtual void setType(const EOPSIPartyType type);
   virtual EOPSIPartyType getType() const;
   
-  virtual void send(EOPSIParty& party, EOPSIMessage& msg) throw (ProtocolException);
-  virtual void receive(EOPSIMessage& msg) throw (ProtocolException) = 0;
+  virtual void send(EOPSIParty& party, EOPSIMessage* msg) throw (ProtocolException);
+  virtual void receive(EOPSIMessage* msg) throw (ProtocolException) = 0;
   
   virtual void authenticate(EOPSIParty& party);
-  virtual bool hasAuthenticated(const std::string& id) const;
+  virtual bool hasAuthenticated(const std::string id) const;
   virtual bool hasAuthenticated(const EOPSIParty& party) const;
-  virtual bool isAuthorised(const EOPSIMessage& msg) const = 0;
+  virtual bool isAuthorised(const EOPSIMessage* msg) const = 0;
 };
 //-----------------------------------------------------------------------------
 

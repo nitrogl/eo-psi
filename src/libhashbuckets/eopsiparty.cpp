@@ -9,7 +9,7 @@
 #include "shastr.h"
 //-----------------------------------------------------------------------------
   
-EOPSIParty::EOPSIParty(const EOPSIPartyType type, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id) {
+EOPSIParty::EOPSIParty(const EOPSIPartyType type, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id) {
   this->setId(id);
   this->setType(type);
   this->setFieldsize(fieldsize);
@@ -24,7 +24,7 @@ EOPSIParty::~EOPSIParty() {
 }
 //-----------------------------------------------------------------------------
   
-EOPSIParty* EOPSIParty::getPartyById(const std::string& id) const {
+EOPSIParty* EOPSIParty::getPartyById(const std::string id) const {
   std::map<std::string, EOPSIParty*>::const_iterator i = parties.find(id);
   if (i != parties.end()) {
     return i->second;
@@ -85,7 +85,7 @@ void EOPSIParty::genOmega(NTL::ZZ_pX& omega, const size_t degree, const NTL::ZZ 
 }
 //-----------------------------------------------------------------------------
 
-NTL::vec_ZZ_p * EOPSIParty::computeTOrQ(const NTL::ZZ& tmpKey, NTL::vec_ZZ_p *matrixA, NTL::vec_ZZ_p *matrixB) {
+NTL::vec_ZZ_p * EOPSIParty::computeTOrQ(const NTL::ZZ tmpKey, NTL::vec_ZZ_p *matrixA, NTL::vec_ZZ_p *matrixB) {
   size_t aIdx, omegaAIdx, omegaBIdx;
   NTL::ZZ_pX omegaA, omegaB;
   NTL::vec_ZZ_p * tq;
@@ -107,6 +107,7 @@ NTL::vec_ZZ_p * EOPSIParty::computeTOrQ(const NTL::ZZ& tmpKey, NTL::vec_ZZ_p *ma
   aIdx = 0;
   omegaAIdx = this->length * this->height;
   omegaBIdx = omegaAIdx + this->length * this->degree;
+  std::cout << "tmpKey: \"" << tmpKey << "\"" << std::endl;
   for (size_t j = 0; j < this->length; j++) {
     //gen omegas with degree
     genOmega(omegaA, this->degree, tmpKey, omegaAIdx + this->degree*j);
@@ -122,7 +123,7 @@ NTL::vec_ZZ_p * EOPSIParty::computeTOrQ(const NTL::ZZ& tmpKey, NTL::vec_ZZ_p *ma
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIParty::setId(const std::string& id) {
+void EOPSIParty::setId(const std::string id) {
   this->id = id;
 }
 //-----------------------------------------------------------------------------
@@ -132,7 +133,7 @@ std::string EOPSIParty::getId() const {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIParty::setFieldsize(const NTL::ZZ& fieldsize) {
+void EOPSIParty::setFieldsize(const NTL::ZZ fieldsize) {
   this->fieldsize = fieldsize;
   this->fieldbitsize = NTL::NumBits(this->fieldsize);
 }
@@ -163,7 +164,11 @@ EOPSIPartyType EOPSIParty::getType() const {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIParty::send(EOPSIParty& party, EOPSIMessage& msg) throw (ProtocolException) {
+void EOPSIParty::send(EOPSIParty& party, EOPSIMessage* msg) throw (ProtocolException) {
+  if (msg == nullptr) {
+    throw ProtocolException("sending null messages is not allowed.");
+  }
+  
   try {
     party.receive(msg);
   } catch (ProtocolException& e) {
@@ -179,7 +184,7 @@ void EOPSIParty::authenticate(EOPSIParty& party) {
 }
 //-----------------------------------------------------------------------------
 
-bool EOPSIParty::hasAuthenticated(const std::string& id) const {
+bool EOPSIParty::hasAuthenticated(const std::string id) const {
   return (getPartyById(id) != nullptr);
 }
 //-----------------------------------------------------------------------------

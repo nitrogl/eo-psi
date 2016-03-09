@@ -28,18 +28,19 @@ protected:
   HashBuckets<NTL::ZZ_p> *hashBuckets;
   NTL::vec_ZZ_p *q, *t;
   ZZpPRF *zzpprf;
+  EOPSIMessage msgToCloud, msgToClient;
   
   virtual void blind(unsigned int nThreads = 0);
-  virtual NTL::vec_ZZ_p * delegationOutput(const NTL::ZZ& secretOtherParty, const NTL::ZZ& tmpKey);
+  virtual NTL::vec_ZZ_p * delegationOutput(const NTL::ZZ secretOtherParty, const NTL::ZZ tmpKey);
   virtual NTL::vec_ZZ_p intersect(const size_t length, const size_t height);
   
 public:
-  EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id = "", const NTL::ZZ secret = NTL::ZZFromBytes((byte *)"Topsy Kretts", 12L));
-  EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id = "", const byte *secret = nullptr, const size_t secretLen = 0);
+  EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id = "", const NTL::ZZ secret = NTL::ZZFromBytes((byte *)"Topsy Kretts", 12L));
+  EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id = "", const byte *secret = nullptr, const size_t secretLen = 0);
   virtual ~EOPSIClient();
   
-  virtual void receive(EOPSIMessage& msg) throw (ProtocolException);
-  virtual bool isAuthorised(const EOPSIMessage& msg) const;
+  virtual void receive(EOPSIMessage* msg) throw (ProtocolException);
+  virtual bool isAuthorised(const EOPSIMessage* msg) const;
   
   virtual void setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads = 0);
   virtual NTL::ZZ * getRawData() const;
@@ -47,7 +48,7 @@ public:
   virtual NTL::vec_ZZ_p * getBlindedData() const;
   virtual size_t getBlindedDataSize() const;
   
-  virtual void setSecret(const NTL::ZZ& secret);
+  virtual void setSecret(const NTL::ZZ secret);
   virtual NTL::ZZ getSecret() const;
 };
 //-----------------------------------------------------------------------------

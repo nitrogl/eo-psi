@@ -28,7 +28,7 @@ static void polEval(NTL::vec_ZZ_p *evaluations, NTL::ZZ_pX *polynomials, NTL::ve
 }
 //-----------------------------------------------------------------------------
 
-EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id, const NTL::ZZ secret) : EOPSIParty(EOPSI_PARTY_CLIENT, fieldsize, length, height, degree, id) {
+EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id, const NTL::ZZ secret) : EOPSIParty(EOPSI_PARTY_CLIENT, fieldsize, length, height, degree, id) {
   this->rawData = nullptr;
   this->rawDataSize = 0;
   this->blindedData = nullptr;
@@ -36,46 +36,53 @@ EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fie
   this->setSecret(secret);
   this->q = nullptr;
   this->t = nullptr;
+  
+  try {
+    this->zzpprf = new ZZpPRF(this->fieldsize, &this->zzprf);
+  } catch(std::bad_alloc&) {
+    std::cerr << "EOPSIClient(). Error allocating memory." << std::endl;
+    exit(2);
+  }
 }
 //-----------------------------------------------------------------------------
 
-EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ& fieldsize, const size_t length, const size_t height, const size_t degree, const std::string& id, const byte *secret, const size_t secretLen) : EOPSIClient(hashBuckets, fieldsize, length, height, degree, id, NTL::ZZFromBytes(secret, secretLen)) {
+EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id, const byte *secret, const size_t secretLen) : EOPSIClient(hashBuckets, fieldsize, length, height, degree, id, NTL::ZZFromBytes(secret, secretLen)) {
 }
 //-----------------------------------------------------------------------------
 
 EOPSIClient::~EOPSIClient() {
+  delete this->zzpprf;
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
+void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
   EOPSIParty *sender, *cloud;
   std::string msgClaimedId;
   NTL::ZZ otherSecret;
   byte *otherSecretBytes;
   NTL::ZZ tmpKey;
-  byte *tmpKeyBytes = nullptr;
+  byte *tmpKeyBytes;
   byte *data = nullptr;
-  size_t dataLen, i;
+  size_t dataLen, tmpKeyByteSize, i;
   std::map<std::string, EOPSIParty*>::const_iterator mi;
-  EOPSIMessage msgToCloud, msgToClient;
   NTL::vec_ZZ_p setcap;
   
-  if (msg.getPartyId() == this->id) {
+  if (msg->getPartyId() == this->id) {
     throw ProtocolException("Self-messaging is not allowed in EO-PSI protocol");
   }
   
   // Is the sender authorised?
   if (!isAuthorised(msg)) {
-    throw ProtocolException("Party \"" + msg.getPartyId() + "\" is not authorised by " + this->getId() + ".");
+    throw ProtocolException("Party \"" + msg->getPartyId() + "\" is not authorised by " + this->getId() + ".");
   }
   
   // Get the sender
-  sender = getPartyById(msg.getPartyId());
+  sender = getPartyById(msg->getPartyId());
   
-  switch(msg.getType()) {
+  switch(msg->getType()) {
     case EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST:
       // Check sender and message content
-      msgClaimedId = (char *) msg.getData();
+      msgClaimedId = (char *) msg->getData();
       if (msgClaimedId != sender->getId()) {
         throw ProtocolException("Id mismatch between sender and message data");
       }
@@ -84,14 +91,17 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
        * 1. Send outsourcing request to the cloud
        */
       // Prepare message for the Cloud
+      tmpKeyByteSize = NTL::bytes(DEFAULT_KEY_BITSIZE);
       do {
         tmpKey = NTL::RandomBits_ZZ(DEFAULT_KEY_BITSIZE);
       } while (NTL::NumBits(tmpKey) < DEFAULT_KEY_BITSIZE);
-      tmpKey = NTL::ZZFromBytes((byte*) "1281529826382193", 16L); // TODO: [[REMOVE ME]] - just useful to get always the same result
+      tmpKey = NTL::ZZFromBytes((byte*) "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\xFF", 16L); // TODO: [[REMOVE ME]] - just useful to get always the same result
       std::cerr << "tmpKey: " << tmpKey << std::endl;
-      dataLen = this->getId().length() + 1 + sender->getId().length() + 1 + NTL::bytes(DEFAULT_KEY_BITSIZE) + 1;
+      dataLen = this->getId().length() + 1 + sender->getId().length() + 1 + tmpKeyByteSize + 1;
+      std::cerr << "dataLen: " << dataLen << std::endl;
       
       try {
+        tmpKeyBytes = new byte[tmpKeyByteSize];
         data = new byte[dataLen];
       } catch (std::bad_alloc &) {
         std::cerr << "receive(). Error allocating memory." << std::endl;
@@ -100,8 +110,8 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       
       strcpy((char *) data, &this->getId()[0]);
       strcpy((char *) (data + this->getId().length() + 1), &sender->getId()[0]);
-      NTL::BytesFromZZ(tmpKeyBytes, tmpKey, NTL::bytes(DEFAULT_KEY_BITSIZE));
-      for (i = 0; i < NTL::bytes(DEFAULT_KEY_BITSIZE); i++) {
+      NTL::BytesFromZZ(tmpKeyBytes, tmpKey, tmpKeyByteSize);
+      for (i = 0; i < tmpKeyByteSize; i++) {
         data[this->getId().length() + 1 + sender->getId().length() + 1 + i] = tmpKeyBytes[i];
       }
       data[dataLen - 1] = '\0'; // Correctly end data
@@ -124,14 +134,14 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
       }
       
       // Reception feedback
-      otherSecretBytes = &((byte *) msg.getData())[msgClaimedId.length() + 1];
+      otherSecretBytes = &((byte *) msg->getData())[msgClaimedId.length() + 1];
       otherSecret = NTL::ZZFromBytes(otherSecretBytes, 3);
       std::cout << id << ". Received \"" << otherSecret << "\" from " << sender->getId() << "." << std::endl;
       
       // Send the message to cloud
+      std::cout << this->getId() << ". Sending cloud computation request with key \"" << tmpKey << "\" to " << cloud->getId() << "." << std::endl;
       try {
-        std::cout << this->getId() << ". Sending cloud computation request with key \"" << (&data[this->getId().length() + 1 + sender->getId().length() + 1]) << "\" to " << cloud->getId() << "." << std::endl;
-        this->send(*cloud, msgToCloud);
+        this->send(*cloud, &msgToCloud);
       } catch (ProtocolException &e) {
         std::cerr << "receive(). " << e.what() << std::endl;
         exit(2);
@@ -141,21 +151,22 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
        * 2. Send q to client
        */
       q = delegationOutput(otherSecret, tmpKey);
+      exit(32);
       msgToClient.setData((void *) q, 1);
       msgToClient.setType(EOPSI_MESSAGE_POLYNOMIAL);
       msgToClient.setPartyId(this->getId());
-      this->send(*sender, msgToClient);
+      this->send(*sender, &msgToClient);
       break;
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
-      t = (NTL::vec_ZZ_p *) msg.getData();
+      t = (NTL::vec_ZZ_p *) msg->getData();
       // Reception feedback
       std::cout << "not fully implemented. I, " << id << ", received \"" << t[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
       setcap = intersect(this->length, this->height);
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
-      q = (NTL::vec_ZZ_p *) msg.getData();
+      q = (NTL::vec_ZZ_p *) msg->getData();
       // Reception feedback
       std::cout << "not fully implemented. I, " << id << ", received \"" << q[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
       setcap = intersect(this->length, this->height);
@@ -171,15 +182,20 @@ void EOPSIClient::receive(EOPSIMessage& msg) throw (ProtocolException) {
 }
 //-----------------------------------------------------------------------------
 
-bool EOPSIClient::isAuthorised(const EOPSIMessage& msg) const {
+bool EOPSIClient::isAuthorised(const EOPSIMessage *msg) const {
   EOPSIParty *sender;
   
-  sender = getPartyById(msg.getPartyId());
+  if (msg == nullptr) {
+    std::cerr << "isAuthorised(). WARNING: Null pointer as message has passed." << std::endl;
+    return false;
+  }
+  
+  sender = getPartyById(msg->getPartyId());
   if (!hasAuthenticated(*sender)) {
     return false;
   }
   
-  switch(msg.getType()) {
+  switch(msg->getType()) {
     case EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST:
     case EOPSI_MESSAGE_POLYNOMIAL:
       return sender->getType() == EOPSI_PARTY_CLIENT;
@@ -231,7 +247,7 @@ size_t EOPSIClient::getBlindedDataSize() const {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIClient::setSecret(const NTL::ZZ& secret) {
+void EOPSIClient::setSecret(const NTL::ZZ secret) {
   this->secret = secret;
 }
 //-----------------------------------------------------------------------------
@@ -276,7 +292,6 @@ void EOPSIClient::blind(unsigned int nThreads) {
     this->blindedData = new NTL::vec_ZZ_p[this->length];
     threads = new std::thread[nThreads];
     cumulSplit = new size_t[nThreads + 1];
-    zzpprf = new ZZpPRF(this->fieldsize, &this->zzprf);
   } catch (std::bad_alloc &) {
     std::cerr << "blind(). Error allocating memory." << std::endl;
     exit(2);
@@ -387,7 +402,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
 // }
 //-----------------------------------------------------------------------------
 
-NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ& secretOtherParty, const NTL::ZZ& tmpKey) {
+NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, const NTL::ZZ tmpKey) {
   NTL::ZZ_p tmp;
   NTL::vec_ZZ_p *dataA, *dataB;
   size_t index;
@@ -407,10 +422,15 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ& secretOtherParty, c
   
   conv(zzpSeed, this->secret);
   conv(zzpSeedOther, secretOtherParty);
-  index = 0;
+  std::cout << "seed: " << rep(zzpSeed) << std::endl;
+  std::cout << "other seed: " << zzpSeedOther << std::endl;
+  std::cout << "random: " << zzprf.generate(rep(zzpSeed), 0, 16) << std::endl;
+  index = 100000;
   for (size_t j = 0; j < this->length; j++) {
     for (size_t i = 0; i < this->height; i++) {
-      dataA[j][i] = zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
+//       dataA[j][i] = zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
+      zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
+      exit(32);
       dataB[j][i] = zzpprf->generate(zzpSeedOther, index++, this->fieldbitsize);
     }
   }
