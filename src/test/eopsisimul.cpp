@@ -237,8 +237,8 @@ int main(int argc, char **argv) {
     hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
     hashBucketsAlice = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
     hashBucketsBob = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
-    alice = new EOPSIClient(*hashBucketsAlice, fieldsize, length, maxLoad, degree, "Alice", (byte *) "23", 2);
-    bob = new EOPSIClient(*hashBucketsBob, fieldsize, length, maxLoad, degree, "Bob", (byte *) "Jim", 3);
+    alice = new EOPSIClient(*hashBucketsAlice, fieldsize, length, maxLoad, degree, "Alice", (byte *) "\0\0\x02", 3);
+    bob = new EOPSIClient(*hashBucketsBob, fieldsize, length, maxLoad, degree, "Bob", (byte *) "\0\0\x01", 3);
     cloud = new EOPSIServer(fieldsize, length, maxLoad, degree, "Cloud");
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
@@ -264,8 +264,8 @@ int main(int argc, char **argv) {
   msgStoreDataAlice.setData(alice->getBlindedData(), alice->getBlindedDataSize());
   msgStoreDataBob.setData(bob->getBlindedData(), bob->getBlindedDataSize());
   try {
-    alice->send(*cloud, msgStoreDataAlice);
-    bob->send(*cloud, msgStoreDataBob);
+    alice->send(*cloud, &msgStoreDataAlice);
+    bob->send(*cloud, &msgStoreDataBob);
   } catch (ProtocolException &e) {
     std::cerr << argv[0] << ". " << e.what() << std::endl;
     exit(2);
@@ -294,8 +294,8 @@ int main(int argc, char **argv) {
     msgBobAlice.setData(data, dataLen);
     
     // Send the message
-    std::cout << bob->getId() << ". Sending client computation request with random string \"" << (&data[bob->getId().length() + 1]) << "\" to " << alice->getId() << "." << std::endl;
-    bob->send(*alice, msgBobAlice);
+    std::cout << bob->getId() << ". Sending client computation request to " << alice->getId() << "." << std::endl;
+    bob->send(*alice, &msgBobAlice);
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
     exit(1);
@@ -304,8 +304,8 @@ int main(int argc, char **argv) {
     exit(2);
   }
   
-  delete [] dataAlice;
-  delete [] dataBob;
+//   delete [] dataAlice;
+//   delete [] dataBob;
 //   delete alice;
 //   delete bob;
 //   delete cloud;
