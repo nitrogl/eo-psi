@@ -16,6 +16,10 @@ SHAByteArray::~SHAByteArray() {
 //-----------------------------------------------------------------------------
 
 byte* SHAByteArray::hash(byte * str, const size_t len) {
+  if (str == nullptr || len == 0) {
+    return nullptr;
+  }
+  
   this->sha->CalculateDigest(this->lastHash, str, len);
   return this->lastHash;
 }

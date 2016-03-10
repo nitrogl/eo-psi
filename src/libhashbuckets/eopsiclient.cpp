@@ -38,7 +38,7 @@ EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fiel
   this->t = nullptr;
   
   try {
-    this->zzpprf = new ZZpPRF(this->fieldsize, &this->zzprf);
+    this->zzpprf = new ZZpPRF(this->fieldsize);
   } catch(std::bad_alloc&) {
     std::cerr << "EOPSIClient(). Error allocating memory." << std::endl;
     exit(2);
@@ -151,7 +151,6 @@ void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
        * 2. Send q to client
        */
       q = delegationOutput(otherSecret, tmpKey);
-      exit(32);
       msgToClient.setData((void *) q, 1);
       msgToClient.setType(EOPSI_MESSAGE_POLYNOMIAL);
       msgToClient.setPartyId(this->getId());
@@ -393,13 +392,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   delete [] polynomials;
   delete [] threads;
   delete [] cumulSplit;
-  delete zzpprf;
 }
-//-----------------------------------------------------------------------------
-
-// void EOPSIClient::test_blinded() {
-//   this->blindedData
-// }
 //-----------------------------------------------------------------------------
 
 NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, const NTL::ZZ tmpKey) {
@@ -422,15 +415,10 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, co
   
   conv(zzpSeed, this->secret);
   conv(zzpSeedOther, secretOtherParty);
-  std::cout << "seed: " << rep(zzpSeed) << std::endl;
-  std::cout << "other seed: " << zzpSeedOther << std::endl;
-  std::cout << "random: " << zzprf.generate(rep(zzpSeed), 0, 16) << std::endl;
-  index = 100000;
+  index = 0;
   for (size_t j = 0; j < this->length; j++) {
     for (size_t i = 0; i < this->height; i++) {
-//       dataA[j][i] = zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
-      zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
-      exit(32);
+      dataA[j][i] = zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
       dataB[j][i] = zzpprf->generate(zzpSeedOther, index++, this->fieldbitsize);
     }
   }
@@ -443,7 +431,8 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   NTL::vec_ZZ_p setcap;
   NTL::vec_ZZ_p *diff;
   NTL::ZZ_pX *polynomials;
-  NTL::vec_pair_ZZ_pX_long factorPairs;
+  NTL::vec_pair_ZZ_pX_long *factorPairs, *squareFreePolynomials;
+  NTL::vec_ZZ_p *roots;
   
   if (this->q == nullptr || this->t == nullptr) {
     std::cerr << "intersect(). Either q or t not set." << std::endl;
@@ -456,6 +445,9 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
       diff[i].SetLength(this->height);
     }
     polynomials = new NTL::ZZ_pX[length];
+    factorPairs = new NTL::vec_pair_ZZ_pX_long[length];
+    squareFreePolynomials = new NTL::vec_pair_ZZ_pX_long[length];
+    roots = new NTL::vec_ZZ_p[length];
   } catch (std::bad_alloc &) {
     std::cerr << "intersect(). Error allocating memory." << std::endl;
     exit(2);
@@ -467,17 +459,23 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
       diff[j][i] = this->t[j][i] - this->q[j][i];
     }
   }
-  std::cout << std::endl;
-    
+  
   // Not secret unknowns
   unknowns = this->getUnknowns();
   
   // Interpolate polynomials
   for (size_t j = 0; j < length; j++) {
     polynomials[j] = NTL::interpolate(unknowns, diff[j]);
-    std::cout << "\n\n-->" << polynomials[j] << "\n<--\n\n" << std::endl;
-//     setcap = (polynomials[j]);
-//     std::cout << "\n\n-->" << setcap << "\n<--\n\n" << std::endl;
+//     std::cout << "\n\n" << j << " -->" << polynomials[j] << "<--\n\n" << std::endl;
+    NTL::MakeMonic(polynomials[j]);
+    
+    
+//     factorPairs[j] = berlekamp(polynomials[j]);
+    factorPairs[j] = CanZass(polynomials[j]);
+    std::cout << "\n\n" << j << " -->" << factorPairs[j][0] << "<--\n\n" << std::endl;
+    
+//     roots[j] = FindRoots(polynomials[j]);
+//     std::cout << "\n\n" << j << " -->" << roots << "<--\n\n" << std::endl;
   }
   
   
