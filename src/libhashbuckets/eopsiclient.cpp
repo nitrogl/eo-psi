@@ -459,6 +459,12 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
       diff[j][i] = this->t[j][i] - this->q[j][i];
     }
   }
+  // Remove random terms
+  for (size_t j = 0; j < length; j++) {
+    for (size_t i = 0; i < height; i++) {
+      diff[j][i] = this->t[j][i] - this->q[j][i];
+    }
+  }
   
   // Not secret unknowns
   unknowns = this->getUnknowns();
@@ -472,7 +478,7 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
     
 //     factorPairs[j] = berlekamp(polynomials[j]);
     factorPairs[j] = CanZass(polynomials[j]);
-    std::cout << "\n\n" << j << " -->" << factorPairs[j][0] << "<--\n\n" << std::endl;
+    std::cout << "\n\n" << j << " -->" << factorPairs[j] << "<--\n\n" << std::endl;
     
 //     roots[j] = FindRoots(polynomials[j]);
 //     std::cout << "\n\n" << j << " -->" << roots << "<--\n\n" << std::endl;
