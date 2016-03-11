@@ -99,6 +99,15 @@ namespace NTL {
    * @return the padded z up to padsize
    */
   NTL::ZZ zeroPad(const NTL::ZZ z, const size_t padsize);
+  
+
+  /**
+   * Pretty print a C array of big integers.
+   * 
+   * @param arr the array to print
+   * @param n the number of elements to print
+   */
+  void printZZArray(const NTL::ZZ *arr, const size_t n);
 }
 //-----------------------------------------------------------------------------
 

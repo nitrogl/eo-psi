@@ -112,5 +112,18 @@ namespace NTL {
     return pz;
   }
   //---------------------------------------------------------------------------
+  
+  void printZZArray(const NTL::ZZ *arr, const size_t n) {
+    if (n == 0) {
+      std::cout << "[]" << std::endl;
+    } else {
+      std::cout << "[ " << arr[0];
+      for(size_t i = 1; i < n; i++) {
+        std::cout << ", " << arr[i];
+      }
+      std::cout << " ]" << std::endl;
+    }
+  }
+  //---------------------------------------------------------------------------
 
 }
