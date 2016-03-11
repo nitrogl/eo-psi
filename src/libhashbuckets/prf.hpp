@@ -68,6 +68,7 @@ public:
       this->autoSeed = this->randomSeed();
       this->autoSeedPtr = &this->autoSeed;
     }
+//     return generate(defaultSeed(), index, bits); // [[TODO: remove me (debug purposes)]] 
     return generate(this->autoSeed, index, bits);
   }
   

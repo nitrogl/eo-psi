@@ -9,6 +9,7 @@
 #include <NTL/ZZ_pXFactoring.h>
 #include "eopsiclient.h"
 #include "ntlmiss.h"
+#include "simplebm.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -161,14 +162,14 @@ void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
       t = (NTL::vec_ZZ_p *) msg->getData();
       // Reception feedback
       std::cout << "not fully implemented. I, " << id << ", received \"" << t[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
-      setcap = intersect(this->length, this->height);
+      setcap = intersect();
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
       q = (NTL::vec_ZZ_p *) msg->getData();
       // Reception feedback
       std::cout << "not fully implemented. I, " << id << ", received \"" << q[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
-      setcap = intersect(this->length, this->height);
+      setcap = intersect();
       break;
       
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
@@ -238,7 +239,7 @@ size_t EOPSIClient::getRawDataSize() const {
 
 size_t EOPSIClient::getBlindedDataSize() const {
   if (this->hashBuckets != nullptr) {
-    return (this->height)*this->length;
+    return (this->degree)*this->length;
   } else {
     std::cerr << "getBlindedDataSize(). WARNING: Internal data structure hash buckets is not instantiated" << std::endl;
     return 0;
@@ -298,7 +299,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   
   // Set blided data length of vectors:
   for (size_t j = 0; j < this->length; j++) {
-    this->blindedData[j].SetLength(this->height);
+    this->blindedData[j].SetLength(this->degree);
   }
   
   // FEEDBACK
@@ -334,7 +335,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout.flush();
   
   // Generating random unknowns
-  this->unknowns = this->getUnknowns(this->height);
+  this->unknowns = this->getUnknowns(this->degree);
   
   // FEEDBACK
   std::cout << ".";
@@ -368,6 +369,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   } else {
     // Evaluating polynomials (single core)
     for (size_t j = 0; j < this->length; j++) {
+//       std::cout << "pol: " << polynomials[j] << std::endl;
       eval(this->blindedData[j], polynomials[j], unknowns);
     }
   }
@@ -380,7 +382,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   conv(zzpSeed, this->secret);
   index = 0;
   for (size_t j = 0; j < this->length; j++) {
-    for (size_t i = 0; i < this->height; i++) {
+    for (size_t i = 0; i < this->degree; i++) {
       this->blindedData[j][i] = this->blindedData[j][i] + zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
     }
   }
@@ -405,8 +407,8 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, co
     dataA = new NTL::vec_ZZ_p[this->length];
     dataB = new NTL::vec_ZZ_p[this->length];
     for (size_t i = 0; i < this->length; i++) {
-      dataA[i].SetLength(this->height);
-      dataB[i].SetLength(this->height);
+      dataA[i].SetLength(this->degree);
+      dataB[i].SetLength(this->degree);
     }
   } catch (std::bad_alloc &) {
     std::cerr << "delegationOutput(). Error allocating memory." << std::endl;
@@ -416,10 +418,13 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, co
   conv(zzpSeed, this->secret);
   conv(zzpSeedOther, secretOtherParty);
   index = 0;
+  NTL::ZZ_p zero;
+  conv(zero, 0);
   for (size_t j = 0; j < this->length; j++) {
-    for (size_t i = 0; i < this->height; i++) {
-      dataA[j][i] = zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
-      dataB[j][i] = zzpprf->generate(zzpSeedOther, index++, this->fieldbitsize);
+    for (size_t i = 0; i < this->degree; i++) {
+      dataA[j][i] = zzpprf->generate(zzpSeed, index, this->fieldbitsize);
+      dataB[j][i] = zzpprf->generate(zzpSeedOther, index, this->fieldbitsize);
+      index++;
     }
   }
   
@@ -427,7 +432,7 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, co
 }
 //-----------------------------------------------------------------------------
 
-NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
+NTL::vec_ZZ_p EOPSIClient::intersect() {
   NTL::vec_ZZ_p setcap;
   NTL::vec_ZZ_p *diff;
   NTL::ZZ_pX *polynomials;
@@ -442,7 +447,7 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   try {
     diff = new NTL::vec_ZZ_p[length];
     for (size_t i = 0; i < length; i++) {
-      diff[i].SetLength(this->height);
+      diff[i].SetLength(this->degree);
     }
     polynomials = new NTL::ZZ_pX[length];
     factorPairs = new NTL::vec_pair_ZZ_pX_long[length];
@@ -455,14 +460,9 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   
   // Remove random terms
   for (size_t j = 0; j < length; j++) {
-    for (size_t i = 0; i < height; i++) {
+    for (size_t i = 0; i < degree; i++) {
       diff[j][i] = this->t[j][i] - this->q[j][i];
-    }
-  }
-  // Remove random terms
-  for (size_t j = 0; j < length; j++) {
-    for (size_t i = 0; i < height; i++) {
-      diff[j][i] = this->t[j][i] - this->q[j][i];
+//       std::cout << "d[" << j << ", " << i << "] = " << diff[j][i] << std::endl;
     }
   }
   
@@ -470,19 +470,60 @@ NTL::vec_ZZ_p EOPSIClient::intersect(const size_t length, const size_t height) {
   unknowns = this->getUnknowns();
   
   // Interpolate polynomials
+  NTL::ZZ_p resZ;
+  byte number[1024];
+  SimpleBenchmark bm, inBm;
+  size_t intersectionSize = 0;
+  std::cout << "length: " << length << std::endl;
+    bm.start();
   for (size_t j = 0; j < length; j++) {
+//     std::cout << "\t------------" << std::endl;
     polynomials[j] = NTL::interpolate(unknowns, diff[j]);
-//     std::cout << "\n\n" << j << " -->" << polynomials[j] << "<--\n\n" << std::endl;
+//     bm.step();
+//     std::cout << "Polynomial " << j << ": {" << polynomials[j] << "}" << std::endl;
     NTL::MakeMonic(polynomials[j]);
+//     bm.step();
+//     std::cout << "Monicised: {" << polynomials[j] << "}" << std::endl;
     
     
 //     factorPairs[j] = berlekamp(polynomials[j]);
     factorPairs[j] = CanZass(polynomials[j]);
-    std::cout << "\n\n" << j << " -->" << factorPairs[j] << "<--\n\n" << std::endl;
+//     bm.step();
     
-//     roots[j] = FindRoots(polynomials[j]);
-//     std::cout << "\n\n" << j << " -->" << roots << "<--\n\n" << std::endl;
+//     std::cout << "FactorPairs: {" << factorPairs[j] << "}" << std::endl;
+    
+    for(long k = 0; k < factorPairs[j].length(); k++) {
+      if (NTL::deg(factorPairs[j][k].a) == 1) {
+        resZ = -(NTL::ConstTerm(factorPairs[j][k].a));
+        
+        NTL::BytesFromZZ(number, rep(resZ), NTL::bytes(rep(resZ)));
+        size_t c = 0;
+        for (long i = 0; i < NTL::bytes(rep(resZ)); i++) {
+          if (number[i] == 0) {
+            c++;
+          } else {
+            break;
+          }
+        }
+//         std::cout << "Result " << k << ": " << resZ << " - Leading zeros: " << c << std::endl;
+        if (c >= 9) {
+          intersectionSize++;
+        }
+      }
+    }
+    bm.step();
+    
+    // Break with a new line
+//     std::cout << std::endl;
   }
+    bm.stop();
+    
+//     std::cout << "interp: " << bm.benchmark(1).count() << std::endl;
+//     std::cout << "monic: " << bm.benchmark(2).count() << std::endl;
+//     std::cout << "fact: " << bm.benchmark(3).count() << std::endl;
+//     std::cout << "inters: " << bm.benchmark(4).count() << std::endl;
+    std::cout << "total: " << bm.cumulativeBenchmark().count()/1000000. << "\n" << std::endl;
+  std::cout << "Intersection size: " << intersectionSize << std::endl;
   
   
   return setcap;

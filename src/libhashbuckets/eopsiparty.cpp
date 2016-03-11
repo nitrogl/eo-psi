@@ -41,19 +41,20 @@ NTL::vec_ZZ_p EOPSIParty::generateUnknowns(const size_t n) {
   size_t len;
   
   len = NTL::NumBits(this->fieldsize);
-  zero = 0;
+  zero = 4;
   unknowns.SetLength(n);
   for (size_t j = 0; j < n; j++) {
     conv(unknowns[j], this->zzprf.generate(zero, j, len));
+//     std::cerr << "unk " << j << ": " << unknowns[j] << std::endl;
   }
 
-  // Runtime check for deterministic randomness
-  conv(t, "7817413366800309065086246963308251115099918315902103984340276");
-  conv(p, t);
-  if (unknowns[0] != p) {
-    std::cout << "generateUnknowns(). Wrong randomness: Unexpected " << unknowns[0] << std::endl;
-    exit(3);
-  }
+  // [[TODO: remove me]] Runtime check for deterministic randomness
+//   conv(t, "7817413366800309065086246963308251115099918315902103984340276");
+//   conv(p, t);
+//   if (unknowns[0] != p) {
+//     std::cout << "generateUnknowns(). Wrong randomness: Unexpected " << unknowns[0] << std::endl;
+//     exit(3);
+//   }
   
   return unknowns;
 }
@@ -75,6 +76,15 @@ NTL::vec_ZZ_p EOPSIParty::getUnknowns(const size_t n) {
 void EOPSIParty::genOmega(NTL::ZZ_pX& omega, const size_t degree, const NTL::ZZ seed, const size_t index) {
   NTL::ZZ_p tmp;
   
+  // [[TODO: REM debug]] 1 as constant, all other coefficients as 0
+//   conv(tmp, 1);
+//   NTL::SetCoeff(omega, 0, tmp);
+//   conv(tmp, 0);
+//   for (size_t i = 1; i < degree; i++) {
+//     NTL::SetCoeff(omega, i, tmp);
+//   }
+//   return;
+  
   // Coefficient for highest degree is set to 1
   conv(tmp, 1);
   NTL::SetCoeff(omega, degree, tmp);
@@ -94,7 +104,7 @@ NTL::vec_ZZ_p * EOPSIParty::computeTOrQ(const NTL::ZZ tmpKey, NTL::vec_ZZ_p *mat
   try {
     tq = new NTL::vec_ZZ_p[this->length];
     for (size_t i = 0; i < this->length; i++) {
-      tq[i].SetLength(this->height);
+      tq[i].SetLength(this->degree);
     }
   } catch (std::bad_alloc &) {
     std::cerr << "computeTOrQ(). Error allocating memory." << std::endl;
@@ -102,17 +112,18 @@ NTL::vec_ZZ_p * EOPSIParty::computeTOrQ(const NTL::ZZ tmpKey, NTL::vec_ZZ_p *mat
   }
   
   // Not secret unknowns
-  this->getUnknowns(this->height);
+  this->getUnknowns(this->degree);
   
   aIdx = 0;
-  omegaAIdx = this->length * this->height;
+  omegaAIdx = this->length * this->degree;
   omegaBIdx = omegaAIdx + this->length * this->degree;
   std::cout << "tmpKey: \"" << tmpKey << "\"" << std::endl;
   for (size_t j = 0; j < this->length; j++) {
     //gen omegas with degree
-    genOmega(omegaA, this->degree, tmpKey, omegaAIdx + this->degree*j);
-    genOmega(omegaB, this->degree, tmpKey, omegaBIdx + this->degree*j);
-    for (size_t i = 0; i < this->height; i++) {
+    genOmega(omegaA, this->height, tmpKey, omegaAIdx + this->height*j);
+    genOmega(omegaB, this->height, tmpKey, omegaBIdx + this->height*j);
+    
+    for (size_t i = 0; i < this->degree; i++) {
       conv(tq[j][i], this->zzprf.generate(tmpKey, aIdx++, this->fieldbitsize));
       
       tq[j][i] = tq[j][i] + matrixA[j][i]*eval(omegaA, this->unknowns[i]) + matrixB[j][i]*eval(omegaB, this->unknowns[i]);

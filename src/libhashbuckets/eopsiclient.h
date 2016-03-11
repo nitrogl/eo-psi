@@ -32,7 +32,7 @@ protected:
   
   virtual void blind(unsigned int nThreads = 0);
   virtual NTL::vec_ZZ_p * delegationOutput(const NTL::ZZ secretOtherParty, const NTL::ZZ tmpKey);
-  virtual NTL::vec_ZZ_p intersect(const size_t length, const size_t height);
+  virtual NTL::vec_ZZ_p intersect();
   
 public:
   EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id = "", const NTL::ZZ secret = NTL::ZZFromBytes((byte *)"Topsy Kretts", 12L));

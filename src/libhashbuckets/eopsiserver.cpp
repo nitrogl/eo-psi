@@ -72,6 +72,13 @@ void EOPSIServer::receive(EOPSIMessage* msg) throw (ProtocolException) {
       }
       this->storedData[sender->getId()] = msg;
       std::cout << id << ". Data from " << sender->getId() << " stored (size " << msg->length() << ")." << std::endl;
+      
+      // [[TODO: REM debug]]
+//       std::cout << id << ". Data from " << sender->getId() << " stored [";
+//       for (size_t i = 0; i < this->degree; i++) {
+//         std::cout << " " << ((NTL::vec_ZZ_p *) msg->getData())[0][i];
+//       }
+//       std::cout << " ]." << std::endl;
       break;
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:

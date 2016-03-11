@@ -61,7 +61,7 @@ static NTL::ZZ* join(const NTL::ZZ *set1, const size_t card1, const NTL::ZZ *set
   try {
     res = new NTL::ZZ[card1 + card2];
   } catch (std::bad_alloc &) {
-    std::cerr << "listUnite(). Error allocating memory." << std::endl;
+    std::cerr << "join(). Error allocating memory." << std::endl;
     exit(1);
   }
   
@@ -152,9 +152,34 @@ NTL::ZZ * randomData(const size_t n, size_t bitsize) {
   
   for (size_t i = 0; i < n; i++) {
     data[i] = NTL::RandomBits_ZZ(bitsize);
+    for (size_t j = 0; j < i - 1 && i != 0; j++) {
+      if (data[i] == data[j]) {
+        i--;
+        break;
+      }
+    }
   }
   
   return data;
+}
+//-----------------------------------------------------------------------------
+
+/**
+ * Pretty print a C array of big integers.
+ * 
+ * @param arr the array to print
+ * @param n the number of elements to print
+ */
+void printZZArray(const NTL::ZZ *arr, const size_t n) {
+  if (n == 0) {
+    std::cout << "[]" << std::endl;
+  } else {
+    std::cout << "[ " << arr[0];
+    for(size_t i = 1; i < n; i++) {
+      std::cout << ", " << arr[i];
+    }
+    std::cout << " ]" << std::endl;
+  }
 }
 //-----------------------------------------------------------------------------
 
@@ -171,7 +196,7 @@ int main(int argc, char **argv) {
   std::string fieldsizeStr = DEFAULT_P;
   size_t plainSetBits;
   size_t n = DEFAULT_N;
-  size_t r = DEFAULT_MIN_COMMON_DATA_RATIO;
+  size_t r = DEFAULT_MIN_COMMON_DATA;
   ZZPRF rndZZgen;
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
@@ -232,7 +257,7 @@ int main(int argc, char **argv) {
   NTL::ZZ_p::init(fieldsize);
   
   // Create parties
-  degree = (maxLoad - 1) / 2;
+  degree = 2*maxLoad + 1;
   try {
     hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
     hashBucketsAlice = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
@@ -254,6 +279,7 @@ int main(int argc, char **argv) {
   minCommonData = randomData(r, plainSetBits);
   dataAlice = join(minCommonData, r, randomData(n - r, plainSetBits), n - r);
   dataBob = join(minCommonData, r, randomData(n - r, plainSetBits), n - r);
+  
   msgStoreDataAlice.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataBob.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataAlice.setPartyId(alice->getId());
@@ -278,6 +304,14 @@ int main(int argc, char **argv) {
    * Use later for check test the correctness of the output
    */
   setcap = intersect(dataAlice, n, dataBob, n, &setcapCard);
+  
+//   std::cout << "Alice data: " << std::endl;
+//   printZZArray(dataAlice, n);
+//   std::cout << "Bob data: " << std::endl;
+//   printZZArray(dataBob, n);
+//   std::cout << "Expected intersection: " << std::endl;
+//   printZZArray(setcap, setcapCard);
+  std::cout << "Size of intersection: " << setcapCard << std::endl;
   
   /*
    * 1. B outsources some elaboration to A
