@@ -15,7 +15,7 @@
  */
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -h -b <bits-in-plain-sets> -p <field-size> -n <number> -r <number>\n"
-//             << " -j : force number of threads for evaluation\n"
+            << " -j : force number of threads for evaluation (be sure your NTL is thread-safe)\n"
             << " -k : number of keys of the hash table\n"
             << " -l : size of buckets of the hash table\n"
             << " -p : set the padding up to numbers modulo p\n"
@@ -164,25 +164,6 @@ NTL::ZZ * randomData(const size_t n, size_t bitsize) {
 }
 //-----------------------------------------------------------------------------
 
-/**
- * Pretty print a C array of big integers.
- * 
- * @param arr the array to print
- * @param n the number of elements to print
- */
-void printZZArray(const NTL::ZZ *arr, const size_t n) {
-  if (n == 0) {
-    std::cout << "[]" << std::endl;
-  } else {
-    std::cout << "[ " << arr[0];
-    for(size_t i = 1; i < n; i++) {
-      std::cout << ", " << arr[i];
-    }
-    std::cout << " ]" << std::endl;
-  }
-}
-//-----------------------------------------------------------------------------
-
 int main(int argc, char **argv) {
   EOPSIClient *alice, *bob;
   EOPSIServer *cloud;
@@ -204,7 +185,7 @@ int main(int argc, char **argv) {
   HashAlgorithm<NTL::ZZ_p>* hashAlgorithm = nullptr;
   HashBuckets<NTL::ZZ_p>* hashBucketsAlice = nullptr;
   HashBuckets<NTL::ZZ_p>* hashBucketsBob = nullptr;
-  int nThreads = 1;
+  unsigned int nThreads = 0;
   byte *data = nullptr;
   size_t dataLen;
   
@@ -217,9 +198,7 @@ int main(int argc, char **argv) {
         break;
         
       case 'j':
-        std::cerr << argv[0] << ". Ignoring option -j (not yet implemented)" << std::endl;
-        nThreads = 1;
-//         nThreads = atoi(optarg);
+        nThreads = atoi(optarg);
         break;
         
       case 'n':
@@ -248,6 +227,13 @@ int main(int argc, char **argv) {
   
   // Initialise random seed
   srand(time(NULL));
+  
+  // Number of threads
+  if (nThreads == 0) {
+    cores = std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1;
+    nThreads = cores;
+    nThreads = 1; // [[REM]] Default to 1, due to old NTL being not thread safe
+  }
   
   // Number of bits of generated numbers
   plainSetBits = atol(plainSetBitsStr.c_str());
@@ -306,11 +292,11 @@ int main(int argc, char **argv) {
   setcap = intersect(dataAlice, n, dataBob, n, &setcapCard);
   
 //   std::cout << "Alice data: " << std::endl;
-//   printZZArray(dataAlice, n);
+//   NTL::printZZArray(dataAlice, n);
 //   std::cout << "Bob data: " << std::endl;
-//   printZZArray(dataBob, n);
+//   NTL::printZZArray(dataBob, n);
 //   std::cout << "Expected intersection: " << std::endl;
-//   printZZArray(setcap, setcapCard);
+//   NTL::printZZArray(setcap, setcapCard);
   std::cout << "Size of intersection: " << setcapCard << std::endl;
   
   /*

@@ -19,7 +19,7 @@
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -h -k <keys> -l <bucket-size> -p <field-size> -i <infile>\n"
             << " -a : hash algorithm (MH3|SHA1|SHA256|SHA512)\n"
-            << " -j : force number of threads for evaluation\n"
+            << " -j : force number of threads for evaluation (be sure your NTL is thread-safe)\n"
             << " -k : number of keys of the hash table\n"
             << " -l : size of buckets of the hash table\n"
             << " -p : set the padding up to numbers modulo p (in the field Z_p)\n"
