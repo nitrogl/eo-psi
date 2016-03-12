@@ -96,7 +96,7 @@ namespace NTL {
   }
   //---------------------------------------------------------------------------
   
-  NTL::ZZ zeroPad(const NTL::ZZ z, const size_t padsize) {
+  NTL::ZZ zeroPad(const NTL::ZZ& z, const size_t padsize) {
     unsigned int bs, topad;
     NTL::ZZ pz;
     
@@ -110,6 +110,11 @@ namespace NTL {
     }
     
     return pz;
+  }
+  //---------------------------------------------------------------------------
+  
+  size_t countLeadingZeros(const NTL::ZZ& z) {
+    return NumTwos(z);
   }
   //---------------------------------------------------------------------------
   

@@ -98,8 +98,15 @@ namespace NTL {
    * @param padsize the pad size up to which expand z
    * @return the padded z up to padsize
    */
-  NTL::ZZ zeroPad(const NTL::ZZ z, const size_t padsize);
+  NTL::ZZ zeroPad(const NTL::ZZ& z, const size_t padsize);
   
+  /**
+   * This function counts the number of leading zeros of the binary
+   * notation of a big integer.
+   * 
+   * @param z the number to check
+   */
+  size_t countLeadingZeros(const NTL::ZZ& z);
 
   /**
    * Pretty print a C array of big integers.
