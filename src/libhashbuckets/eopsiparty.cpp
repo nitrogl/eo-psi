@@ -117,7 +117,7 @@ NTL::vec_ZZ_p * EOPSIParty::computeTOrQ(const NTL::ZZ tmpKey, NTL::vec_ZZ_p *mat
   aIdx = 0;
   omegaAIdx = this->length * this->degree;
   omegaBIdx = omegaAIdx + this->length * this->degree;
-  std::cout << "tmpKey: \"" << tmpKey << "\"" << std::endl;
+//   std::cout << "tmpKey: \"" << tmpKey << "\"" << std::endl;
   for (size_t j = 0; j < this->length; j++) {
     //gen omegas with degree
     genOmega(omegaA, this->height, tmpKey, omegaAIdx + this->height*j);

@@ -56,7 +56,7 @@ void EOPSIServer::receive(EOPSIMessage* msg) throw (ProtocolException) {
       // Prepare message for the partner client
       tmpKeyBytes = (&((byte *) msg->getData())[msgClaimedId.length() + 1 + partnerId.length() + 1]);
       tmpKey = NTL::ZZFromBytes(tmpKeyBytes, NTL::bytes(DEFAULT_KEY_BITSIZE));
-      std::cout << "not fully implemented. I, " << id << ", received key \"" << tmpKey << "\" from " << sender->getId() << std::endl;
+      std::cout << "I, " << id << ", received key \"" << tmpKey << "\" from " << sender->getId() << std::endl;
       
       t = intersectionOutput(sender->getId(), partnerId, tmpKey);
       msgToClient.setData((void *) t, 1);
