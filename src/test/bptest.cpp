@@ -191,7 +191,7 @@ int main(int argc, char **argv) {
     tmpZ = NTL::zeroPad(tmpZ, padsize);
     conv(z[i], tmpZ);
   }
-  benchmark.step();
+  benchmark.step("padding");
   std::cout << "done. " << std::endl;
   
   // Add to hash
@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < n; i++) {
     hashBuckets->add(z[i]);
   }
-  benchmark.step();
+  benchmark.step("hashbuckets");
   std::cout << "done. " << std::endl;
   
   // Fill empty cells of the hash table
@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
   conv(*zzpSeed, 0);
   benchmark.step();
   hashBuckets->conceal(*zzpprf);
-  benchmark.step();
+  benchmark.step("conceal");
   std::cout << "done. " << std::endl;
   
   // Creating polynomials
@@ -220,7 +220,7 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < length; i++) {
     polynomials[i] = NTL::BuildFromRoots(NTL::vector2VecZZp(hashBuckets->getBucket(i)));
   }
-  benchmark.step();
+  benchmark.step("polgen");
   std::cout << "done. " << std::endl;
   
   // Generating random unknowns
@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
   for (size_t j = 0; j < 2*maxLoad + 1; j++) {
     append(unknowns, zzpprf->generate(*zzpSeed, j));
   }
-  benchmark.step();
+  benchmark.step("unkgen");
   std::cout << "done. " << std::endl;
   
   // Evaluating polynomials
@@ -276,7 +276,7 @@ int main(int argc, char **argv) {
       eval(evaluations[j], polynomials[j], unknowns);
     }
   }
-  benchmark.step();
+  benchmark.step("poleval");
   std::cout << "done. " << std::endl;
   
   // Blind evaluations
@@ -290,51 +290,51 @@ int main(int argc, char **argv) {
       evaluations[j][i] = evaluations[j][i] + zzpprf->generate(*zzpSeed, index++);
     }
   }
-  benchmark.stop();
+  benchmark.stop("blind");
   std::cout << "done. " << std::endl;
   
   // Stats
   std::cout << std::endl;
   std::cout << "Total time to read and pad " << n << " numbers: "
-            << benchmark.benchmark(1).count() / 1000000. << " s" << std::endl; 
+            << benchmark.benchmark("padding").count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to read and pad a number: "
-            << (double) benchmark.benchmark(1).count() / n << " µs" << std::endl;
+            << (double) benchmark.benchmark("padding").count() / n << " µs" << std::endl;
   std::cout << std::endl;
             
   std::cout << "Total time to add " << n << " elements to the hashtable: " 
-            << benchmark.benchmark(3).count() / 1000000. << " s" << std::endl; 
+            << benchmark.benchmark("hashbuckets").count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to add an element to the hashtable: " 
-            << (double) benchmark.benchmark(3).count() / n << " µs" << std::endl;
+            << (double) benchmark.benchmark("hashbuckets").count() / n << " µs" << std::endl;
   std::cout << std::endl;
             
   std::cout << "Total time to conceal the hashtable (fill empty buckets): " 
-            << benchmark.benchmark(5).count() / 1000000. << " s" << std::endl; 
+            << benchmark.benchmark("conceal").count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to fill each bucket: " 
-            << (double) benchmark.benchmark(5).count() / length << " µs" << std::endl;
+            << (double) benchmark.benchmark("conceal").count() / length << " µs" << std::endl;
   std::cout << std::endl;
             
   std::cout << "Total time to generate " << length << " polynomials: " 
-            << benchmark.benchmark(7).count() / 1000000. << " s" << std::endl; 
+            << benchmark.benchmark("polgen").count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to generate each polynomial: " 
-            << (double) benchmark.benchmark(7).count() / length << " µs" << std::endl;
+            << (double) benchmark.benchmark("polgen").count() / length << " µs" << std::endl;
   std::cout << std::endl;
             
   std::cout << "Total time to generate " << (2*maxLoad + 1) << " random unknowns: " 
-            << benchmark.benchmark(9).count() / 1000000. << " s" << std::endl; 
+            << benchmark.benchmark("unkgen").count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to generate each unknown: " 
-            << (double) benchmark.benchmark(9).count() / (2*maxLoad + 1) << " µs" << std::endl;
+            << (double) benchmark.benchmark("unkgen").count() / (2*maxLoad + 1) << " µs" << std::endl;
   std::cout << std::endl;
             
   std::cout << "Total time to evaluate " << length << " polynomials against " << (2*maxLoad + 1) << " unknowns: " 
-            << benchmark.benchmark(11).count() / 1000000. << " s" << std::endl; 
+            << benchmark.benchmark("poleval").count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to generate each evaluation: " 
-            << (double) benchmark.benchmark(11).count() / (length * (2*maxLoad + 1)) * nThreads << " µs" << std::endl;
+            << (double) benchmark.benchmark("poleval").count() / (length * (2*maxLoad + 1)) * nThreads << " µs" << std::endl;
   std::cout << std::endl;
             
   std::cout << "Total time to blind " << length << "x" << (2*maxLoad + 1) << " evaluations: " 
-            << benchmark.benchmark(13).count() / 1000000. << " s" << std::endl; 
+            << benchmark.benchmark("blind").count() / 1000000. << " s" << std::endl; 
   std::cout << "Average time to blind each evaluation: " 
-            << (double) benchmark.benchmark(13).count() / (length * (2*maxLoad + 1)) << " µs" << std::endl;
+            << (double) benchmark.benchmark("blind").count() / (length * (2*maxLoad + 1)) << " µs" << std::endl;
   std::cout << std::endl;
   
   delete [] z;
