@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n;
   NTL::ZZ_p *z = nullptr;
-  NTL::ZZ two;
+  NTL::ZZ two, p;
   size_t bits;
   SimpleBenchmark benchmark;
   
@@ -112,7 +112,8 @@ int main(int argc, char **argv) {
   }
   
   // Initialise numbers modulo p
-  infile >> bits;
+  infile >> p;
+  bits = NTL::NumBits(p);
   conv(two, 2);
   NTL::ZZ_p::init(NTL::power(two, bits));
   
