@@ -3,6 +3,7 @@
 #include <fstream>
 #include <getopt.h>
 #include <cstdarg>
+#include <set>
 
 #include <libhashbuckets.h>
 #include "eopsisimul.h"
@@ -80,7 +81,8 @@ static NTL::ZZ* join(const NTL::ZZ *set1, const size_t card1, const NTL::ZZ *set
 //-----------------------------------------------------------------------------
 
 /**
- * This function computes the intersection of two sets, with no duplicates.
+ * This function computes the intersection of two sets with no duplicates.
+ * WARNING: the original sets must not have any duplicate.
  * 
  * @param set1 the first set
  * @param card1 the cardinality of the first set
@@ -132,6 +134,24 @@ static NTL::ZZ* intersect(const NTL::ZZ *set1, const size_t card1, const NTL::ZZ
 }
 //-----------------------------------------------------------------------------
 
+bool checkIntersectionCorrectness(const NTL::ZZ *int1, const size_t n, const NTL::vec_ZZ int2) {
+  std::set<NTL::ZZ> set1;
+  std::set<NTL::ZZ> set2;
+  
+  if (n != (size_t) int2.length()) {
+    std::cerr << "checkIntersectionCorrectness(). Different intersections' size." << std::endl;
+    return false;
+  }
+  
+  for (size_t i = 0; i < n; i++) {
+    set1.insert(int1[i]);
+    set2.insert(int2[i]);
+  }
+  
+  return set1 == set2;
+}
+//-----------------------------------------------------------------------------
+
 /**
  * This function generates random ZZ numbers which are data stored in to 
  * the cloud.
@@ -142,6 +162,9 @@ static NTL::ZZ* intersect(const NTL::ZZ *set1, const size_t card1, const NTL::ZZ
  */
 NTL::ZZ * randomData(const size_t n, size_t bitsize) {
   NTL::ZZ *data;
+  std::set<NTL::ZZ> dataSet;
+  std::set<NTL::ZZ>::iterator elem;
+  size_t i;
   
   try {
     data = new NTL::ZZ[n];
@@ -150,14 +173,13 @@ NTL::ZZ * randomData(const size_t n, size_t bitsize) {
     exit(1);
   }
   
-  for (size_t i = 0; i < n; i++) {
-    data[i] = NTL::RandomBits_ZZ(bitsize);
-    for (size_t j = 0; j < i - 1 && i != 0; j++) {
-      if (data[i] == data[j]) {
-        i--;
-        break;
-      }
-    }
+  do {
+    dataSet.insert(NTL::RandomBits_ZZ(bitsize));
+  } while(dataSet.size() < n);
+  
+  i = 0;
+  for (elem = dataSet.begin(); elem != dataSet.end(); ++elem) {
+    data[i++] = *elem;
   }
   
   return data;
@@ -185,7 +207,7 @@ int main(int argc, char **argv) {
   HashAlgorithm<NTL::ZZ_p>* hashAlgorithm = nullptr;
   HashBuckets<NTL::ZZ_p>* hashBucketsAlice = nullptr;
   HashBuckets<NTL::ZZ_p>* hashBucketsBob = nullptr;
-  unsigned int nThreads = 0;
+  unsigned int cores, nThreads = 0;
   byte *data = nullptr;
   size_t dataLen;
   
@@ -323,6 +345,15 @@ int main(int argc, char **argv) {
     std::cerr << argv[0] << ". " << e.what() << std::endl;
     exit(2);
   }
+  
+  // Compare protocol intersection with known intersection for correctness
+  std::cout << argv[0] << ". Checking protocol intersection... ";
+  if (checkIntersectionCorrectness(setcap, setcapCard, bob->getIntersection())) {
+    std::cout << " correct.";
+  } else {
+    std::cout << " WRONG!";
+  }
+  std::cout << std::endl;
   
 //   delete [] dataAlice;
 //   delete [] dataBob;
