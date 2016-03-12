@@ -29,10 +29,11 @@ protected:
   NTL::vec_ZZ_p *q, *t;
   ZZpPRF *zzpprf;
   EOPSIMessage msgToCloud, msgToClient;
+  NTL::vec_ZZ setcap;
   
   virtual void blind(unsigned int nThreads = 0);
   virtual NTL::vec_ZZ_p * delegationOutput(const NTL::ZZ secretOtherParty, const NTL::ZZ tmpKey);
-  virtual NTL::vec_ZZ_p intersect();
+  virtual void intersect();
   
 public:
   EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id = "", const NTL::ZZ secret = NTL::ZZFromBytes((byte *)"Topsy Kretts", 12L));
@@ -47,6 +48,7 @@ public:
   virtual size_t getRawDataSize() const;
   virtual NTL::vec_ZZ_p * getBlindedData() const;
   virtual size_t getBlindedDataSize() const;
+  virtual NTL::vec_ZZ getIntersection() const;
   
   virtual void setSecret(const NTL::ZZ secret);
   virtual NTL::ZZ getSecret() const;

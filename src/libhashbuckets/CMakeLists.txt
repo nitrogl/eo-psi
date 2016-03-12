@@ -14,6 +14,7 @@ add_library (${LIBRARY_NAME} SHARED
         strint.cpp
         zzprf.cpp
         zzpprf.cpp
+        zzppoly.cpp
         eopsimsg.cpp
         eopsiparty.cpp
         eopsiserver.cpp
