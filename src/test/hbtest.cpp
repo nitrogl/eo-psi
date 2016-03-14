@@ -16,8 +16,8 @@
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -k <keys> -l <bucket-size> -i <infile>\n"
             << " -a : hash algorithm (MH3|SHA1|SHA256|SHA512)\n"
-            << " -k : number of keys of the hash table\n"
-            << " -l : size of buckets of the hash table\n"
+            << " -k : number of buckets of the hash table\n"
+            << " -l : size of each bucket in the hash table\n"
             << " -i : file name to read numbers from\n"
             << " -h : show this message and exit\n"
             << std::endl;
