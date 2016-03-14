@@ -16,9 +16,9 @@
  */
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -h -b <bits-in-plain-sets> -p <field-size> -n <number> -r <number>\n"
-            << " -j : force number of threads for evaluation (be sure your NTL is thread-safe)\n"
-            << " -k : number of keys of the hash table\n"
-            << " -l : size of buckets of the hash table\n"
+//             << " -j : force number of threads for evaluation (be sure your NTL is thread-safe)\n"
+            << " -k : number of buckets of the hash table\n"
+            << " -l : size of each bucket in the hash table\n"
             << " -p : set the padding up to numbers modulo p\n"
             << " -b : number of bits in plain sets\n"
             << " -n : amount of random numbers to generate\n"
@@ -166,6 +166,11 @@ NTL::ZZ * randomData(const size_t n, size_t bitsize) {
   std::set<NTL::ZZ>::iterator elem;
   size_t i;
   
+  if (n == 0) {
+    std::cerr << "randomData(). No elements to create (" << n << ")." << std::endl;
+    return nullptr;
+  }
+  
   try {
     data = new NTL::ZZ[n];
   } catch (std::bad_alloc &) {
@@ -192,7 +197,7 @@ int main(int argc, char **argv) {
   EOPSIMessage msgStoreDataAlice, msgStoreDataBob;
   EOPSIMessage msgBobAlice, msgAliceBob, msgAliceCloud, msgCloudBob;
   NTL::ZZ fieldsize;
-  NTL::ZZ *dataAlice, *dataBob, *minCommonData;
+  NTL::ZZ *dataAlice, *dataBob, *minCommonData, *uncommonDataA, *uncommonDataB;
   NTL::ZZ *setcap;
   size_t setcapCard;
   std::string plainSetBitsStr = DEFAULT_PLAIN_SET_BITS;
@@ -213,7 +218,7 @@ int main(int argc, char **argv) {
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
-  while ((op = getopt(argc, argv, "b:hj:n:o:p:r:")) != -1) {
+  while ((op = getopt(argc, argv, "b:hj:k:l:n:o:p:r:")) != -1) {
     switch (op) {
       case 'b':
         plainSetBitsStr = optarg;
@@ -221,6 +226,14 @@ int main(int argc, char **argv) {
         
       case 'j':
         nThreads = atoi(optarg);
+        break;
+        
+      case 'k':
+        length = atol(optarg); 
+        break;
+        
+      case 'l':
+        maxLoad = atol(optarg); 
         break;
         
       case 'n':
@@ -239,7 +252,7 @@ int main(int argc, char **argv) {
         break;
         
       case '?':
-        std::cerr << "Unrecognised option " << argv[op] << std::endl;
+        std::cerr << argv[0] << ". Unrecognised option " << argv[op] << std::endl;
       case 'h':
       default:
         printUsage(argv[0]);
@@ -247,21 +260,44 @@ int main(int argc, char **argv) {
     }
   }
   
+  // Parameter error
+  if (r > n) {
+    std::cerr << argv[0] << ". Common elements can not be more than total elements." << std::endl;
+    exit(1);
+  }
+  
   // Initialise random seed
   srand(time(NULL));
   
   // Number of threads
   if (nThreads == 0) {
+#ifndef NTL_THREADS_BOOST
+    // Automatic number of threads if boost is not available
     cores = std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1;
     nThreads = cores;
-    nThreads = 1; // [[REM]] Default to 1, due to old NTL being not thread safe
+#endif
+    nThreads = 1; // [[TODO]] automatically is single-threaded
   }
+  
+  // To enable threads you need thread NTL to be compiled enabling thread-safe
+#ifndef NTL_THREADS
+  std::cerr << argv[0] << ". Your NTL library is not thread-safe: using only 1 thread." << std::endl;
+  nThreads = 1;
+#endif
+  if (nThreads > 1) {
+    std::cerr << argv[0] << ". Multithreading not (yet) implemented." << std::endl;
+  }
+  nThreads = 1;
   
   // Number of bits of generated numbers
   plainSetBits = atol(plainSetBitsStr.c_str());
   
   // Initialise modulo operations in NTL
   fieldsize = NTL::to_ZZ(fieldsizeStr.c_str());
+  if (!NTL::ProbPrime(fieldsize)) {
+    std::cerr << argv[0] << ". " << fieldsize << " does not look like a prime number. Aborting..." << std::endl;
+    exit(1);
+  }
   NTL::ZZ_p::init(fieldsize);
   
   // Create parties
@@ -285,8 +321,10 @@ int main(int argc, char **argv) {
    * 0. Alice and Bob stores blinded values into the cloud.
    */
   minCommonData = randomData(r, plainSetBits);
-  dataAlice = join(minCommonData, r, randomData(n - r, plainSetBits), n - r);
-  dataBob = join(minCommonData, r, randomData(n - r, plainSetBits), n - r);
+  uncommonDataA = randomData(n - r, plainSetBits);
+  uncommonDataB = randomData(n - r, plainSetBits);
+  dataAlice = join(minCommonData, r, uncommonDataA, n - r);
+  dataBob = join(minCommonData, r, uncommonDataB, n - r);
   
   msgStoreDataAlice.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataBob.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
@@ -355,11 +393,21 @@ int main(int argc, char **argv) {
   }
   std::cout << std::endl;
   
-//   delete [] dataAlice;
-//   delete [] dataBob;
-//   delete alice;
-//   delete bob;
-//   delete cloud;
+  delete [] dataAlice;
+  delete [] dataBob;
+  delete alice;
+  delete bob;
+  delete cloud;
+  
+  delete hashAlgorithm;
+  delete hashBucketsAlice;
+  delete hashBucketsBob;
+  
+  delete [] minCommonData;
+  delete [] uncommonDataA;
+  delete [] uncommonDataB;
+  delete [] setcap;
+  delete [] data;
   return 0;
 }
 //-----------------------------------------------------------------------------

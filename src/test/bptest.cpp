@@ -19,9 +19,9 @@
 static void printUsage(const char *prgnam) {
   std::cout << "Syntax: " << prgnam << " -h -k <keys> -l <bucket-size> -p <field-size> -i <infile>\n"
             << " -a : hash algorithm (MH3|SHA1|SHA256|SHA512)\n"
-            << " -j : force number of threads for evaluation (be sure your NTL is thread-safe)\n"
-            << " -k : number of keys of the hash table\n"
-            << " -l : size of buckets of the hash table\n"
+//             << " -j : force number of threads for evaluation (be sure your NTL is thread-safe)\n"
+            << " -k : number of buckets of the hash table\n"
+            << " -l : size of each bucket in the hash table\n"
             << " -p : set the padding up to numbers modulo p (in the field Z_p)\n"
             << " -i : file name to read numbers from\n"
             << " -h : show this message and exit\n"
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
         break;
         
       case '?':
-        std::cerr << "Unrecognised option " << argv[op] << std::endl;
+        std::cerr << argv[0] << ". Unrecognised option " << argv[op] << std::endl;
       case 'h':
       default:
         printUsage(argv[0]);
@@ -127,15 +127,32 @@ int main(int argc, char **argv) {
   
   // Initialise numbers modulo p
   p = NTL::to_ZZ(pstr.c_str());
+  if (!NTL::ProbPrime(p)) {
+    std::cerr << argv[0] << ". " << p << " does not look like a prime number. Aborting..." << std::endl;
+    exit(1);
+  }
   NTL::ZZ_p::init(p);
   padsize = NTL::NumBits(p);
   
   // Number of threads
   if (nThreads == 0) {
+#ifndef NTL_THREADS_BOOST
+    // Automatic number of threads if boost is not available
     cores = std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1;
     nThreads = cores;
-    nThreads = 1; // [[REM]] Default to 1, due to old NTL being not thread safe
+#endif
+    nThreads = 1; // [[TODO]] automatically is single-threaded
   }
+  
+  // To enable threads you need thread NTL to be compiled enabling thread-safe
+#ifndef NTL_THREADS
+  std::cerr << argv[0] << ". Your NTL library is not thread-safe: using only 1 thread." << std::endl;
+  nThreads = 1;
+#endif
+  if (nThreads > 1) {
+    std::cerr << argv[0] << ". Multithreading not (yet) implemented." << std::endl;
+  }
+  nThreads = 1;
   
   // Open file with numbers
   if (infilename == DEFAULT_FILENAME) {
