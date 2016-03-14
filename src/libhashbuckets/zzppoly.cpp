@@ -24,6 +24,10 @@ ZZpPolynomials::~ZZpPolynomials() {
   if (this->polynomials != nullptr) {
     delete [] this->polynomials;
   }
+  
+  if (this->factorPairs != nullptr) {
+    delete [] this->factorPairs;
+  }
 }
 //-----------------------------------------------------------------------------
 

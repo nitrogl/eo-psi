@@ -103,7 +103,7 @@ NTL::ZZ ZZPRF::generate(const NTL::ZZ seed, const size_t index, const size_t bit
   rbits = n*8 - bits;
 //   std::cerr << (int) (gen[0]) << " -> ";
 //   gen[n - 1] = (gen[n - 1] << rbits) >> rbits; // This does not work --- bug?
-  // [[]] the right order of these might be endian dependend
+  // [[WARNING]] the right order of these might be endian dependend
   gen[n - 1] <<= rbits;
   gen[n - 1] >>= rbits;
 //   std::cerr << (int) (gen[0]) << std::endl;

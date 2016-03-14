@@ -54,6 +54,9 @@ EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fiel
 
 EOPSIClient::~EOPSIClient() {
   delete this->zzpprf;
+  if (this->blindedData != nullptr) {
+    delete [] this->blindedData;
+  }
 }
 //-----------------------------------------------------------------------------
 
@@ -97,7 +100,7 @@ void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
       do {
         tmpKey = NTL::RandomBits_ZZ(DEFAULT_KEY_BITSIZE);
       } while (NTL::NumBits(tmpKey) < DEFAULT_KEY_BITSIZE);
-      tmpKey = NTL::ZZFromBytes((byte*) "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\xFF", 16L); // TODO: [[REMOVE ME]] - just useful to get always the same result
+//       tmpKey = NTL::ZZFromBytes((byte*) "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\xFF", 16L); // TODO: [[REMOVE ME]] - just useful to get always the same result
 //       std::cerr << "tmpKey: " << tmpKey << std::endl;
       dataLen = this->getId().length() + 1 + sender->getId().length() + 1 + tmpKeyByteSize + 1;
 //       std::cerr << "dataLen: " << dataLen << std::endl;
@@ -117,6 +120,8 @@ void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
         data[this->getId().length() + 1 + sender->getId().length() + 1 + i] = tmpKeyBytes[i];
       }
       data[dataLen - 1] = '\0'; // Correctly end data
+      delete [] tmpKeyBytes;
+      
       msgToCloud.setData(data, dataLen);
       msgToCloud.setType(EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST);
       msgToCloud.setPartyId(this->getId());
@@ -163,14 +168,20 @@ void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
       t = (NTL::vec_ZZ_p *) msg->getData();
       // Reception feedback
       std::cout << "I, " << id << ", received \"" << t[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
-      intersect();
+      if (intersect()) {
+        delete [] t;
+        delete [] q;
+      }
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
       q = (NTL::vec_ZZ_p *) msg->getData();
       // Reception feedback
       std::cout << "I, " << id << ", received \"" << q[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
-      intersect();
+      if (intersect()) {
+        delete [] t;
+        delete [] q;
+      }
       break;
       
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
@@ -271,6 +282,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   size_t nSplit;
   size_t *cumulSplit;
   std::thread *threads;
+  size_t i, j;
   
   // This should never occur...
   if (hashBuckets == nullptr) {
@@ -288,6 +300,14 @@ void EOPSIClient::blind(unsigned int nThreads) {
     nThreads = cores;
   }
   
+#ifndef NTL_THREADS
+  std::cerr << "blind(). Your NTL library is not thread-safe: using only 1 thread." << std::endl;
+#endif
+  if (nThreads > 1) {
+    std::cerr << "blind(). Multithreading not (yet) implemented." << std::endl;
+  }
+  nThreads = 1;
+  
   // FEEDBACK
   std::cout << ".";
   std::cout.flush();
@@ -304,7 +324,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   }
   
   // Set blided data length of vectors:
-  for (size_t j = 0; j < this->length; j++) {
+  for (j = 0; j < this->length; j++) {
     this->blindedData[j].SetLength(this->degree);
   }
   
@@ -314,7 +334,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   
   // Pad and populate the hash table
   padsize = NTL::NumBits(this->fieldsize);
-  for (size_t i = 0; i < this->rawDataSize; i++) {
+  for (i = 0; i < this->rawDataSize; i++) {
     this->rawData[i] = NTL::zeroPad(this->rawData[i], padsize);
     conv(z, this->rawData[i]);
     this->hashBuckets->add(z);
@@ -332,7 +352,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout.flush();
   
   // Generating polynomials
-  for (size_t i = 0; i < this->length; i++) {
+  for (i = 0; i < this->length; i++) {
     polynomials[i] = NTL::BuildFromRoots(NTL::vector2VecZZp((*this->hashBuckets)[i]));
   }
   
@@ -352,7 +372,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
     // Compute the loop boundaries
     nSplit = (this->length + 1) / nThreads;
     cumulSplit[0] = 0;
-    for (size_t i = 1; i <= nThreads; i++) {
+    for (i = 1; i <= nThreads; i++) {
       cumulSplit[i] = cumulSplit[i - 1] + nSplit;
     }
     // Do not exceed
@@ -361,20 +381,22 @@ void EOPSIClient::blind(unsigned int nThreads) {
     }
     
     // Run threads
-    for (size_t i = 0; i < nThreads - 1; i++) {
+    for (i = 0; i < nThreads - 1; i++) {
       threads[i] = std::thread(polEval, this->blindedData, polynomials, unknowns, cumulSplit[i], cumulSplit[i + 1]);
+      threads[i].join();
     }
     
     // Do something in this thread too
     polEval(this->blindedData, polynomials, unknowns, cumulSplit[nThreads - 1], cumulSplit[nThreads]);
     
     // Wait for all threads
-    for (size_t i = 0; i < nThreads - 1; i++) {
-      threads[i].join();
+    for (i = 0; i < nThreads - 1; i++) {
+//       threads[i].join();
+//       threads[i].join();
     }
   } else {
     // Evaluating polynomials (single core)
-    for (size_t j = 0; j < this->length; j++) {
+    for (j = 0; j < this->length; j++) {
 //       std::cout << "pol: " << polynomials[j] << std::endl;
       eval(this->blindedData[j], polynomials[j], unknowns);
     }
@@ -387,8 +409,8 @@ void EOPSIClient::blind(unsigned int nThreads) {
   // Blind evaluations
   conv(zzpSeed, this->secret);
   index = 0;
-  for (size_t j = 0; j < this->length; j++) {
-    for (size_t i = 0; i < this->degree; i++) {
+  for (j = 0; j < this->length; j++) {
+    for (i = 0; i < this->degree; i++) {
       this->blindedData[j][i] = this->blindedData[j][i] + zzpprf->generate(zzpSeed, index++, this->fieldbitsize);
     }
   }
@@ -405,7 +427,7 @@ void EOPSIClient::blind(unsigned int nThreads) {
 
 NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, const NTL::ZZ tmpKey) {
   NTL::ZZ_p tmp;
-  NTL::vec_ZZ_p *dataA, *dataB;
+  NTL::vec_ZZ_p *dataA, *dataB, *result;
   size_t index;
   NTL::ZZ_p zzpSeed, zzpSeedOther;
   
@@ -434,19 +456,25 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, co
     }
   }
   
-  return computeTOrQ(tmpKey, dataA, dataB);
+  result = computeTOrQ(tmpKey, dataA, dataB);
+  
+  delete [] dataA;
+  delete [] dataB;
+  
+  return result;
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIClient::intersect() {
+bool EOPSIClient::intersect() {
   NTL::vec_ZZ_p *diff;
   ZZpPolynomials polys(79);
   SimpleBenchmark bm;
   size_t intersectionSize;
   
   if (this->q == nullptr || this->t == nullptr) {
-    std::cerr << "intersect(). Either q or t not set." << std::endl;
-    return;
+    // Suppress this message...
+//     std::cerr << "intersect(). Either q or t not set." << std::endl;
+    return false;
   }
   
   try {
@@ -486,5 +514,8 @@ void EOPSIClient::intersect() {
   std::cout << "fact: " << bm.benchmark("fact").count()/1000000. << " s" << std::endl;
   std::cout << "total: " << bm.cumulativeBenchmark().count()/1000000. << " s" << std::endl;
   std::cout << "Intersection size: " << intersectionSize << std::endl;
+  
+  delete [] diff;
+  return true;
 }
 //-----------------------------------------------------------------------------

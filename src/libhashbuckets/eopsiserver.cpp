@@ -64,6 +64,7 @@ void EOPSIServer::receive(EOPSIMessage* msg) throw (ProtocolException) {
       msgToClient.setPartyId(this->getId());
       
       this->send(*getPartyById(partnerId), &msgToClient);
+      delete [] (byte *) msg->getData();
       break;
       
     case EOPSI_MESSAGE_OUTSOURCING_DATA:
