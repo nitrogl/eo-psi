@@ -27,11 +27,17 @@ protected:
   T autoSeed;
   
 public:
+  /**
+   * Empty constructor.
+   */
   PseudoRandom() {
     this->autoIndex = 0;
     this->autoSeedPtr = nullptr;
   };
   
+  /**
+   * Destructor.
+   */
   virtual ~PseudoRandom() {
     
   };
