@@ -36,8 +36,8 @@ CONFIGURE_FILE("config.h.in" "${CMAKE_SOURCE_DIR}/src/config.h")
 find_package (Threads)
 
 # Compiler flags
-set (OPTIMIZATION "2")
-set (DEBUG_INFO_FLAG "")
+set (OPTIMIZATION "0")
+set (DEBUG_INFO_FLAG "-g")
 set (PLATFORM_INDEPENDENT_CODE_FLAG "-fPIC")
 if (BIT32)
   set (BIT32 "-m32") # cmake -DBIT32=1
