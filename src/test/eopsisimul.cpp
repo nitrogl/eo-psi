@@ -330,8 +330,8 @@ int main(int argc, char **argv) {
   msgStoreDataBob.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataAlice.setPartyId(alice->getId());
   msgStoreDataBob.setPartyId(bob->getId());
-  alice->setRawData(dataAlice, n, nThreads);
-  bob->setRawData(dataBob, n, nThreads);
+  alice->setRawData(dataAlice, n, plainSetBits, nThreads);
+  bob->setRawData(dataBob, n, plainSetBits, nThreads);
   
   msgStoreDataAlice.setData(alice->getBlindedData(), alice->getBlindedDataSize());
   msgStoreDataBob.setData(bob->getBlindedData(), bob->getBlindedDataSize());
@@ -392,6 +392,8 @@ int main(int argc, char **argv) {
     std::cout << " WRONG!";
   }
   std::cout << std::endl;
+  
+  // Show benchmarks
   
   delete [] dataAlice;
   delete [] dataBob;

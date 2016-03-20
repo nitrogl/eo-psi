@@ -205,8 +205,7 @@ int main(int argc, char **argv) {
   benchmark.start();
   for (size_t i = 0; i < n; i++) {
     infile >> tmpZ;
-    tmpZ = NTL::zeroPad(tmpZ, padsize);
-    conv(z[i], tmpZ);
+    conv(z[i], NTL::zeroPad(tmpZ, padsize));
   }
   benchmark.step("padding");
   std::cout << "done. " << std::endl;
