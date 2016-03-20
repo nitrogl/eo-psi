@@ -17,12 +17,14 @@
 #include "eopsiserver.h"
 #include "hashbuckets.hpp"
 #include "zzpprf.h"
+#include "simplebm.h"
 //-----------------------------------------------------------------------------
 
 class EOPSIClient : public EOPSIParty {
 protected:
   NTL::ZZ *rawData;
   size_t rawDataSize;
+  size_t rawDataBits;
   NTL::vec_ZZ_p *blindedData;
   NTL::ZZ secret;
   HashBuckets<NTL::ZZ_p> *hashBuckets;
@@ -30,10 +32,12 @@ protected:
   ZZpPRF *zzpprf;
   EOPSIMessage msgToCloud, msgToClient;
   NTL::vec_ZZ setcap;
+  SimpleBenchmark bm;
   
+  virtual size_t padSize() const;
   virtual void blind(unsigned int nThreads = 0);
   virtual NTL::vec_ZZ_p * delegationOutput(const NTL::ZZ secretOtherParty, const NTL::ZZ tmpKey);
-  virtual bool intersect();
+  virtual bool intersect(const bool showStats = true);
   
 public:
   EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id = "", const NTL::ZZ secret = NTL::ZZFromBytes((byte *)"Topsy Kretts", 12L));
@@ -43,7 +47,7 @@ public:
   virtual void receive(EOPSIMessage* msg) throw (ProtocolException);
   virtual bool isAuthorised(const EOPSIMessage* msg) const;
   
-  virtual void setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads = 0);
+  virtual void setRawData(NTL::ZZ *rawData, const size_t size, const size_t dataBits, const unsigned int nThreads = 0);
   virtual NTL::ZZ * getRawData() const;
   virtual size_t getRawDataSize() const;
   virtual NTL::vec_ZZ_p * getBlindedData() const;

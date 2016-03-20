@@ -10,7 +10,6 @@
 #include "eopsiclient.h"
 #include "ntlmiss.h"
 #include "zzppoly.h"
-#include "simplebm.h"
 //-----------------------------------------------------------------------------
 
 /**
@@ -54,6 +53,7 @@ EOPSIClient::EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fiel
 
 EOPSIClient::~EOPSIClient() {
   delete this->zzpprf;
+  
   if (this->blindedData != nullptr) {
     delete [] this->blindedData;
   }
@@ -110,7 +110,7 @@ void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
         data = new byte[dataLen];
       } catch (std::bad_alloc &) {
         std::cerr << "receive(). Error allocating memory." << std::endl;
-        exit(1);
+        exit(2);
       }
       
       strcpy((char *) data, &this->getId()[0]);
@@ -223,12 +223,13 @@ bool EOPSIClient::isAuthorised(const EOPSIMessage *msg) const {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIClient::setRawData(NTL::ZZ *rawData, const size_t size, const unsigned int nThreads) {
+void EOPSIClient::setRawData(NTL::ZZ *rawData, const size_t size, const size_t dataBits, const unsigned int nThreads) {
   if (rawData == nullptr || size == 0) {
     std::cerr << "setRawData(). WARNING: Empty data to store; nothing to do" << std::endl;
   } else {
     this->rawData = rawData;
     this->rawDataSize = size;
+    this->rawDataBits = dataBits;
     blind(nThreads);
   }
 }
@@ -274,8 +275,13 @@ NTL::ZZ EOPSIClient::getSecret() const {
 }
 //-----------------------------------------------------------------------------
 
+size_t EOPSIClient::padSize() const {
+  return this->fieldbitsize - this->rawDataBits - 1;
+}
+//-----------------------------------------------------------------------------
+
 void EOPSIClient::blind(unsigned int nThreads) {
-  size_t index, padsize;
+  size_t index;
   NTL::ZZ_p zzpSeed, z;
   NTL::ZZ_pX *polynomials = nullptr;
   unsigned int cores = 0;
@@ -333,10 +339,8 @@ void EOPSIClient::blind(unsigned int nThreads) {
   std::cout.flush();
   
   // Pad and populate the hash table
-  padsize = NTL::NumBits(this->fieldsize);
   for (i = 0; i < this->rawDataSize; i++) {
-    this->rawData[i] = NTL::zeroPad(this->rawData[i], padsize);
-    conv(z, this->rawData[i]);
+    conv(z, NTL::zeroPad(this->rawData[i], this->padSize()));
     this->hashBuckets->add(z);
   }
   
@@ -465,11 +469,9 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, co
 }
 //-----------------------------------------------------------------------------
 
-bool EOPSIClient::intersect() {
+bool EOPSIClient::intersect(const bool showStats) {
   NTL::vec_ZZ_p *diff;
-  ZZpPolynomials polys(79);
-  SimpleBenchmark bm;
-  size_t intersectionSize;
+  ZZpPolynomials polys(this->padSize());
   
   if (this->q == nullptr || this->t == nullptr) {
     // Suppress this message...
@@ -501,19 +503,46 @@ bool EOPSIClient::intersect() {
 //   std::cout << "length: " << this->length << std::endl;
     
   // Compute intersection
-  bm.start();
-  polys.interpolate(unknowns, diff, this->length);
-  bm.step("interp");
-  polys.factorise();
-  bm.stop("fact");
-  this->setcap = polys.findIntersection();
-  bm.stop("fact");
-  intersectionSize = this->setcap.length();
+//   bm.start();
+//   polys.interpolate(unknowns, diff, this->length);
+//   bm.step("interp");
+//   polys.factorise();
+//   bm.stop("fact");
+//   this->setcap = polys.findIntersection();
+//   bm.stop("fact");
+//   
+//   std::cout << "interp: " << bm.benchmark("interp").count()/1000000. << " s" << std::endl;
+//   std::cout << "fact: " << bm.benchmark("fact").count()/1000000. << " s" << std::endl;
+//   std::cout << "total: " << bm.cumulativeBenchmark().count()/1000000. << " s" << std::endl;
+//   std::cout << "Intersection size: " << this->setcap.length() << std::endl;
   
-  std::cout << "interp: " << bm.benchmark("interp").count()/1000000. << " s" << std::endl;
-  std::cout << "fact: " << bm.benchmark("fact").count()/1000000. << " s" << std::endl;
-  std::cout << "total: " << bm.cumulativeBenchmark().count()/1000000. << " s" << std::endl;
-  std::cout << "Intersection size: " << intersectionSize << std::endl;
+  // Compute intersection
+  bm.start();
+  this->setcap = polys.findIntersection(unknowns, diff, this->length);
+  bm.stop();
+  
+  if (showStats) {
+    std::cout << " -- Interpolation"
+              << "\n\t   Avg: " << polys.bmInt.average()/1000. << " ms"
+              << "\n\tStdDev: " << polys.bmInt.standardDeviation()/1000. << " ms"
+              << "\n\t Total: " << polys.bmInt.cumulativeBenchmark().count()/1000. << " ms\n" << std::endl;
+    std::cout << " -- Monicisation"
+              << "\n\t   Avg: " << polys.bmMon.average()/1000. << " ms"
+              << "\n\tStdDev: " << polys.bmMon.standardDeviation()/1000. << " ms"
+              << "\n\t Total: " << polys.bmMon.cumulativeBenchmark().count()/1000. << " ms\n" << std::endl;
+    std::cout << " -- Factorisation"
+              << "\n\t   Avg: " << polys.bmFac.average()/1000. << " ms"
+              << "\n\tStdDev: " << polys.bmFac.standardDeviation()/1000. << " ms"
+              << "\n\t Total: " << polys.bmFac.cumulativeBenchmark().count()/1000. << " ms\n" << std::endl;
+    std::cout << " -- Finding Intersection"
+              << "\n\t   Avg: " << polys.bmCap.average()/1000. << " ms"
+              << "\n\tStdDev: " << polys.bmCap.standardDeviation()/1000. << " ms"
+              << "\n\t Total: " << polys.bmCap.cumulativeBenchmark().count()/1000. << " ms\n" << std::endl;
+              
+    std::cout << "Polynomials: " << this->length << std::endl;
+    std::cout << "Total time: " << bm.cumulativeBenchmark().count()/1000000. << " s" << std::endl;
+    std::cout << "Intersection size: " << this->setcap.length() << std::endl;
+  }
   
   delete [] diff;
   return true;
