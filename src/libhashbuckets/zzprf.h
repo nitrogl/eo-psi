@@ -18,6 +18,8 @@
 
 /**
  * A class for pseudo-random big integers using NTL
+ * 
+ * @example ../../res/examples/randomzzgen.cpp
  */
 class ZZPRF: public PseudoRandom<NTL::ZZ, NTL::ZZ>
 {
