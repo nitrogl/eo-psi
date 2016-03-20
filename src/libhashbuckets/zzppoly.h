@@ -13,6 +13,7 @@
 #include <NTL/ZZ_pXFactoring.h>
 #include <NTL/vec_ZZ_p.h>
 #include <NTL/pair_ZZ_pX_long.h>
+#include "simplebm.h"
 #include "ntlmiss.h"
 //-----------------------------------------------------------------------------
 
@@ -39,6 +40,11 @@ private:
   size_t nThreads;                       ///< The number of threads to use.
 
 public:
+  SimpleBenchmark bmInt; ///< Benchmark interpolation
+  SimpleBenchmark bmMon; ///< Benchmark monicisation
+  SimpleBenchmark bmFac; ///< Benchmark factorisation
+  SimpleBenchmark bmCap; ///< Benchmark intersection finding
+  
   /**
    * Constructor with pad size.
    * The pad size is very important since it determines the validity of the
@@ -67,7 +73,15 @@ public:
   virtual size_t size();
   
   /**
+   * Return the number of zero pad
+   */
+  virtual size_t getPadsize();
+  
+  /**
    * Make all polynomials monic
+   * WARNING: call this function after interpolate
+   * 
+   * @see interpolate
    */
   virtual void makeMonic();
   
@@ -85,10 +99,10 @@ public:
   /**
    * Factorise polynomials. A side effect is that the factorisation solutions
    * are stored in an internal field.
-   * WARNING: call this function after interpolate
+   * WARNING: call this function after makeMonic.
    * 
    * @param pfa the polynomial factoring algorithm to use (Berlekamp or CanZass)
-   * @see interpolate
+   * @see makeMonic
    */
   virtual void factorise(const PolynomialFactoringAlgorithm pfa = PFA_CANZASS);
   
@@ -100,6 +114,16 @@ public:
    * @see factorise
    */
   virtual NTL::vec_ZZ& findIntersection();
+  
+  /**
+   * Find intersection as valid solutions in factor pairs.
+   * 
+   * @param x the vector of arguments of the polynomial
+   * @param y the vector of vectors of polynomial values y, corresponding to unknowns x, y = f(x), for each polynomial
+   * @param n the number of polynomials to interpolate
+   * @return a vector filled with intersection found
+   */
+  virtual NTL::vec_ZZ& findIntersection(NTL::vec_ZZ_p& x, NTL::vec_ZZ_p *y, const size_t n, const PolynomialFactoringAlgorithm pfa = PFA_CANZASS);
   
   /**
    * Output
