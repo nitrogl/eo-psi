@@ -8,13 +8,14 @@ This library makes use of other very popular libraries.
 
 *   GMP
 *   NTL
-*   CryptoPP
+*   Crypto++
 
 
 Compile from source
 -------------------
 
-You need CMake to compile this library from source.
+You can use CMake to compile this library from source.
+Notice that for some distros you need to install *-dev packages too.
 
 Clone the repository; then,
 
@@ -37,8 +38,8 @@ The compilation produces three test binary files:
 *   `zzrndgen`
 *   `hbtest`
 *   `bptest`
-*   `eopsisrv`
-*   `eopsicli`
+*   `eopsisimul`
+*   `cherpars`
 
 In order to use them correctly, just run them with the argument `-h` and read the syntax.
 

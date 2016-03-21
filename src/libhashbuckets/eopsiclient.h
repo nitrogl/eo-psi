@@ -17,7 +17,6 @@
 #include "eopsiserver.h"
 #include "hashbuckets.hpp"
 #include "zzpprf.h"
-#include "simplebm.h"
 //-----------------------------------------------------------------------------
 
 class EOPSIClient : public EOPSIParty {
@@ -32,7 +31,6 @@ protected:
   ZZpPRF *zzpprf;
   EOPSIMessage msgToCloud, msgToClient;
   NTL::vec_ZZ setcap;
-  SimpleBenchmark bm;
   
   virtual size_t padSize() const;
   virtual void blind(unsigned int nThreads = 0);

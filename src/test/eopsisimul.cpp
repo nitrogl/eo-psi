@@ -281,8 +281,10 @@ int main(int argc, char **argv) {
   
   // To enable threads you need thread NTL to be compiled enabling thread-safe
 #ifndef NTL_THREADS
-  std::cerr << argv[0] << ". Your NTL library is not thread-safe: using only 1 thread." << std::endl;
-  nThreads = 1;
+  if (nThreads > 1) {
+    std::cerr << argv[0] << ". Your NTL library is not thread-safe: using only 1 thread." << std::endl;
+    nThreads = 1;
+  }
 #endif
   if (nThreads > 1) {
     std::cerr << argv[0] << ". Multithreading not (yet) implemented." << std::endl;

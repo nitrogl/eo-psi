@@ -1,5 +1,5 @@
 /*
- * Implementation of a hash table with buckets as element containers.
+ * Implementation of 
  * 
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
  */
@@ -9,12 +9,12 @@
 //-----------------------------------------------------------------------------
 
 #define DEFAULT_HASHBUCKETS_MAXLOAD 30
-#define DEFAULT_HASHBUCKETS_LENGTH 250
+#define DEFAULT_HASHBUCKETS_LENGTH 10000
 #define DEFAULT_MURMURHASH_SEED 1234567890
 #define DEFAULT_PLAIN_SET_BITS "32"
 #define DEFAULT_P "2596148429267413814265248164610099"
 // #define DEFAULT_P "335688069665150755269371147819668813122841983204197482918576337"
-#define DEFAULT_N 4096L
+#define DEFAULT_N 100000L
 #define DEFAULT_MIN_COMMON_DATA 1L
 #define SEED_MAX_LENGTH 100
 //-----------------------------------------------------------------------------

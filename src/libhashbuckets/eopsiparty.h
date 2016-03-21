@@ -17,6 +17,7 @@
 #include "eopsimsg.h"
 #include "protocolex.h"
 #include "zzprf.h"
+#include "simplebm.h"
 //-----------------------------------------------------------------------------
 
 #define DEFAULT_KEY_BITSIZE 128
@@ -46,6 +47,7 @@ protected:
   size_t degree;
   size_t length;
   size_t height;
+  SimpleBenchmark bm;
   
   virtual EOPSIParty* getPartyById(const std::string id) const;
   virtual NTL::vec_ZZ_p getUnknowns(const size_t n = 0);
