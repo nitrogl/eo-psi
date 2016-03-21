@@ -15,6 +15,13 @@ link_directories (
   )
 
 
+# Add executable "cherpars"
+add_executable(cherpars cherpars.cpp)
+target_link_libraries (cherpars "${LIBRARY_NAME}")
+target_link_libraries (cherpars m)
+target_link_libraries (cherpars "${CMAKE_THREAD_LIBS_INIT}")
+set_target_properties (cherpars PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # Add executable "zzrndgen"
 add_executable(zzrndgen zzrndgen.cpp)
 target_link_libraries (zzrndgen "${LIBRARY_NAME}")
