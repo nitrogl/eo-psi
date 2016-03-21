@@ -15,11 +15,11 @@
  * @param prgnam the name of the program/binary called
  */
 static void printUsage(const char *prgnam) {
-  std::cout << "Syntax: " << prgnam << " -h -b <bits-in-plain-sets> -p <field-size> -n <number> -r <number>\n"
+  std::cout << "Syntax: " << prgnam << " -h -b <bits-in-plain-sets> -p <field-size-bits> -k <buckets> -l <bucket-size>-n <number> -r <min-common>\n"
 //             << " -j : force number of threads for evaluation (be sure your NTL is thread-safe)\n"
             << " -k : number of buckets of the hash table\n"
             << " -l : size of each bucket in the hash table\n"
-            << " -p : set the padding up to numbers modulo p\n"
+            << " -p : set the field size bits to p\n"
             << " -b : number of bits in plain sets\n"
             << " -n : amount of random numbers to generate\n"
             << " -r : amount of minimum common data for clients (less or equal to n)\n"
@@ -200,9 +200,8 @@ int main(int argc, char **argv) {
   NTL::ZZ *dataAlice, *dataBob, *minCommonData, *uncommonDataA, *uncommonDataB;
   NTL::ZZ *setcap;
   size_t setcapCard;
-  std::string plainSetBitsStr = DEFAULT_PLAIN_SET_BITS;
-  std::string fieldsizeStr = DEFAULT_P;
-  size_t plainSetBits;
+  size_t plainSetBits = DEFAULT_PLAIN_SET_BITS;
+  size_t fieldsizeBits = DEFAULT_FIELD_SIZE_BITS;
   size_t n = DEFAULT_N;
   size_t r = DEFAULT_MIN_COMMON_DATA;
   ZZPRF rndZZgen;
@@ -215,39 +214,65 @@ int main(int argc, char **argv) {
   unsigned int cores, nThreads = 0;
   byte *data = nullptr;
   size_t dataLen;
+  SimpleBenchmark bm;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
-  while ((op = getopt(argc, argv, "b:hj:k:l:n:o:p:r:")) != -1) {
+  while ((op = getopt(argc, argv, "b:hj:k:l:n:p:r:")) != -1) {
     switch (op) {
       case 'b':
-        plainSetBitsStr = optarg;
+        if (atol(optarg) <= 0) {
+          std::cerr << argv[0] << ". Bits of plain indexes must be positive." << std::endl;
+          exit(1);
+        }
+        plainSetBits = atol(optarg);
         break;
         
       case 'j':
-        nThreads = atoi(optarg);
+        if (atol(optarg) < 0) {
+          std::cerr << argv[0] << ". Number of threads can't be negative." << std::endl;
+          exit(1);
+        }
+        nThreads = atol(optarg);
         break;
         
       case 'k':
+        if (atol(optarg) <= 0) {
+          std::cerr << argv[0] << ". Number of buckets must be positive." << std::endl;
+          exit(1);
+        }
         length = atol(optarg); 
         break;
         
       case 'l':
+        if (atol(optarg) <= 0) {
+          std::cerr << argv[0] << ". Size of buckets must be positive." << std::endl;
+          exit(1);
+        }
         maxLoad = atol(optarg); 
         break;
         
       case 'n':
+        if (atol(optarg) <= 0) {
+          std::cerr << argv[0] << ". Number of random generated numbers must be positive." << std::endl;
+          exit(1);
+        }
         n = atol(optarg);
         break;
         
-      case 'o':
-        break;
-        
       case 'p':
-        fieldsizeStr = optarg;
+        if (atol(optarg) <= 0) {
+          std::cerr << argv[0] << ". Number of field size bits must be greater than zero." << std::endl;
+          exit(1);
+        }
+        fieldsizeBits = atol(optarg);
         break;
         
       case 'r':
+        if (atol(optarg) < 0) {
+          std::cerr << argv[0] << ". Number of common elements can't be negative." << std::endl;
+          exit(1);
+        }
         r = atol(optarg);
         break;
         
@@ -260,9 +285,13 @@ int main(int argc, char **argv) {
     }
   }
   
-  // Parameter error
+  // Additional parameter issues
   if (r > n) {
     std::cerr << argv[0] << ". Common elements can not be more than total elements." << std::endl;
+    exit(1);
+  }
+  if (fieldsizeBits < plainSetBits) {
+    std::cerr << argv[0] << ". Field size number of bits must be greater than plain index number of bits." << std::endl;
     exit(1);
   }
   
@@ -291,14 +320,13 @@ int main(int argc, char **argv) {
   }
   nThreads = 1;
   
-  // Number of bits of generated numbers
-  plainSetBits = atol(plainSetBitsStr.c_str());
-  
   // Initialise modulo operations in NTL
-  fieldsize = NTL::to_ZZ(fieldsizeStr.c_str());
+  fieldsize = NTL::GenPrime_ZZ(fieldsizeBits, 100);
   if (!NTL::ProbPrime(fieldsize)) {
     std::cerr << argv[0] << ". " << fieldsize << " does not look like a prime number. Aborting..." << std::endl;
     exit(1);
+  } else {
+    std::cerr << argv[0] << ". Random field size set to prime number " << fieldsize << " (" << NTL::NumBits(fieldsize) << ")." << std::endl;
   }
   NTL::ZZ_p::init(fieldsize);
   
@@ -322,21 +350,38 @@ int main(int argc, char **argv) {
   /*
    * 0. Alice and Bob stores blinded values into the cloud.
    */
+  bm.start();
   minCommonData = randomData(r, plainSetBits);
+  bm.step("min-cap");
   uncommonDataA = randomData(n - r, plainSetBits);
-  uncommonDataB = randomData(n - r, plainSetBits);
   dataAlice = join(minCommonData, r, uncommonDataA, n - r);
+  bm.step("set-A");
+  uncommonDataB = randomData(n - r, plainSetBits);
   dataBob = join(minCommonData, r, uncommonDataB, n - r);
+  bm.step("set-B");
+  
+  // Generation stats
+  std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Generating minimum commond data required " << bm.benchmark("min-cap").count()/1000. << " ms" << std::endl;
+  std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Generating random data for A required " << bm.benchmark("set-A").count()/1000. << " ms" << std::endl;
+  std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Generating random data for B required " << bm.benchmark("set-B").count()/1000. << " ms" << std::endl;
   
   msgStoreDataAlice.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataBob.setType(EOPSI_MESSAGE_OUTSOURCING_DATA);
   msgStoreDataAlice.setPartyId(alice->getId());
   msgStoreDataBob.setPartyId(bob->getId());
+  bm.step();
   alice->setRawData(dataAlice, n, plainSetBits, nThreads);
+  bm.step("add-n-blind-A");
   bob->setRawData(dataBob, n, plainSetBits, nThreads);
+  bm.step("add-n-blind-B");
+  
+  // Blinding stats
+  std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Blinding A's data required " << bm.benchmark("add-n-blind-A").count()/1000. << " ms" << std::endl;
+  std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Blinding B's data required " << bm.benchmark("add-n-blind-B").count()/1000. << " ms" << std::endl;
   
   msgStoreDataAlice.setData(alice->getBlindedData(), alice->getBlindedDataSize());
   msgStoreDataBob.setData(bob->getBlindedData(), bob->getBlindedDataSize());
+  bm.step("eopsi-begin");
   try {
     alice->send(*cloud, &msgStoreDataAlice);
     bob->send(*cloud, &msgStoreDataBob);
@@ -344,6 +389,10 @@ int main(int argc, char **argv) {
     std::cerr << argv[0] << ". " << e.what() << std::endl;
     exit(2);
   }
+  bm.step("outsourcing");
+  
+  // Outsourcing stats
+  std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Outsourcing both A's and B's data to cloud required " << bm.benchmark("outsourcing").count()/1000. << " ms" << std::endl;
   
   /*
    * The right solution of set intersection is here:
@@ -351,7 +400,9 @@ int main(int argc, char **argv) {
    * 
    * Use later for check test the correctness of the output
    */
+  bm.step();
   setcap = intersect(dataAlice, n, dataBob, n, &setcapCard);
+  bm.step("plain-cap");
   
 //   std::cout << "Alice data: " << std::endl;
 //   NTL::printZZArray(dataAlice, n);
@@ -360,6 +411,7 @@ int main(int argc, char **argv) {
 //   std::cout << "Expected intersection: " << std::endl;
 //   NTL::printZZArray(setcap, setcapCard);
   std::cout << "Size of intersection: " << setcapCard << std::endl;
+  
   
   /*
    * 1. B outsources some elaboration to A
@@ -377,6 +429,11 @@ int main(int argc, char **argv) {
     
     // Send the message
     std::cout << bob->getId() << ". Sending client computation request to " << alice->getId() << "." << std::endl;
+    bm.step("comp-req");
+    
+    // Step stats
+    std::cout << EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST << ". Computation request required " << bm.benchmark("comp-req").count()/1000. << " ms" << std::endl;
+    
     bob->send(*alice, &msgBobAlice);
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating memory." << std::endl;
@@ -385,6 +442,7 @@ int main(int argc, char **argv) {
     std::cerr << argv[0] << ". " << e.what() << std::endl;
     exit(2);
   }
+  bm.step("the-end");
   
   // Compare protocol intersection with known intersection for correctness
   std::cout << argv[0] << ". Checking protocol intersection... ";
@@ -394,8 +452,12 @@ int main(int argc, char **argv) {
     std::cout << " WRONG!";
   }
   std::cout << std::endl;
+  bm.stop("check-result");
   
   // Show benchmarks
+  std::cout << " --- Plaintext intersection required " << bm.benchmark("plain-cap").count()/1000. << " ms" << std::endl;
+  std::cout << " --- EO-PSI protocol required " << (bm.cumulativeBenchmark("the-end") - bm.cumulativeBenchmark("eopsi-begin")).count()/1000000. << " s" << std::endl;
+  std::cout << " --- Checking correctness required " << bm.benchmark("check-result").count()/1000. << " ms" << std::endl;
   
   delete [] dataAlice;
   delete [] dataBob;
