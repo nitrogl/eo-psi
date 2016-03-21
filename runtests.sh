@@ -5,13 +5,18 @@
 GENBIN="src/test/zzrndgen"
 HBTESTBIN="src/test/hbtest"
 BPTESTBIN="src/test/bptest"
+SIMULBIN="src/test/eopsisimul"
+CHPARBIN="src/test/cherpars"
 
 N="1000000"
-GENP="605462909807314587353179"
-P="335688069665150755269371147819668813122841983204197482918576337"
+GENP="32"
+P="113"
+PROBEXP="-40"
 FILE="zz.dat"
 LENGTH=0
 MAXLOAD=0
+
+POWS2="1"
 
 set -e
 
@@ -50,6 +55,52 @@ run_tests() {
   set -e
 }
 
+fill_pow2() {
+  i=1
+  p=1
+  while [ $i -le $1 ]
+  do
+    p=$((2*$p))
+    POWS2="$POWS2 $p"
+    i=$(($i + 1))
+  done
+}
+
+pow2() {
+  j=$(($1 + 1))
+  echo $POWS2 | cut -d ' ' -f$j
+}
+
+pows2() {
+  j=$(($1 + 1))
+  k=$(($2 + 1))
+  echo $POWS2 | cut -d ' ' -f$j-$k
+}
+
+run_simulations() {
+  PREFIX="$3"
+  etot=$(($(echo $1 | wc -w) * $(echo $2 | wc -w)))
+  e=0
+  for l in $1
+  do
+    for n in $2
+    do
+      e=$(($e + 1))
+    
+      k=$($CHPARBIN -q -l $l -n $n -p $PROBEXP)
+      LOGFILE="${PREFIX}k${k}_l${l}_b${GENP}_p${P}_errs.log"
+      OUTFILE="${PREFIX}k${k}_l${l}_b${GENP}_p${P}.dat"
+      
+      printf " ------ Experiment \"$e/$etot\" launched. Be patient..."
+      $SIMULBIN -k $k -l $l -n $n -r $(($n / 4)) -b $GENP -p $P > "$OUTFILE" 2> "$LOGFILE"
+      printf " completed.\n"
+      printf " ------ See output file: $OUTFILE\n"
+      printf " ------ See log file: $LOGFILE\n"
+      printf "\n\n"
+    done
+  done
+}
+
 build
 cd build
 
@@ -63,4 +114,8 @@ cd build
 
 # BP test
 # P="604462909807314587353111" generate_rnd_zz
-$BPTESTBIN -a MH3    -k 16536 -l 128 -p $P -i $FILE
+# $BPTESTBIN -a MH3    -k 16536 -l 128 -p $P -i $FILE
+
+# Simulations
+fill_pow2 20
+run_simulations "10 20 50 100 200" "17" "$(date +"%s")_experiments-size-vs-time_"
