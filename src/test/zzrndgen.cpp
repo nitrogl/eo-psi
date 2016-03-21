@@ -13,7 +13,7 @@
  * @param prgnam the name of the program/binary called
  */
 static void printUsage(const char *prgnam) {
-  std::cout << "Syntax: " << prgnam << " -h -p <modulo> -n <number> -b <bits> -o <outfile>\n"
+  std::cout << "Syntax: " << prgnam << " -h -p <bits> -n <number> -b <bits> -o <outfile>\n"
             << " -b : maximum number of bits for generated numbers\n"
             << " -n : amount of random numbers to generate\n"
             << " -o : file name to store generated numbers\n"
@@ -26,9 +26,8 @@ int main(int argc, char **argv) {
   NTL::ZZ supremum;
   std::ofstream outfile;
   size_t n = DEFAULT_N;
-  std::string plainSetBitsStr = DEFAULT_PLAIN_SET_BITS;
+  size_t plainSetBits = DEFAULT_PLAIN_SET_BITS;
   std::string outfilename = DEFAULT_FILENAME;
-  size_t plainSetBits;
   ZZPRF zzprf;
   
   // Parse arguments
@@ -36,7 +35,11 @@ int main(int argc, char **argv) {
   while ((op = getopt(argc, argv, "b:hn:o:")) != -1) {
     switch (op) {
       case 'b':
-        plainSetBitsStr = optarg;
+        if (atol(optarg) <=  0) {
+          std::cerr << argv[0] << ". Number of bits for number generation must be positive." << std::endl;
+          exit(1);
+        }
+        plainSetBits = atol(optarg);
         break;
         
       case 'n':
@@ -57,9 +60,6 @@ int main(int argc, char **argv) {
   }
   // Initialise random seed
   srand(time(NULL));
-  
-  // Number of bits of generated numbers
-  plainSetBits = atol(plainSetBitsStr.c_str());
   
   // Open file
   if (outfilename == DEFAULT_FILENAME) {

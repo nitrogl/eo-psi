@@ -17,12 +17,12 @@
  * @param prgnam the name of the program/binary called
  */
 static void printUsage(const char *prgnam) {
-  std::cout << "Syntax: " << prgnam << " -h -k <keys> -l <bucket-size> -p <field-size> -i <infile>\n"
+  std::cout << "Syntax: " << prgnam << " -h -k <buckets> -l <bucket-size> -p <field-size> -i <infile>\n"
             << " -a : hash algorithm (MH3|SHA1|SHA256|SHA512)\n"
 //             << " -j : force number of threads for evaluation (be sure your NTL is thread-safe)\n"
             << " -k : number of buckets of the hash table\n"
             << " -l : size of each bucket in the hash table\n"
-            << " -p : set the padding up to numbers modulo p (in the field Z_p)\n"
+            << " -p : set the field size bits to p\n"
             << " -i : file name to read numbers from\n"
             << " -h : show this message and exit\n"
             << std::endl;
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n, index;
-  std::string pstr = DEFAULT_P;
+  size_t pbits = DEFAULT_FIELD_SIZE_BITS;
   unsigned int padsize;
   ZZpPRF *zzpprf;
   NTL::ZZ_p *zzpSeed = nullptr;
@@ -97,14 +97,26 @@ int main(int argc, char **argv) {
         break;
         
       case 'j':
-        nThreads = atoi(optarg); 
+        if (atol(optarg) < 0) {
+          std::cerr << argv[0] << ". Number of threads can't be negative." << std::endl;
+          exit(1);
+        }
+        nThreads = atol(optarg); 
         break;
         
       case 'k':
+        if (atol(optarg) <= 0) {
+          std::cerr << argv[0] << ". Number of buckets must be positive." << std::endl;
+          exit(1);
+        }
         length = atol(optarg); 
         break;
         
       case 'l':
+        if (atol(optarg) <= 0) {
+          std::cerr << argv[0] << ". Size of buckets must be positive." << std::endl;
+          exit(1);
+        }
         maxLoad = atol(optarg); 
         break;
         
@@ -113,7 +125,11 @@ int main(int argc, char **argv) {
         break;
         
       case 'p': 
-        pstr = optarg;
+        if (atol(optarg) <= 0) {
+          std::cerr << argv[0] << ". Number of field size bits must be greater than zero." << std::endl;
+          exit(1);
+        }
+        pbits = atol(optarg);
         break;
         
       case '?':
@@ -126,7 +142,7 @@ int main(int argc, char **argv) {
   }
   
   // Initialise numbers modulo p
-  p = NTL::to_ZZ(pstr.c_str());
+  p = NTL::GenPrime_ZZ(pbits, 100);
   if (!NTL::ProbPrime(p)) {
     std::cerr << argv[0] << ". " << p << " does not look like a prime number. Aborting..." << std::endl;
     exit(1);
