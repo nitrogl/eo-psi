@@ -326,7 +326,7 @@ int main(int argc, char **argv) {
     std::cerr << argv[0] << ". " << fieldsize << " does not look like a prime number. Aborting..." << std::endl;
     exit(1);
   } else {
-    std::cerr << argv[0] << ". Random field size set to prime number " << fieldsize << " (" << NTL::NumBits(fieldsize) << ")." << std::endl;
+    std::cout << argv[0] << ". Random field size set to prime number " << fieldsize << " (" << NTL::NumBits(fieldsize) << ")." << std::endl;
   }
   NTL::ZZ_p::init(fieldsize);
   
