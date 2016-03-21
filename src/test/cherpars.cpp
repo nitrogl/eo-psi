@@ -24,27 +24,41 @@ static void printUsage(const char *prgnam) {
 
 int main(int argc, char **argv) {
   double sigma, h;
-  int l = DEFAULT_BUCKET_SIZE;
-  int n = DEFAULT_N;
+  size_t l = DEFAULT_BUCKET_SIZE;
+  size_t n = DEFAULT_N;
   double targetP = DEFAULT_TARGET_PROB_EXPONENT;
   double epsilon = 1e-4;
   double top, down, currentP;
   int quiet = 0;
-  int mu;
+  size_t mu;
   
   // Parse arguments
   int op = 0; // Return value of getopt_long
   while ((op = getopt(argc, argv, "hl:n:p:q")) != -1) {
     switch (op) {
       case 'l':
-        l = atoi(optarg);
+        if (atol(optarg) < 1L) {
+          std::cerr << argv[0] << ". Fatal error: \"l\" must be at least 1." << std::endl;
+          printUsage(argv[0]);
+          exit(1);
+        }
+        l = atol(optarg);
         break;
         
       case 'n':
-        n = atoi(optarg);
+        if (atol(optarg) <= 0L) {
+          std::cerr << argv[0] << ". Fatal error: \"n\" must be positive." << std::endl;
+          exit(1);
+        }
+        n = atol(optarg);
         break;
         
       case 'p':
+        if (atof(optarg) >= -epsilon) {
+          std::cerr << argv[0] << ". Fatal error: \"p\" must be negative." << std::endl;
+          printUsage(argv[0]);
+          exit(1);
+        }
         targetP = atof(optarg);
         break;
         
@@ -59,25 +73,6 @@ int main(int argc, char **argv) {
         printUsage(argv[0]);
         return 1;
     }
-  }
-  
-  // Preliminar check
-  if (targetP >= -epsilon) {
-    std::cerr << argv[0] << ". Fatal error: \"p\" must be negative." << std::endl;
-    printUsage(argv[0]);
-    exit(1);
-  }
-  
-  if (l < 1) {
-    std::cerr << argv[0] << ". Fatal error: \"l\" must be at least 1." << std::endl;
-    printUsage(argv[0]);
-    exit(1);
-  }
-  
-  if (n < 0) {
-    std::cerr << argv[0] << ". Fatal error: \"n\" can't be negative." << std::endl;
-    printUsage(argv[0]);
-    exit(1);
   }
   
   /*
@@ -98,9 +93,9 @@ int main(int argc, char **argv) {
   
   // Print things out
   if (quiet) {
-    std::cout << (int) floor(h) << std::endl;
+    std::cout << (size_t) floor(h) << std::endl;
   } else {
-    std::cout << "Size of hash table = " << (int) floor(h) << std::endl;
+    std::cout << "Size of hash table = " << (size_t) floor(h) << std::endl;
     std::cout << "Size of bucket = " << l << std::endl;
     std::cout << "*************************" << std::endl;
     std::cout << "Overflow probability = " << currentP << std::endl;
