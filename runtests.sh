@@ -90,9 +90,12 @@ run_simulations() {
       k=$($CHPARBIN -q -l $l -n $n -p $PROBEXP)
       LOGFILE="${PREFIX}k${k}_l${l}_b${GENP}_p${P}_errs.log"
       OUTFILE="${PREFIX}k${k}_l${l}_b${GENP}_p${P}.dat"
+      pn=$(pow2 $n)
       
-      printf " ------ Experiment \"$e/$etot\" launched. Be patient..."
-      $SIMULBIN -k $k -l $l -n $n -r $(($n / 4)) -b $GENP -p $P > "$OUTFILE" 2> "$LOGFILE"
+      printf " ------ Experiment \"$e/$etot\" launched.\n"
+      echo $SIMULBIN -k $k -l $l -n $pn -r $(($pn / 4)) -b $GENP -p $P
+      printf "Please, be patient..."
+      $SIMULBIN -k $k -l $l -n $pn -r $(($pn / 4)) -b $GENP -p $P > "$OUTFILE" 2> "$LOGFILE"
       printf " completed.\n"
       printf " ------ See output file: $OUTFILE\n"
       printf " ------ See log file: $LOGFILE\n"
