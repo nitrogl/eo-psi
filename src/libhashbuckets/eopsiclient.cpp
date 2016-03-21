@@ -86,6 +86,8 @@ void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
   
   switch(msg->getType()) {
     case EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST:
+      bm.start();
+      
       // Check sender and message content
       msgClaimedId = (char *) msg->getData();
       if (msgClaimedId != sender->getId()) {
@@ -147,12 +149,14 @@ void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
       
       // Send the message to cloud
       std::cout << this->getId() << ". Sending cloud computation request with key \"" << tmpKey << "\" to " << cloud->getId() << "." << std::endl;
+      bm.pause("cloud");
       try {
         this->send(*cloud, &msgToCloud);
       } catch (ProtocolException &e) {
         std::cerr << "receive(). " << e.what() << std::endl;
         exit(2);
       }
+      bm.cont();
       
       /*
        * 2. Send q to client
@@ -161,27 +165,42 @@ void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
       msgToClient.setData((void *) q, 1);
       msgToClient.setType(EOPSI_MESSAGE_POLYNOMIAL);
       msgToClient.setPartyId(this->getId());
+      
+      bm.stop("client");
+      std::cout << EOPSI_MESSAGE_CLIENT_COMPUTATION_REQUEST << ". Client computation request step required " << bm.cumulativeBenchmark().count()/1000. << " ms" << std::endl;
+      
       this->send(*sender, &msgToClient);
       break;
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
+      bm.start();
       t = (NTL::vec_ZZ_p *) msg->getData();
       // Reception feedback
       std::cout << "I, " << id << ", received \"" << t[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
+      bm.step("int-unsure");
       if (intersect()) {
+        bm.stop();
+        std::cout << "Finding intersection required " << bm.cumulativeBenchmark().count()/1000. << " ms" << std::endl;
         delete [] t;
         delete [] q;
       }
+      std::cout << EOPSI_MESSAGE_OUTPUT_COMPUTATION << ". Receiving partial intersection data \"t\" required " << bm.cumulativeBenchmark("int-unsure").count() << " µs" << std::endl;
+      
       break;
       
     case EOPSI_MESSAGE_POLYNOMIAL:
+      bm.start();
       q = (NTL::vec_ZZ_p *) msg->getData();
       // Reception feedback
       std::cout << "I, " << id << ", received \"" << q[0][0] << ", ...\" from " << sender->getId() << "." << std::endl;
+      bm.step("int-unsure");
       if (intersect()) {
+        bm.stop();
+        std::cout << "Finding intersection required " << bm.cumulativeBenchmark().count()/1000. << " ms" << std::endl;
         delete [] t;
         delete [] q;
       }
+      std::cout << EOPSI_MESSAGE_POLYNOMIAL << ". Receiving partial intersection data \"q\" required " << bm.cumulativeBenchmark("int-unsure").count() << " µs" << std::endl;
       break;
       
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
@@ -473,6 +492,7 @@ NTL::vec_ZZ_p * EOPSIClient::delegationOutput(const NTL::ZZ secretOtherParty, co
 bool EOPSIClient::intersect(const bool showStats) {
   NTL::vec_ZZ_p *diff;
   ZZpPolynomials polys(this->padSize());
+  SimpleBenchmark bmIntersect;
   
   if (this->q == nullptr || this->t == nullptr) {
     // Suppress this message...
@@ -504,23 +524,23 @@ bool EOPSIClient::intersect(const bool showStats) {
 //   std::cout << "length: " << this->length << std::endl;
     
   // Compute intersection
-//   bm.start();
+//   bmIntersect.start();
 //   polys.interpolate(unknowns, diff, this->length);
-//   bm.step("interp");
+//   bmIntersect.step("interp");
 //   polys.factorise();
-//   bm.stop("fact");
+//   bmIntersect.stop("fact");
 //   this->setcap = polys.findIntersection();
-//   bm.stop("fact");
+//   bmIntersect.stop("fact");
 //   
-//   std::cout << "interp: " << bm.benchmark("interp").count()/1000000. << " s" << std::endl;
-//   std::cout << "fact: " << bm.benchmark("fact").count()/1000000. << " s" << std::endl;
-//   std::cout << "total: " << bm.cumulativeBenchmark().count()/1000000. << " s" << std::endl;
+//   std::cout << "interp: " << bmIntersect.benchmark("interp").count()/1000000. << " s" << std::endl;
+//   std::cout << "fact: " << bmIntersect.benchmark("fact").count()/1000000. << " s" << std::endl;
+//   std::cout << "total: " << bmIntersect.cumulativeBenchmark().count()/1000000. << " s" << std::endl;
 //   std::cout << "Intersection size: " << this->setcap.length() << std::endl;
   
   // Compute intersection
-  bm.start();
+  bmIntersect.start();
   this->setcap = polys.findIntersection(unknowns, diff, this->length);
-  bm.stop();
+  bmIntersect.stop();
   
   if (showStats) {
     std::cout << " -- Interpolation"
@@ -541,7 +561,7 @@ bool EOPSIClient::intersect(const bool showStats) {
               << "\n\t Total: " << polys.bmCap.cumulativeBenchmark().count()/1000. << " ms\n" << std::endl;
               
     std::cout << "Polynomials: " << this->length << std::endl;
-    std::cout << "Total time: " << bm.cumulativeBenchmark().count()/1000000. << " s" << std::endl;
+    std::cout << "Total time: " << bmIntersect.cumulativeBenchmark().count()/1000000. << " s" << std::endl;
     std::cout << "Intersection size: " << this->setcap.length() << std::endl;
   }
   

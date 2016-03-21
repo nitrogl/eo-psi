@@ -42,6 +42,7 @@ void EOPSIServer::receive(EOPSIMessage* msg) throw (ProtocolException) {
   
   switch(msg->getType()) {
     case EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST:
+      bm.start();
       if (sender->getType() == EOPSI_PARTY_SERVER) {
         throw ProtocolException("Outsourcing computation requests between servers is not (yet) supported");
       }
@@ -63,11 +64,15 @@ void EOPSIServer::receive(EOPSIMessage* msg) throw (ProtocolException) {
       msgToClient.setType(EOPSI_MESSAGE_OUTPUT_COMPUTATION);
       msgToClient.setPartyId(this->getId());
       
+      bm.stop();
+      std::cout << EOPSI_MESSAGE_CLOUD_COMPUTATION_REQUEST << ". Cloud computation request required " << bm.cumulativeBenchmark().count()/1000. << " ms" << std::endl;
+      
       this->send(*getPartyById(partnerId), &msgToClient);
       delete [] (byte *) msg->getData();
       break;
       
     case EOPSI_MESSAGE_OUTSOURCING_DATA:
+      bm.start();
       if (sender->getType() == EOPSI_PARTY_SERVER) {
         throw ProtocolException("Outsourcing data between servers is not (yet) supported");
       }
@@ -80,6 +85,8 @@ void EOPSIServer::receive(EOPSIMessage* msg) throw (ProtocolException) {
 //         std::cout << " " << ((NTL::vec_ZZ_p *) msg->getData())[0][i];
 //       }
 //       std::cout << " ]." << std::endl;
+      bm.stop();
+      std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Saving outsourcing data required " << bm.cumulativeBenchmark().count()/1000. << " ms" << std::endl;
       break;
       
     case EOPSI_MESSAGE_OUTPUT_COMPUTATION:
