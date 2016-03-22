@@ -325,8 +325,8 @@ void EOPSIClient::blind(unsigned int nThreads) {
     nThreads = cores;
   }
   
-#ifndef NTL_THREADS
   if (nThreads > 1) {
+#ifndef NTL_THREADS
     std::cerr << "blind(). Your NTL library is not thread-safe: using only 1 thread." << std::endl;
 #else
     std::cerr << "blind(). Multithreading not (yet) implemented." << std::endl;
