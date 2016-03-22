@@ -88,8 +88,8 @@ run_simulations() {
       e=$(($e + 1))
     
       k=$($CHPARBIN -q -l $l -n $n -p $PROBEXP)
-      LOGFILE="${PREFIX}k${k}_l${l}_b${GENP}_p${P}_errs.log"
-      OUTFILE="${PREFIX}k${k}_l${l}_b${GENP}_p${P}.dat"
+      LOGFILE="${PREFIX}k${k}_l${l}_n${n}_b${GENP}_p${P}_errs.log"
+      OUTFILE="${PREFIX}k${k}_l${l}_n${n}_b${GENP}_p${P}.dat"
       pn=$(pow2 $n)
       
       printf " ------ Experiment \"$e/$etot\" launched.\n"
@@ -121,4 +121,10 @@ cd build
 
 # Simulations
 fill_pow2 20
-run_simulations "10 20 50 100 200" "17" "$(date +"%s")_experiments-size-vs-time_"
+#run_simulations "20 50 100 200" "17" "$(date +"%s")_experiments-size-vs-time_"
+#run_simulations "120 140 160 180" "17" "$(date +"%s")_experiments-size-vs-time_"
+run_simulations "30 300 400 500" "17" "$(date +"%s")_experiments-size-vs-time_"
+
+
+
+
