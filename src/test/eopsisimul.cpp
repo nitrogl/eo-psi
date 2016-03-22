@@ -331,6 +331,17 @@ int main(int argc, char **argv) {
   }
   NTL::ZZ_p::init(fieldsize);
   
+  // Print out initial settings
+  std::cout << " --- Settings ------------------------" << std::endl;
+  std::cout << "         Number of buckets: " << length << std::endl;
+  std::cout << "       Size of each bucket: " << maxLoad << std::endl;
+  std::cout << "            Plain set bits: " << plainSetBits << std::endl;
+  std::cout << "                Field size: " << fieldsize << " (" << fieldsizeBits << " bits)" << std::endl;
+  std::cout << "Number of elements per set: " << n << std::endl;
+  std::cout << "   Minimum common elements: " << r << std::endl;
+  std::cout << " -------------------------------------" << std::endl;
+  
+  
   // Create parties
   degree = 2*maxLoad + 1;
   try {
