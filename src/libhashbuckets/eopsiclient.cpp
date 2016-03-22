@@ -554,7 +554,7 @@ bool EOPSIClient::intersect(const bool showStats) {
     std::cout << " -- Factorisation"
               << "\n\t   Avg: " << polys.bmFac.average()/1000. << " ms"
               << "\n\tStdDev: " << polys.bmFac.standardDeviation()/1000. << " ms"
-              << "\n\t Total: " << polys.bmFac.cumulativeBenchmark().count()/1000. << " ms\n" << std::endl;
+              << "\n\t Total: " << polys.bmFac.cumulativeBenchmark().count()/1000000. << " s\n" << std::endl;
     std::cout << " -- Finding Intersection"
               << "\n\t   Avg: " << polys.bmCap.average()/1000. << " ms"
               << "\n\tStdDev: " << polys.bmCap.standardDeviation()/1000. << " ms"
