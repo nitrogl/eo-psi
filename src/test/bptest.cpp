@@ -142,6 +142,7 @@ int main(int argc, char **argv) {
   }
   
   // Initialise numbers modulo p
+  NTL::SetSeed(NTL::to_ZZ(time(NULL)));
   p = NTL::GenPrime_ZZ(pbits, 100);
   if (!NTL::ProbPrime(p)) {
     std::cerr << argv[0] << ". " << p << " does not look like a prime number. Aborting..." << std::endl;
