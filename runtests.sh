@@ -88,8 +88,8 @@ run_simulations() {
       e=$(($e + 1))
     
       k=$($CHPARBIN -q -l $l -n $n -p $PROBEXP)
-      LOGFILE="${PREFIX}k${k}_l${l}_b${GENP}_p${P}_errs.log"
-      OUTFILE="${PREFIX}k${k}_l${l}_b${GENP}_p${P}.dat"
+      LOGFILE="${PREFIX}k${k}_l${l}_n${n}_b${GENP}_p${P}_errs.log"
+      OUTFILE="${PREFIX}k${k}_l${l}_n${n}_b${GENP}_p${P}.dat"
       pn=$(pow2 $n)
       
       printf " ------ Experiment \"$e/$etot\" launched.\n"
