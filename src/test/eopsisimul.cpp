@@ -321,6 +321,7 @@ int main(int argc, char **argv) {
   nThreads = 1;
   
   // Initialise modulo operations in NTL
+  NTL::SetSeed(NTL::to_ZZ(time(NULL)));
   fieldsize = NTL::GenPrime_ZZ(fieldsizeBits, 100);
   if (!NTL::ProbPrime(fieldsize)) {
     std::cerr << argv[0] << ". " << fieldsize << " does not look like a prime number. Aborting..." << std::endl;
