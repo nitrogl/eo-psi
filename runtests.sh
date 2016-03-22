@@ -124,8 +124,8 @@ fill_pow2 20
 #run_simulations "20 50 100 200" "17" "$(date +"%s")_experiments-size-vs-time_"
 #run_simulations "120 140 160 180" "17" "$(date +"%s")_experiments-size-vs-time_"
 # run_simulations "30 300 400 500" "17" "$(date +"%s")_experiments-size-vs-time_"
-run_simulations "100 120" "10 13 15 17 20" "$(date +"%s")_experiments-size-vs-time_"
-# run_simulations "20 50 100 110 119 120 121 125 130 140 160 180 200 300 400 500" "10" "$(date +"%s")_experiments-size-vs-time_"
+# run_simulations "100 120" "10 13 15 17 20" "$(date +"%s")_experiments-size-vs-time_"
+run_simulations "30 50 100 110 119 120 121 125 130 140 160 180 200 300 400 500" "13" "$(date +"%s")_experiments-size-vs-time_"
 
 
 
