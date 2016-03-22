@@ -56,6 +56,14 @@ protected:
    * @param toCursor last cursor to use
    */
   virtual std::chrono::microseconds sumNotPausedTimes(size_t fromCursor, size_t toCursor) const;
+  
+  /**
+   * Count times not in pause.
+   * 
+   * @param fromCursor first cursor to use
+   * @param toCursor last cursor to use
+   */
+  virtual size_t countNotPausedTimes(size_t fromCursor, size_t toCursor) const;
 
 public:
   static constexpr std::chrono::microseconds ZEROMS = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::duration::zero()); ///< Zero
@@ -155,21 +163,21 @@ public:
    * 
    * @return the average time in microseconds.
    */
-  double average() const;
+  double average(const bool noPauses = true) const;
   
   /**
    * Variance taking into account all steps
    * 
    * @return the variance time taken in microseconds squared.
    */
-  double variance() const;
+  double variance(const bool noPauses = true) const;
   
   /**
    * Standard deviation taking into account all steps
    * 
    * @return the standard deviation time taken in microseconds.
    */
-  double standardDeviation() const;
+  double standardDeviation(const bool noPauses = true) const;
 };
 //-----------------------------------------------------------------------------
 

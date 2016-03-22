@@ -55,12 +55,25 @@ std::chrono::microseconds SimpleBenchmark::sumNotPausedTimes(size_t fromCursor, 
   std::chrono::microseconds sum;
   
   sum = SimpleBenchmark::ZEROMS;
-  for (size_t i = fromCursor; i < toCursor; i++) {
+  for (size_t i = fromCursor > 0 ? fromCursor : 1; i < (toCursor <= this->times.size() ? toCursor : this->times.size()); i++) {
     if (!this->pauses[i]) {
       sum += std::chrono::duration_cast<std::chrono::microseconds>(this->times[i] - this->times[i - 1]);
     }
   }
   return sum;
+}
+//-----------------------------------------------------------------------------
+
+size_t SimpleBenchmark::countNotPausedTimes(size_t fromCursor, size_t toCursor) const {
+  size_t count;
+  
+  count = 0;
+  for (size_t i = fromCursor > 0 ? fromCursor : 1; i < (toCursor <= this->times.size() ? toCursor : this->times.size()); i++) {
+    if (!this->pauses[i]) {
+      count++;
+    }
+  }
+  return count;
 }
 //-----------------------------------------------------------------------------
 
@@ -192,42 +205,50 @@ std::chrono::microseconds SimpleBenchmark::cumulativeBenchmark(const std::string
 }
 //-----------------------------------------------------------------------------
 
-double SimpleBenchmark::average() const {
+double SimpleBenchmark::average(const bool noPauses) const {
   if (this->times.size() < 2) {
     std::cerr << "average(). Not enough points to average." << std::endl;
     return 0.;
   }
-  return this->cumulativeBenchmark().count() / (double) (this->times.size() - 1);
+  if (noPauses) {
+    return this->cumulativeBenchmark(false).count() / (double) this->countNotPausedTimes(1, this->times.size());
+  } else {
+    return this->cumulativeBenchmark().count() / (double) (this->times.size() - 1);
+  }
 }
 //-----------------------------------------------------------------------------
 
-double SimpleBenchmark::variance() const {
+double SimpleBenchmark::variance(const bool noPauses) const {
   double avg, var, diff;
   size_t n;
+  unsigned long x;
   
   if (this->times.size() < 2) {
     std::cerr << "variance(). Not enough points to compute standard deviation." << std::endl;
     return 0.;
   }
   
-  avg = this->average();
+  avg = this->average(noPauses);
   n = this->times.size() - 1;
   var = 0.;
   for (size_t i = 1; i < this->times.size(); i++) {
-    diff = std::chrono::duration_cast<std::chrono::microseconds>(this->times[i] - this->times[i - 1]).count() - avg;
-    var += diff/n*diff;
+    if (noPauses && !this->pauses[i]) {
+      x = std::chrono::duration_cast<std::chrono::microseconds>(this->times[i] - this->times[i - 1]).count();
+      diff = x > avg ? x - avg : avg - x;
+      var += diff/n*diff;
+    }
   }
   
   return var;
 }
 //-----------------------------------------------------------------------------
 
-double SimpleBenchmark::standardDeviation() const {
+double SimpleBenchmark::standardDeviation(const bool noPauses) const {
   if (this->times.size() < 2) {
     std::cerr << "standardDeviation(). Not enough points to compute standard deviation." << std::endl;
     return 0.;
   }
   
-  return sqrt(this->variance());
+  return sqrt(this->variance(noPauses));
 }
 //-----------------------------------------------------------------------------
