@@ -55,6 +55,10 @@ run_tests() {
   set -e
 }
 
+round() {
+  printf "%.0f" $(echo "($1) + 0.5" | bc)
+}
+
 fill_pow2() {
   i=1
   p=1
@@ -78,30 +82,33 @@ pows2() {
 }
 
 run_simulations() {
-  PREFIX="$3"
-  etot=$(($(echo $1 | wc -w) * $(echo $2 | wc -w)))
+  PREFIX="$4"
+  etot=$(($(echo $1 | wc -w) * $(echo $2 | wc -w) * $(echo $3 | wc -w)))
   e=0
   for l in $1
   do
     for n in $2
     do
-      e=$(($e + 1))
-    
-      k=$($CHPARBIN -q -l $l -n $n -p $PROBEXP)
-      LOGFILE="${PREFIX}k${k}_l${l}_n${n}_b${GENP}_p${P}_errs.log"
-      OUTFILE="${PREFIX}k${k}_l${l}_n${n}_b${GENP}_p${P}.dat"
-      pn=$(pow2 $n)
+      for r in $3
+      do
+        e=$(($e + 1))
       
-      printf " ------ Experiment \"$e/$etot\" launched.\n"
-      echo $SIMULBIN -k $k -l $l -n $pn -r $(($pn / 4)) -b $GENP -p $P
-      printf "Please, be patient..."
-      $SIMULBIN -k $k -l $l -n $pn -r $(($pn / 4)) -b $GENP -p $P > "$OUTFILE" 2> "$LOGFILE"
-      printf " completed.\n"
-      printf " ------ See output file: $OUTFILE\n"
-      printf " ------ See log file: $LOGFILE\n"
-      printf "\n\n"
-    done
-  done
+        k=$($CHPARBIN -q -l $l -n $n -p $PROBEXP)
+        LOGFILE="${PREFIX}k${k}_l${l}_n${n}_r${r}_b${GENP}_p${P}_errs.log"
+        OUTFILE="${PREFIX}k${k}_l${l}_n${n}_r${r}_b${GENP}_p${P}.dat"
+        pn=$(pow2 $n)
+        
+        printf " ------ Experiment \"$e/$etot\" launched.\n"
+        echo $SIMULBIN -k $k -l $l -n $pn -r $(round "$pn * $r") -b $GENP -p $P
+        printf "Please, be patient..."
+        $SIMULBIN -k $k -l $l -n $pn -r $(round "$pn * $r") -b $GENP -p $P > "$OUTFILE" 2> "$LOGFILE"
+        printf " completed.\n"
+        printf " ------ See output file: $OUTFILE\n"
+        printf " ------ See log file: $LOGFILE\n"
+        printf "\n\n"
+        done # r
+    done # n
+  done # l
 }
 
 build
@@ -119,15 +126,17 @@ cd build
 # P="604462909807314587353111" generate_rnd_zz
 # $BPTESTBIN -a MH3    -k 16536 -l 128 -p $P -i $FILE
 
-# Simulations
+# Initialise powers of two
 fill_pow2 20
-#run_simulations "20 50 100 200" "17" "$(date +"%s")_experiments-size-vs-time_"
-#run_simulations "120 140 160 180" "17" "$(date +"%s")_experiments-size-vs-time_"
-# run_simulations "30 300 400 500" "17" "$(date +"%s")_experiments-size-vs-time_"
-# run_simulations "100 120" "10 13 15 17 20" "$(date +"%s")_experiments-size-vs-time_"
-# run_simulations "30 50 100 110 119 120 121 125 130 140 160 180 200 300 400 500" "15" "$(date +"%s")_experiments-size-vs-time_"
-run_simulations "110 119" "17" "$(date +"%s")_experiments-size-vs-time_"
-run_simulations "30 50 100 110 119 120 121 125 130 140 160 180 200 300 400 500" "20" "$(date +"%s")_experiments-size-vs-time_"
+
+# Simulations
+#run_simulations "20 50 100 200" "17" ".25" "$(date +"%s")_experiments-size-vs-time_"
+#run_simulations "120 140 160 180" "17" ".25" "$(date +"%s")_experiments-size-vs-time_"
+# run_simulations "30 300 400 500" "17" ".25" "$(date +"%s")_experiments-size-vs-time_"
+# run_simulations "100 120" "10 13 15 17 20" ".25" "$(date +"%s")_experiments-performance_"
+#run_simulations "30 50 100 110 119 120 121 125 130 140 160 180 200 300 400 500" "10 13 15 17 20" ".25" "$(date +"%s")_experiments-size-vs-time_"
+run_simulations "100" "10 13 15 17 20" ".25" "$(date +"%s")_experiments-performance_"
+run_simulations "100" "10 15 17 20" "0 .1 .2 .3 .4 .5 .6 .7 .8 .9 1" "$(date +"%s")_experiments-performance-setcap_"
 
 
 
