@@ -13,7 +13,7 @@
  * @param prgnam the name of the program/binary called
  */
 static void printUsage(const char *prgnam) {
-  std::cout << "Syntax: " << prgnam << " -h -p <bits> -n <number> -b <bits> -o <outfile>\n"
+  std::cout << "Syntax: " << prgnam << " -h -n <number> -b <bits> -o <outfile>\n"
             << " -b : maximum number of bits for generated numbers\n"
             << " -n : amount of random numbers to generate\n"
             << " -o : file name to store generated numbers\n"
