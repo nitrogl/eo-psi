@@ -20,7 +20,7 @@ static void printUsage(const char *prgnam) {
             << " -b : maximum number of bits for generated roots\n"
             << " -d : degree of polynomials\n"
             << " -n : number of experiments\n"
-            << " -q : be quiet (shows only factorisation average and error in ms, and total in seconds)\n"
+            << " -q : be quiet (shows only factorisation average, error, min and max in ms, and total in seconds)\n"
             << " -h : show this message and exit\n"
             << std::endl;
 }
@@ -147,16 +147,22 @@ int main(int argc, char **argv) {
     std::cout << " -- Random Generation"
               << "\n\t   Avg: " << bmGen->average()/1000. << " ms"
               << "\n\tStdDev: " << bmGen->standardDeviation()/1000. << " ms"
+              << "\n\t   Min: " << bmGen->min().count()/1000. << " ms"
+              << "\n\t   Max: " << bmGen->max().count()/1000. << " ms"
               << "\n\t Total: " << bmGen->cumulativeBenchmark().count()/1000000. << " s"
               << "\n" << std::endl;
     std::cout << " -- Factorisation"
               << "\n\t   Avg: " << bmFact->average()/1000. << " ms"
               << "\n\tStdDev: " << bmFact->standardDeviation()/1000. << " ms"
+              << "\n\t   Min: " << bmFact->min().count()/1000. << " ms"
+              << "\n\t   Max: " << bmFact->max().count()/1000. << " ms"
               << "\n\t Total: " << bmFact->cumulativeBenchmark().count()/1000000. << " s"
               << "\n" << std::endl;
   } else {
     std::cout << bmFact->average()/1000. << "\t"
               << bmFact->standardDeviation()/1000. << "\t"
+              << bmFact->min().count()/1000. << "\t"
+              << bmFact->max().count()/1000. << "\t"
               << bmFact->cumulativeBenchmark().count()/1000000.
               << std::endl;
   }
