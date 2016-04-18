@@ -113,11 +113,14 @@ run_simulations() {
 }
 
 run_polyfact() {
-  for bins in $1
+  printf " --- Experiments: $1\n"
+  printf " --- Bits: $2\n"
+  printf "Bins\tAvg\tStdDev\tMin\tMax\tTotal\n"
+  for bins in $3
   do
     d=$((2 * $bins + 1))
     printf "$bins\t"
-#     $POLYFACTBIN -q -n 100 -b 113 -d $d
+    $POLYFACTBIN -q -n $1 -b $2 -d $d
   done
 }
 
@@ -151,5 +154,5 @@ fill_pow2 20
 
 
 # Run test on polynomial factoring
-run_polyfact "30 50 100 110 119 120 121 125 130 140 160 180 200 300"
+run_polyfact 100 113 "30 50 100 110 119 120 121 125 130 140 160 180 200 300"
 
