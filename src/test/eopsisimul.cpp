@@ -373,7 +373,7 @@ int main(int argc, char **argv) {
   bm.step("set-B");
   
   // Generation stats
-  std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Generating minimum commond data required " << bm.benchmark("min-cap").count()/1000. << " ms" << std::endl;
+  std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Generating minimum common data required " << bm.benchmark("min-cap").count()/1000. << " ms" << std::endl;
   std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Generating random data for A required " << bm.benchmark("set-A").count()/1000. << " ms" << std::endl;
   std::cout << EOPSI_MESSAGE_OUTSOURCING_DATA << ". Generating random data for B required " << bm.benchmark("set-B").count()/1000. << " ms" << std::endl;
   
