@@ -14,6 +14,9 @@
 #include <unordered_map>
 
 #define INIT_TIMES_SIZE 1024
+
+#define SIMPLE_BENCHMARK_MIN false
+#define SIMPLE_BENCHMARK_MAX true
 //-----------------------------------------------------------------------------
 
 /**
@@ -32,15 +35,25 @@ class SimpleBenchmark {
 private:
   /**
    * Take the current time.
+   * 
+   * @param cursor The cursor given when st[eo]pping.
    */
   void takeTime(const std::string cursor);
+  
+  /**
+   * Take the current time.
+   * 
+   * @param pausing take the time as a paused time
+   * @param cursor The cursor given when st[eo]pping.
+   */
   void takeTime(const bool pausing = false, const std::string cursor = "");
+  
   
 protected:
   std::vector<std::chrono::high_resolution_clock::time_point> times; ///< All the times taken.
   bool stopped;                                                      ///< The stopped state of the chronometer.
   std::unordered_map<std::string, size_t> cursors;                   ///< Associating strings to cursors
-  std::vector<bool> pauses;                                          ///< Associating strings to cursors
+  std::vector<bool> pauses;                                          ///< Pauses
   
   /**
    * Get the numeric cursor from its corresponding string.
@@ -64,6 +77,18 @@ protected:
    * @param toCursor last cursor to use
    */
   virtual size_t countNotPausedTimes(size_t fromCursor, size_t toCursor) const;
+  
+  /**
+   * Get the minimum/maximum of steps taken.
+   * For the first argument, you may find the following definitions useful:
+   * <ul>
+   *    <li><tt>SIMPLE_BENCHMARK_MIN</tt></li>
+   *    <li><tt>SIMPLE_BENCHMARK_MAX</tt></li>
+   * </ul>
+   * 
+   * @return the shortest/greatest step time taken
+   */
+  virtual std::chrono::microseconds minOrMax(const bool giveMax = SIMPLE_BENCHMARK_MIN, const bool noPauses = true) const;
 
 public:
   static constexpr std::chrono::microseconds ZEROMS = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::duration::zero()); ///< Zero
@@ -178,6 +203,20 @@ public:
    * @return the standard deviation time taken in microseconds.
    */
   double standardDeviation(const bool noPauses = true) const;
+  
+  /**
+   * Get the maximum of steps taken.
+   * 
+   * @return the shortest step time taken
+   */
+  std::chrono::microseconds max(const bool noPauses = true) const;
+  
+  /**
+   * Get the minimum of steps taken.
+   * 
+   * @return the greatest step time taken
+   */
+  std::chrono::microseconds min(const bool noPauses = true) const;
 };
 //-----------------------------------------------------------------------------
 

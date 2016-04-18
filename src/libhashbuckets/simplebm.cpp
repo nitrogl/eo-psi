@@ -77,6 +77,50 @@ size_t SimpleBenchmark::countNotPausedTimes(size_t fromCursor, size_t toCursor) 
 }
 //-----------------------------------------------------------------------------
 
+std::chrono::microseconds SimpleBenchmark::minOrMax(const bool giveMax, const bool noPauses) const {
+  std::chrono::microseconds min, max, currentInterval;
+  size_t i;
+  
+  if ((this->times.size() < 2) || (!noPauses && (this->countNotPausedTimes(this->times.size(), 0) < 2))) {
+    std::cerr << "minOrMax(). No intervals taken." << std::endl;
+    return ZEROMS;
+  }
+  
+  if (noPauses) {
+    i = 0;
+    while (++i < this->times.size()) {
+      if (!this->pauses[i]) {
+        min = max = std::chrono::duration_cast<std::chrono::microseconds>(this->times[i] - this->times[i - 1]);
+        break;
+      }
+    }
+    
+    for (; i < this->times.size(); i++) {
+      if (!this->pauses[i]) {
+        currentInterval = std::chrono::duration_cast<std::chrono::microseconds>(this->times[i] - this->times[i - 1]);
+        if (currentInterval < min) {
+          min = currentInterval;
+        } else if (currentInterval > max) {
+          max = currentInterval;
+        }
+      }
+    }
+  } else {
+    min = max = std::chrono::duration_cast<std::chrono::microseconds>(this->times[1] - this->times[0]);
+    for (i = 2; i < this->times.size(); i++) {
+      currentInterval = std::chrono::duration_cast<std::chrono::microseconds>(this->times[i] - this->times[i - 1]);
+      if (currentInterval < min) {
+        min = currentInterval;
+      } else if (currentInterval > max) {
+        max = currentInterval;
+      }
+    }
+  }
+  
+  return (giveMax ? max : min);
+}
+//-----------------------------------------------------------------------------
+
 void SimpleBenchmark::start() {
   this->reset();
   this->takeTime();
@@ -131,7 +175,7 @@ void SimpleBenchmark::pause(const std::string cursor) {
 //-----------------------------------------------------------------------------
 
 void SimpleBenchmark::cont() {
-  step();
+  this->step();
 }
 //-----------------------------------------------------------------------------
 
@@ -206,7 +250,7 @@ std::chrono::microseconds SimpleBenchmark::cumulativeBenchmark(const std::string
 //-----------------------------------------------------------------------------
 
 double SimpleBenchmark::average(const bool noPauses) const {
-  if (this->times.size() < 2) {
+  if ((this->times.size() < 2) || (!noPauses && (this->countNotPausedTimes(this->times.size(), 0) < 2))) {
     std::cerr << "average(). Not enough points to average." << std::endl;
     return 0.;
   }
@@ -223,8 +267,8 @@ double SimpleBenchmark::variance(const bool noPauses) const {
   size_t n;
   unsigned long x;
   
-  if (this->times.size() < 2) {
-    std::cerr << "variance(). Not enough points to compute standard deviation." << std::endl;
+  if ((this->times.size() < 2) || (!noPauses && (this->countNotPausedTimes(this->times.size(), 0) < 2))) {
+    std::cerr << "variance(). Not enough points to compute variance." << std::endl;
     return 0.;
   }
   
@@ -244,11 +288,31 @@ double SimpleBenchmark::variance(const bool noPauses) const {
 //-----------------------------------------------------------------------------
 
 double SimpleBenchmark::standardDeviation(const bool noPauses) const {
-  if (this->times.size() < 2) {
+  if ((this->times.size() < 2) || (!noPauses && (this->countNotPausedTimes(this->times.size(), 0) < 2))) {
     std::cerr << "standardDeviation(). Not enough points to compute standard deviation." << std::endl;
     return 0.;
   }
   
   return sqrt(this->variance(noPauses));
+}
+//-----------------------------------------------------------------------------
+
+std::chrono::microseconds SimpleBenchmark::max(const bool noPauses) const {
+  if ((this->times.size() < 2) || (!noPauses && (this->countNotPausedTimes(this->times.size(), 0) < 2))) {
+    std::cerr << "max(). No intervals taken." << std::endl;
+    return ZEROMS;
+  }
+  
+  return this->minOrMax(SIMPLE_BENCHMARK_MAX, noPauses);
+}
+//-----------------------------------------------------------------------------
+
+std::chrono::microseconds SimpleBenchmark::min(const bool noPauses) const {
+  if ((this->times.size() < 2) || (!noPauses && (this->countNotPausedTimes(this->times.size(), 0) < 2))) {
+    std::cerr << "min(). No intervals taken." << std::endl;
+    return ZEROMS;
+  }
+  
+  return this->minOrMax(SIMPLE_BENCHMARK_MIN, noPauses);
 }
 //-----------------------------------------------------------------------------
