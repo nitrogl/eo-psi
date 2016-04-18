@@ -139,12 +139,11 @@ int main(int argc, char **argv) {
   }
   bmGen->stop();
   bmFact->stop();
+  
   if (!quiet) {
     std::cout << " done.\n" << std::endl;
-  }
   
-  // Stats
-  if (!quiet) {
+    // Stats
     std::cout << " -- Random Generation"
               << "\n\t   Avg: " << bmGen->average()/1000. << " ms"
               << "\n\tStdDev: " << bmGen->standardDeviation()/1000. << " ms"
