@@ -43,11 +43,11 @@ int main(int argc, char **argv) {
         break;
         
       case 'n':
-        n = atol(optarg); 
+        n = atol(optarg);
         break;
         
       case 'o':
-        outfilename = optarg; 
+        outfilename = optarg;
         break;
         
       case '?':
