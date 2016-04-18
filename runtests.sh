@@ -7,6 +7,7 @@ HBTESTBIN="src/test/hbtest"
 BPTESTBIN="src/test/bptest"
 SIMULBIN="src/test/eopsisimul"
 CHPARBIN="src/test/cherpars"
+POLYFACTBIN="src/test/polyfact"
 
 N="1000000"
 GENP="32"
@@ -111,6 +112,15 @@ run_simulations() {
   done # l
 }
 
+run_polyfact() {
+  for bins in $1
+  do
+    d=$((2 * $bins + 1))
+    printf "$bins\t"
+#     $POLYFACTBIN -q -n 100 -b 113 -d $d
+  done
+}
+
 build
 cd build
 
@@ -135,9 +145,11 @@ fill_pow2 20
 # run_simulations "30 300 400 500" "17" ".25" "$(date +"%s")_experiments-size-vs-time_"
 # run_simulations "100 120" "10 13 15 17 20" ".25" "$(date +"%s")_experiments-performance_"
 #run_simulations "30 50 100 110 119 120 121 125 130 140 160 180 200 300 400 500" "10 13 15 17 20" ".25" "$(date +"%s")_experiments-size-vs-time_"
-run_simulations "100" "10 13 15 17 20" ".25" "$(date +"%s")_experiments-performance_"
-run_simulations "100" "10 15 17 20" "0 .1 .2 .3 .4 .5 .6 .7 .8 .9 1" "$(date +"%s")_experiments-performance-setcap_"
+# run_simulations "100" "10 13 15 17 20" ".25" "$(date +"%s")_experiments-performance_"
+# run_simulations "100" "10 13 15 17 20" "0 .1 .2 .3 .4 .5 .6 .7 .8 .9 1" "$(date +"%s")_experiments-performance-setcap_"
+# run_simulations "100" "20" ".2 .3 .9" "1458695627_experiments-performance-setcap_"
 
 
-
+# Run test on polynomial factoring
+run_polyfact "30 50 100 110 119 120 121 125 130 140 160 180 200 300"
 

@@ -48,4 +48,11 @@ target_link_libraries (eopsisimul ntl gmpxx gmp cryptopp)
 target_link_libraries (eopsisimul "${CMAKE_THREAD_LIBS_INIT}")
 set_target_properties (eopsisimul PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# Add executable "polyfact"
+add_executable(polyfact polyfact.cpp)
+target_link_libraries (polyfact "${LIBRARY_NAME}")
+target_link_libraries (polyfact ntl gmpxx gmp cryptopp)
+target_link_libraries (polyfact "${CMAKE_THREAD_LIBS_INIT}")
+set_target_properties (polyfact PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # Copyright (C) 2015 Roberto Metere
