@@ -19,7 +19,7 @@ add_library (${LIBRARY_NAME} SHARED
         eopsiparty.cpp
         eopsiserver.cpp
         eopsiclient.cpp
-        libhashbuckets.rc
+        libeopsi.rc
         )
 
 # Arrange some properties, differing between OSes

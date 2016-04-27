@@ -2,7 +2,7 @@
 # Authors : Roberto Metere
 #
 # Main cmake file.
-set (LIBRARY_NAME "hashbuckets")
+set (LIBRARY_NAME "eopsi")
 
 # Set the makefile verbose
 set (CMAKE_VERBOSE_MAKEFILE 1)

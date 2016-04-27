@@ -3,7 +3,7 @@
 #include <fstream>
 #include <getopt.h>
 
-#include <libhashbuckets.h>
+#include <libeopsi.h>
 #include "zzrndgen.h"
 //-----------------------------------------------------------------------------
 

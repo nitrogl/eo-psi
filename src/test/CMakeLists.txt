@@ -3,7 +3,7 @@
 #
 # Test cmake file.
 
-# Make sure the compiler can find include files from the "hashbuckets" library.
+# Make sure the compiler can find include files from the "eopsi" library.
 include_directories (
   "${PROJECT_SOURCE_DIR}/"
   "../"

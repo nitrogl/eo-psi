@@ -4,7 +4,7 @@
 #include <getopt.h>
 #include <NTL/ZZ_p.h>
 
-#include <libhashbuckets.h>
+#include <libeopsi.h>
 #include "hbtest.h"
 //-----------------------------------------------------------------------------
 

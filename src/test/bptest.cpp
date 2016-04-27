@@ -7,7 +7,7 @@
 #include <NTL/ZZ_p.h>
 #include <NTL/ZZ_pX.h>
 
-#include <libhashbuckets.h>
+#include <libeopsi.h>
 #include "bptest.h"
 //-----------------------------------------------------------------------------
 

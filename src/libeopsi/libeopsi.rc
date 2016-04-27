@@ -7,12 +7,12 @@ BEGIN
     BLOCK "040904E4"
     BEGIN
       VALUE "CompanyName", "Roberto Metere"
-      VALUE "FileDescription", "Hash table for big integers modulo p, blind polynomial evaluation roots"
+      VALUE "FileDescription", "Efficient Outsourced Private Set Intersection"
       VALUE "FileVersion", "0.1"
-      VALUE "InternalName", "hashbuckets"
+      VALUE "InternalName", "eopsi"
       VALUE "LegalCopyright", "Roberto Metere"
-      VALUE "OriginalFilename", "hashbuckets"
-      VALUE "ProductName", "hashbuckets C++ library"
+      VALUE "OriginalFilename", "eopsi"
+      VALUE "ProductName", "EO-PSI Protocol C++ library"
       VALUE "ProductVersion", "1.0"
     END
   END

@@ -6,7 +6,7 @@
 #include <NTL/ZZ_pXFactoring.h>
 #include <NTL/vec_ZZ_p.h>
 #include <NTL/pair_ZZ_pX_long.h>
-#include <libhashbuckets.h>
+#include <libeopsi.h>
 #include "polyfact.h"
 //-----------------------------------------------------------------------------
 

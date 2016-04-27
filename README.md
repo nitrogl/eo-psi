@@ -1,5 +1,7 @@
-HashBuckets Library
-===================
+EO-PSI Protocol
+===============
+
+Efficient protocol to both privately outsource set data to the cloud and privately outsource secure computation of the Private Set Intersection of two clients.
 
 Dependencies
 ------------
@@ -19,7 +21,7 @@ Notice that for some distros you need to install *-dev packages too.
 
 Clone the repository; then,
 
-    $ cd haskbuckets
+    $ cd eo-psi
     $ mkdir -p build
     $ cd build
     $ cmake ../

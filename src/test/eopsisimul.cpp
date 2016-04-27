@@ -5,7 +5,7 @@
 #include <cstdarg>
 #include <set>
 
-#include <libhashbuckets.h>
+#include <libeopsi.h>
 #include "eopsisimul.h"
 //-----------------------------------------------------------------------------
 
