@@ -1,6 +1,5 @@
 # Date : Jan 8, 2015
 # Author : Roberto Metere
-# Project : ZBadge badge code algorithm
 
 # Get informations about the installation from the file "install_manifest.txt"
 if (NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
