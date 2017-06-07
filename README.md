@@ -50,4 +50,4 @@ Depending on your system, there are several and different ways you can easily fi
 
 Publication
 -----------
-[Efficient Delegated Private Set Intersection on Outsourced Private Datasets](http://ieeexplore.ieee.org/document/7934388/
+[Efficient Delegated Private Set Intersection on Outsourced Private Datasets](http://ieeexplore.ieee.org/document/7934388/ "IEEE Transactions on Dependable and Secure Computing")
