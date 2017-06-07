@@ -81,6 +81,8 @@ std::chrono::microseconds SimpleBenchmark::minOrMax(const bool giveMax, const bo
   std::chrono::microseconds min, max, currentInterval;
   size_t i;
   
+  min = max = currentInterval = ZEROMS;
+  
   if ((this->times.size() < 2) || (!noPauses && (this->countNotPausedTimes(this->times.size(), 0) < 2))) {
     std::cerr << "minOrMax(). No intervals taken." << std::endl;
     return ZEROMS;
