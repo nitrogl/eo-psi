@@ -105,6 +105,7 @@ void ZZpPolynomials::factorise(const PolynomialFactoringAlgorithm pfa) {
     
     default:
       std::cerr << "factorise(). WARNING: Unknown polynomial algorithm provided, default to CanZass." << std::endl;
+      /* FALLTHRU */
     case PFA_CANZASS:
       fact = &NTL::CanZass;
       break;
@@ -171,6 +172,7 @@ NTL::vec_ZZ& ZZpPolynomials::findIntersection(NTL::vec_ZZ_p& x, NTL::vec_ZZ_p *y
     
     default:
       std::cerr << "findIntersection(). WARNING: Unknown polynomial algorithm provided, default to CanZass." << std::endl;
+      /* FALLTHRU */
     case PFA_CANZASS:
       fact = &NTL::CanZass;
       break;

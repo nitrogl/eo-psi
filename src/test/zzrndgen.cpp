@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
         
       case '?':
         std::cerr << "Unrecognised option " << argv[op] << std::endl;
+        /* FALLTHRU */
       case 'h':
       default:
         printUsage(argv[0]);

@@ -134,6 +134,7 @@ int main(int argc, char **argv) {
         
       case '?':
         std::cerr << argv[0] << ". Unrecognised option " << argv[op] << std::endl;
+        /* FALLTHRU */
       case 'h':
       default:
         printUsage(argv[0]);
