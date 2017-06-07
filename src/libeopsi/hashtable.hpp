@@ -75,7 +75,7 @@ public:
    * 
    * @param i the index of the bucket to get
    */
-  U getBucket(size_t i) throw (OutOfBoundException) {
+  U getBucket(size_t i) {
     return (i >= 0 && i < k) ? buckets[i] : throw OutOfBoundException("getBucket(). Index out of bounds.", OutOfBoundException::FATAL);;
   }
   

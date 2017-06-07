@@ -70,8 +70,8 @@ public:
   virtual void setType(const EOPSIPartyType type);
   virtual EOPSIPartyType getType() const;
   
-  virtual void send(EOPSIParty& party, EOPSIMessage* msg) throw (ProtocolException);
-  virtual void receive(EOPSIMessage* msg) throw (ProtocolException) = 0;
+  virtual void send(EOPSIParty& party, EOPSIMessage* msg);
+  virtual void receive(EOPSIMessage* msg) = 0;
   
   virtual void authenticate(EOPSIParty& party);
   virtual bool hasAuthenticated(const std::string id) const;

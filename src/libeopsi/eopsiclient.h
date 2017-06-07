@@ -42,7 +42,7 @@ public:
   EOPSIClient(HashBuckets<NTL::ZZ_p>& hashBuckets, const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id = "", const byte *secret = nullptr, const size_t secretLen = 0);
   virtual ~EOPSIClient();
   
-  virtual void receive(EOPSIMessage* msg) throw (ProtocolException);
+  virtual void receive(EOPSIMessage* msg);
   virtual bool isAuthorised(const EOPSIMessage* msg) const;
   
   virtual void setRawData(NTL::ZZ *rawData, const size_t size, const size_t dataBits, const unsigned int nThreads = 0);

@@ -20,7 +20,7 @@ EOPSIServer::~EOPSIServer() {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIServer::receive(EOPSIMessage* msg) throw (ProtocolException) {
+void EOPSIServer::receive(EOPSIMessage* msg) {
   EOPSIParty *sender;
   std::string msgClaimedId;
   std::string partnerId;

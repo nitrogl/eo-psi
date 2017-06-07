@@ -52,8 +52,8 @@ public:
    */
   size_t getMaxLoad() const;
   
-  void add(const T& element) throw (OutOfBoundException);
-  void addToBucket(const T& element, size_t i) throw (OutOfBoundException);
+  void add(const T& element);
+  void addToBucket(const T& element, size_t i);
   void setHashAlgorithm(const HashAlgorithm<T>* hashAlgorithm);
   
   /**
@@ -119,7 +119,7 @@ template <typename T> void HashBuckets<T>::setHashAlgorithm(const HashAlgorithm<
 }
 //-----------------------------------------------------------------------------
 
-template <typename T> void HashBuckets<T>::add(const T& element) throw (OutOfBoundException) {
+template <typename T> void HashBuckets<T>::add(const T& element) {
   size_t index;
   
   if (this->hashStrInt != nullptr) {
@@ -141,7 +141,7 @@ template <typename T> void HashBuckets<T>::add(const T& element) throw (OutOfBou
 }
 //-----------------------------------------------------------------------------
 
-template <typename T> void HashBuckets<T>::addToBucket(const T& element, const size_t i) throw (OutOfBoundException) {
+template <typename T> void HashBuckets<T>::addToBucket(const T& element, const size_t i) {
   size_t index = i;
   if (index < this->k) {
     this->buckets[index].push_back(element);

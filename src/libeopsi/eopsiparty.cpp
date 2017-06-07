@@ -175,7 +175,7 @@ EOPSIPartyType EOPSIParty::getType() const {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIParty::send(EOPSIParty& party, EOPSIMessage* msg) throw (ProtocolException) {
+void EOPSIParty::send(EOPSIParty& party, EOPSIMessage* msg) {
   if (msg == nullptr) {
     throw ProtocolException("sending null messages is not allowed.");
   }

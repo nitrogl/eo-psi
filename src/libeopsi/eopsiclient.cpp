@@ -60,7 +60,7 @@ EOPSIClient::~EOPSIClient() {
 }
 //-----------------------------------------------------------------------------
 
-void EOPSIClient::receive(EOPSIMessage* msg) throw (ProtocolException) {
+void EOPSIClient::receive(EOPSIMessage* msg) {
   EOPSIParty *sender, *cloud;
   std::string msgClaimedId;
   NTL::ZZ otherSecret;

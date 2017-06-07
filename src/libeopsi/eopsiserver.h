@@ -27,7 +27,7 @@ public:
   EOPSIServer(const NTL::ZZ fieldsize, const size_t length, const size_t height, const size_t degree, const std::string id = "");
   virtual ~EOPSIServer();
   
-  virtual void receive(EOPSIMessage* msg) throw (ProtocolException);
+  virtual void receive(EOPSIMessage* msg);
   virtual bool isAuthorised(const EOPSIMessage* msg) const;
 };
 //-----------------------------------------------------------------------------
