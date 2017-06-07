@@ -51,7 +51,7 @@ StrInt::StrInt(const size_t bytes, const byte *n, const size_t len) {
       exit(2);
     }
     for (i = 0; i < len; i++) {
-      zero = '\0';
+      zero[i] = '\0';
     }
     this->set(zero, len);
     delete [] zero;
