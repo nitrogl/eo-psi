@@ -48,3 +48,6 @@ In order to use them correctly, just run them with the argument `-h` and read th
 If you do not want or can not install the library into your system, you may need to allow binary files to find the library files.
 Depending on your system, there are several and different ways you can easily find surfing the web.
 
+Publication
+-----------
+[Efficient Delegated Private Set Intersection on Outsourced Private Datasets](http://ieeexplore.ieee.org/document/7934388/
