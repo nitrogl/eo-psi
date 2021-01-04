@@ -9,6 +9,7 @@
 //-----------------------------------------------------------------------------
 
 #include <iostream>
+#include <sstream>
 #include "hashtable.hpp"
 
 #include "markedvector.hpp"
@@ -125,10 +126,12 @@ template <typename T> void HashBuckets<T>::add(const T& element) {
   if (this->hashStrInt != nullptr) {
     this->hashStrInt->set(this->hashAlgorithm->hash(element), this->hashAlgorithm->hashSize());
     index = this->hashStrInt->rem(this->k);
-//     std::cerr << *this->hashStrInt << " mod " << this->k << " = " << index << std::endl;
+//     std::cerr << element << " hashed to "<< *this->hashStrInt << " mod " << this->k << " = " << index << std::endl;
     
     if (this->buckets[index].size() == this->maxLoad) {
-      throw OutOfBoundException("HashBuckets<T>::addToBucket(). MarkedVector full.", OutOfBoundException::FATAL);
+      std::stringstream msg;
+      msg << "HashBuckets<T>::addToBucket(). MarkedVector " << index << " full.";
+      throw OutOfBoundException(msg.str(), OutOfBoundException::FATAL);
     }
   } else {
     index = 0;
