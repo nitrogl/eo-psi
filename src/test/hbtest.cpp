@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
   size_t n;
   NTL::ZZ_p *z = nullptr;
-  NTL::ZZ two, p;
+  NTL::ZZ two;
   size_t bits;
   SimpleBenchmark benchmark;
   
@@ -95,12 +95,11 @@ int main(int argc, char **argv) {
       std::cerr << argv[0] << ". WARNING: using default hash algorithm MurmurHash3." << std::endl;
       hashAlgorithm = new MurmurHash3(DEFAULT_MURMURHASH_SEED);
     }
-    hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad);
+    hashBuckets = new HashBuckets<NTL::ZZ_p>(length, maxLoad, hashAlgorithm);
   } catch (std::bad_alloc &) {
     std::cerr << argv[0] << ". Error allocating hash table." << std::endl;
     exit(2);
   }
-  hashBuckets->setHashAlgorithm(hashAlgorithm);
   
   // Open file with numbers
   if (infilename == DEFAULT_FILENAME) {
@@ -113,8 +112,7 @@ int main(int argc, char **argv) {
   }
   
   // Initialise numbers modulo p
-  infile >> p;
-  bits = NTL::NumBits(p);
+  infile >> bits;
   conv(two, 2);
   NTL::ZZ_p::init(NTL::power(two, bits));
   
