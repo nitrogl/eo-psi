@@ -3,6 +3,7 @@
 
 # Minimum version and project name
 cmake_minimum_required (VERSION 2.6)
+project("eo-psi")
 
 # Sources
 add_subdirectory (src)
