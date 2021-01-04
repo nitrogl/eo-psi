@@ -457,7 +457,7 @@ byte* MurmurHash3::hash(const NTL::ZZ_p n, const size_t len) {
   zzString = zzStreamString.str();
   truncLen = len > 0 && len < zzString.length() ? len : zzString.length();
   
-  murmurHash3_x64_128((const void *) zzString.c_str(), truncLen, (void *) this->hash128);
+  murmurHash3_x64_128((const void *) zzString.c_str(), 4*truncLen, (void *) this->hash128);
   return this->hash128;
 }
 //-----------------------------------------------------------------------------
