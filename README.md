@@ -35,13 +35,14 @@ where `$` at the beginning indicates that you should not need root permissions, 
 Running some tests
 ------------------
 
-The compilation produces three test binary files:
+The compilation produces three test binary files and two utility files:
 
-*   `zzrndgen`
-*   `hbtest`
-*   `bptest`
-*   `eopsisimul`
-*   `cherpars`
+*       `hbtest` # Test **h**ash **b**ucket functionality
+*       `bptest` # Test **b**lind **p**olynomial functionality
+*   `eopsisimul` # Local simulation of the EO-PSI protocol
+
+*     `zzrndgen` # Generate pseudo-random naturals of maximum given bits
+*     `cherpars` # Determine parameters using Chernoff bound
 
 In order to use them correctly, just run them with the argument `-h` and read the syntax.
 
