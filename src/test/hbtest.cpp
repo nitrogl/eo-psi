@@ -35,7 +35,7 @@ static void printUsage(const char *prgnam) {
 int main(int argc, char **argv) {
   HashBuckets<NTL::ZZ_p>* hashBuckets = nullptr;
   HashAlgorithm<NTL::ZZ_p>* hashAlgorithm = nullptr;
-  std::string infilename = DEFAULT_FILENAME;
+  std::string infilename = "";
   std::ifstream infile;
   size_t maxLoad = DEFAULT_HASHBUCKETS_MAXLOAD;
   size_t length = DEFAULT_HASHBUCKETS_LENGTH;
@@ -102,8 +102,9 @@ int main(int argc, char **argv) {
   }
   
   // Open file with numbers
-  if (infilename == DEFAULT_FILENAME) {
-    std::cerr << argv[0] << ". WARNING: using default input file name \"" << infilename << "\"." << std::endl;
+  if (infilename == "") {
+    std::cerr << argv[0] << ". WARNING: using default input file name '" << DEFAULT_FILENAME << "'." << std::endl;
+    infilename = DEFAULT_FILENAME;
   }
   infile.open(infilename, std::ifstream::in);
   if (infile.fail()) {
@@ -111,7 +112,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
   
-  // Initialise numbers modulo p
+  // Initialise numbers modulo 2^bits
   infile >> bits;
   conv(two, 2);
   NTL::ZZ_p::init(NTL::power(two, bits));

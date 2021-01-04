@@ -173,8 +173,9 @@ int main(int argc, char **argv) {
   nThreads = 1;
   
   // Open file with numbers
-  if (infilename == DEFAULT_FILENAME) {
-    std::cerr << argv[0] << ". WARNING: using default input file name \"" << infilename << "\"." << std::endl;
+  if (infilename == "") {
+    std::cerr << argv[0] << ". WARNING: using default input file name '" << DEFAULT_FILENAME << "'." << std::endl;
+    infilename = DEFAULT_FILENAME;
   }
   infile.open(infilename, std::ifstream::in);
   if (infile.fail()) {

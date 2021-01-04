@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   std::ofstream outfile;
   size_t n = DEFAULT_N;
   size_t plainSetBits = DEFAULT_PLAIN_SET_BITS;
-  std::string outfilename = DEFAULT_FILENAME;
+  std::string outfilename = "";
   ZZPRF zzprf;
   
   // Parse arguments
@@ -63,8 +63,9 @@ int main(int argc, char **argv) {
   srand(time(NULL));
   
   // Open file
-  if (outfilename == DEFAULT_FILENAME) {
-    std::cerr << argv[0] << ". WARNING: using default output file name." << std::endl;
+  if (outfilename == "") {
+    std::cerr << argv[0] << ". WARNING: using default output file name '" << DEFAULT_FILENAME << "'." << std::endl;
+    outfilename = DEFAULT_FILENAME;
   }
   outfile.open(outfilename, std::ofstream::out | std::ofstream::trunc);
   if (outfile.fail()) {
