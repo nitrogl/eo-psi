@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
   outfile.close();
   
   // Finish feedback
-  std::cout << n << " pseudo-random numbers of maximum " << plainSetBits << " have been successfully written to file \"" << outfilename << "\"" << std::endl;
+  std::cout << n << " pseudo-random numbers of maximum " << plainSetBits << " bits have been successfully written to file \"" << outfilename << "\"" << std::endl;
   
   return 0;
 }
