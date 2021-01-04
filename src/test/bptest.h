@@ -1,5 +1,5 @@
 /*
- * Implementation of a hash table with buckets as element containers, which
+ * Implementation of a hash table with buckets as element containers, whose
  * elements are used as roots of blind polynomials.
  * 
  * Copyright (C) 2015  Roberto Metere, Glasgow <roberto.metere@strath.ac.uk>
