@@ -56,7 +56,7 @@ protected:
           break;
         
         default:
-          std::cerr << "setFlavour(). The given flavour either is not a SHA-compatbile one or is not (yet) implemented." << std::endl;
+          std::cerr << "setFlavour(). The given flavour either is not a SHA-compatible one or is not (yet) implemented." << std::endl;
           /* FALLTHRU */
         case SHA1_FLAVOUR:
           this->sha = new CryptoPP::SHA1();
